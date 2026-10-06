@@ -569,7 +569,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
   <div class="hbadge sup" id="hdr-sup-badge">👤 <b id="hdr-sup">CAIO CESAR</b></div>
   <div class="hbadge desktop-only" id="hdr-state-badge">Estado: <b id="hdr-state">Consolidado</b></div>
   <div class="hbadge desktop-only" id="hdr-cons-badge">Consultor: <b id="hdr-cons">Todos</b></div>
-  <div class="hbadge desktop-only" id="hdr-month-badge">Período: <b id="hdr-month">Ano Todo (12M)</b></div>
+  <div class="hbadge desktop-only" id="hdr-month-badge">Período: <b id="hdr-month">Todo o período</b></div>
   <div class="hbadge file desktop-only" id="hdr-source-badge" title="Origem dos dados em exibição">📁 <b>Aguardando Planilha</b></div>
   <button class="btn btn-ghost btn-pill desktop-only" id="btn-switch-file" onclick="setPage('importar')" style="display:none;font-size:10px">📁 Trocar Planilha</button>
   <div class="notif-wrap" id="notif-wrap">
@@ -674,22 +674,10 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
     <div class="sidebar-section">
       <div class="filter-label" style="display:flex;justify-content:space-between;align-items:center">
         <span>Período / Mês</span>
-        <span style="font-size:9.5px;color:var(--orange);cursor:pointer;font-weight:700" onclick="setMonthFilter('todos')" title="Ver acumulado de todos os 12 meses">Ano Todo</span>
+        <span style="font-size:9.5px;color:var(--orange);cursor:pointer;font-weight:700" onclick="setMonthFilter('todos')" title="Ver acumulado de todos os meses da planilha">Todo o período</span>
       </div>
       <select class="form-select" id="sel-global-month" onchange="setMonthFilter(this.value)">
-        <option value="todos">📅 Ano Todo (Acumulado 12M)</option>
-        <option value="0">01 — Outubro/2025</option>
-        <option value="1">02 — Novembro/2025</option>
-        <option value="2">03 — Dezembro/2025</option>
-        <option value="3">04 — Janeiro/2026</option>
-        <option value="4">05 — Fevereiro/2026</option>
-        <option value="5">06 — Março/2026</option>
-        <option value="6">07 — Abril/2026</option>
-        <option value="7">08 — Maio/2026</option>
-        <option value="8">09 — Junho/2026</option>
-        <option value="9">10 — Julho/2026</option>
-        <option value="10">11 — Agosto/2026</option>
-        <option value="11">12 — Setembro/2026</option>
+        <option value="todos">📅 Todo o período</option>
       </select>
     </div>
 
@@ -714,7 +702,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
       <div class="page-header">
         <div>
           <div class="page-title">Painel Executivo — <span id="view-sup-title">Supervisor Caio Cesar</span></div>
-          <div class="page-subtitle">Desempenho comercial consolidado e evolução das carteiras nos 12 meses</div>
+          <div class="page-subtitle">Desempenho comercial consolidado e evolução das carteiras no período da planilha</div>
         </div>
         <div class="page-actions">
           <button class="btn btn-ghost" onclick="setPage('importar')">📥 Trocar Planilha</button>
@@ -730,7 +718,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
       <div class="chart-card" style="margin-bottom:20px">
         <div class="chart-head">
           <div>
-            <div class="chart-title">🎯 Atingimento das Metas do Mês (<span id="gauge-month-label">Setembro/2026</span>)</div>
+            <div class="chart-title">🎯 Atingimento das Metas do Mês (<span id="gauge-month-label">—</span>)</div>
             <div class="chart-subtitle">Progresso semafórico em tempo real da equipe vs metas estabelecidas</div>
           </div>
           <button class="btn btn-ghost btn-pill" onclick="setPage('metas')" style="font-size:11px">⚙️ Ajustar Metas</button>
@@ -772,7 +760,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
         <div class="chart-card">
           <div class="chart-head">
             <div>
-              <div class="chart-title">📐 Projeção de Fim do Mês por Dias Úteis (<span id="proj-month-title">Setembro/2026</span>)</div>
+              <div class="chart-title">📐 Projeção de Fim do Mês por Dias Úteis (<span id="proj-month-title">—</span>)</div>
               <div class="chart-subtitle" id="proj-biz-desc">Extrapolação linear calculada com base no ritmo médio diário de vendas da equipe</div>
             </div>
             <div class="proj-tabs" id="proj-metric-tabs">
@@ -794,7 +782,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
           <div class="chart-head">
             <div>
               <div class="chart-title" id="title-geral-timeline">Evolução Mensal do Faturamento &amp; Pedidos</div>
-              <div class="chart-subtitle" id="subtitle-geral-timeline">Histórico de Outubro/2025 até Setembro/2026</div>
+              <div class="chart-subtitle" id="subtitle-geral-timeline">Histórico mensal</div>
             </div>
             <div style="display:flex;gap:8px;align-items:center">
               <span class="chart-pill pill-r">R$ Faturamento</span>
@@ -1128,7 +1116,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
         <div class="chart-head">
           <div>
             <div class="chart-title">Selecione o Mês para Raio-X Individual</div>
-            <div class="chart-subtitle">Alterne entre os meses de Outubro/2025 a Setembro/2026</div>
+            <div class="chart-subtitle" id="mensal-months-sub">Alterne entre os meses disponíveis na planilha</div>
           </div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap" id="mensal-month-buttons"></div>
@@ -1194,7 +1182,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
       <!-- SEÇÃO: COMPARAÇÃO ANUAL POR CONSULTOR (12 MESES) -->
       <div style="margin-top:32px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
         <div>
-          <div style="font-size:16px;font-weight:700;letter-spacing:-.3px">Comparação Anual da Equipe — 12 Meses</div>
+          <div style="font-size:16px;font-weight:700;letter-spacing:-.3px">Comparação Mensal da Equipe — Período da Planilha</div>
           <div style="font-size:12px;color:var(--muted)">Progressão histórica e comparativo mensal de cada consultor</div>
         </div>
       </div>
@@ -1204,7 +1192,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
         <div class="chart-head">
           <div>
             <div class="chart-title" id="comp-fat-title">Faturamento por Consultor</div>
-            <div class="chart-subtitle">Progressão mensal de cada consultor no período de 12 meses</div>
+            <div class="chart-subtitle">Progressão mensal de cada consultor em todos os meses da planilha</div>
           </div>
           <span class="chart-pill pill-r">R$</span>
         </div>
@@ -1342,17 +1330,108 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
 <!-- ========================================================================= -->
 <script>
 // ─── CONSTANTES & MESES ────────────────────────────────────────────────────────
-const MONTH_KEYS = [
-  'outubro2025', 'novembro2025', 'dezembro2025',
-  'janeiro2026', 'fevereiro2026', 'março2026', 'abril2026',
-  'maio2026', 'junho2026', 'julho2026', 'agosto2026', 'setembro2026'
-];
-const MONTH_NAMES = [
-  'Outubro/25', 'Novembro/25', 'Dezembro/25',
-  'Janeiro/26', 'Fevereiro/26', 'Março/26', 'Abril/26',
-  'Maio/26', 'Junho/26', 'Julho/26', 'Agosto/26', 'Setembro/26'
-];
-const MONTH_SHORT = ['Out', 'Nov', 'Dez', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set'];
+// Os meses NÃO são mais fixos: são detectados automaticamente a partir das
+// colunas VL_EQUIP_<mês><ano> / QT_PEDIDO_<mês><ano> da planilha importada.
+// Os valores abaixo são apenas o padrão usado antes de qualquer importação.
+const PT_MONTHS = ['janeiro','fevereiro','marco','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const PT_MONTH_LABEL = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const PT_MONTH_SHORT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+let MONTH_KEYS = [];      // chave usada no nome da coluna (ex.: 'outubro2026')
+let MONTH_COLS = [];      // { fat: 'VL_EQUIP_outubro2026', ped: 'QT_PEDIDO_outubro2026' }
+let MONTH_NAMES = [];     // 'Outubro/26'
+let MONTH_SHORT = [];     // 'Out'
+let MONTH_YEAR_MAP = [];  // { y: 2026, m: 9 }
+let CURRENT_METAS_MONTH_IDX = 0; // último mês disponível = mês operacional (metas, projeções, corrida)
+
+function normMonthToken(str) {
+  return (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
+// Interpreta um token como 'março2026' / 'outubro_2026' / 'OUTUBRO2026'
+function parseMonthToken(token) {
+  const t = normMonthToken(token).replace(/[^a-z0-9]/g, '');
+  const mt = t.match(/^([a-z]+)(\d{4})$/);
+  if(!mt) return null;
+  const m = PT_MONTHS.indexOf(mt[1]);
+  if(m < 0) return null;
+  return { m, y: parseInt(mt[2], 10) };
+}
+
+// Aplica uma lista de meses [{key, y, m, fatCol, pedCol}] já ordenada cronologicamente
+function applyMonths(list) {
+  MONTH_KEYS = list.map(x => x.key);
+  MONTH_COLS = list.map(x => ({ fat: x.fatCol || ('VL_EQUIP_' + x.key), ped: x.pedCol || ('QT_PEDIDO_' + x.key) }));
+  MONTH_YEAR_MAP = list.map(x => ({ y: x.y, m: x.m }));
+  MONTH_NAMES = list.map(x => `${PT_MONTH_LABEL[x.m]}/${String(x.y).slice(-2)}`);
+  MONTH_SHORT = list.map(x => `${PT_MONTH_SHORT[x.m]}/${String(x.y).slice(-2)}`);
+  CURRENT_METAS_MONTH_IDX = Math.max(0, list.length - 1);
+  try {
+    STATE.selectedMonthIdx = CURRENT_METAS_MONTH_IDX;
+    if(STATE.month !== 'todos' && parseInt(STATE.month, 10) >= list.length) STATE.month = 'todos';
+  } catch(e) { /* STATE ainda não criado (carregamento inicial) */ }
+}
+
+// Lê os cabeçalhos da planilha e descobre quais meses existem
+function detectMonthsFromHeaders(headers, rows) {
+  const found = new Map();
+  headers.forEach(h => {
+    const mm = String(h).match(/^(VL_EQUIP|QT_PEDIDO)_(.+)$/i);
+    if(!mm) return;
+    const info = parseMonthToken(mm[2]);
+    if(!info) return;
+    const key = mm[2];
+    const id = info.y * 100 + info.m;
+    const cur = found.get(id) || { key: normMonthToken(key), y: info.y, m: info.m };
+    if(mm[1].toUpperCase() === 'VL_EQUIP') cur.fatCol = h; else cur.pedCol = h;
+    found.set(id, cur);
+  });
+  let list = Array.from(found.entries()).sort((a,b) => a[0] - b[0]).map(e => e[1]);
+  if(!list.length) return [];
+
+  // Mantém só os meses com alguma informação (faturamento ou pedido > 0).
+  // O mês mais recente da planilha é sempre mantido, mesmo que ainda esteja
+  // zerado (ex.: primeiro dia do mês).
+  const hasData = list.map(mo => rows.some(r => {
+    const f = mo.fatCol ? r[mo.fatCol] : 0;
+    const p = mo.pedCol ? r[mo.pedCol] : 0;
+    return (f !== '' && f != null && String(f).replace(/[^1-9]/g,'') !== '') ||
+           (p !== '' && p != null && String(p).replace(/[^1-9]/g,'') !== '');
+  }));
+  const last = list.length - 1;
+  list = list.filter((_, i) => hasData[i] || i === last);
+  return list;
+}
+
+// Padrão (antes de importar): Out/2025 a Set/2026
+applyMonths([
+  ['outubro2025',2025,9],['novembro2025',2025,10],['dezembro2025',2025,11],
+  ['janeiro2026',2026,0],['fevereiro2026',2026,1],['março2026',2026,2],['abril2026',2026,3],
+  ['maio2026',2026,4],['junho2026',2026,5],['julho2026',2026,6],['agosto2026',2026,7],['setembro2026',2026,8]
+].map(([key,y,m]) => ({ key, y, m })));
+
+function periodLabel() {
+  if(!MONTH_NAMES.length) return '—';
+  return `${MONTH_NAMES[0]} a ${MONTH_NAMES[MONTH_NAMES.length - 1]}`;
+}
+function allPeriodShort() { return `Todo o período (${MONTH_KEYS.length}M)`; }
+
+// Monta o seletor de Período / Mês da barra lateral com os meses detectados
+function buildGlobalMonthSelect() {
+  const sel = document.getElementById('sel-global-month');
+  if(!sel) return;
+  const n = MONTH_KEYS.length;
+  let html = `<option value="todos">📅 Todo o período (${n} ${n === 1 ? 'mês' : 'meses'})</option>`;
+  for(let i = n - 1; i >= 0; i--) {
+    html += `<option value="${i}">${PT_MONTH_LABEL[MONTH_YEAR_MAP[i].m]}/${MONTH_YEAR_MAP[i].y}${i === n - 1 ? ' (mês atual)' : ''}</option>`;
+  }
+  sel.innerHTML = html;
+  sel.value = STATE.month || 'todos';
+  const hdr = document.getElementById('hdr-month');
+  if(hdr) hdr.textContent = STATE.month === 'todos' ? allPeriodShort() : MONTH_NAMES[parseInt(STATE.month, 10)];
+  const sub = document.getElementById('mensal-months-sub');
+  if(sub) sub.textContent = `Meses disponíveis na planilha: ${periodLabel()}`;
+}
 
 // ─── ESTADOS PRIORITÁRIOS POR SUPERVISOR (CONFIGURÁVEL) ───────────────────────
 // Mapa de siglas (UF) para nome completo do estado, usado para gerar as tags
@@ -1428,7 +1507,6 @@ function joinList(arr) {
 }
 
 let FOCUS_STATES = [];
-const CURRENT_METAS_MONTH_IDX = 11; // Setembro/2026 (Mês Atual Operacional para Metas, Projeções e Corrida de Meta)
 
 const PALETTE = [
   '#FF0000','#F37600','#3fd671','#38bdf8','#a855f7','#f5a623',
@@ -1447,7 +1525,7 @@ let STATE = {
   state: 'geral',
   consultant: 'todos',
   month: 'todos', // 'todos' ou '0'..'11' (Filtro Histórico de Análise)
-  selectedMonthIdx: 11, // Mês ativo exclusivamente na página Evolução Mensal (Página 6)
+  selectedMonthIdx: CURRENT_METAS_MONTH_IDX, // Mês ativo exclusivamente na página Evolução Mensal
   crmSearch: '',
   crmStatus: 'todos',
   crmPage: 1,
@@ -1592,20 +1670,6 @@ const TIPOS_MAP = {
   trainee: { label: 'Trainee',  grp: 'trn' }
 };
 
-const MONTH_YEAR_MAP = [
-  { y: 2025, m: 9 },  // Outubro
-  { y: 2025, m: 10 }, // Novembro
-  { y: 2025, m: 11 }, // Dezembro
-  { y: 2026, m: 0 },  // Janeiro
-  { y: 2026, m: 1 },  // Fevereiro
-  { y: 2026, m: 2 },  // Março
-  { y: 2026, m: 3 },  // Abril
-  { y: 2026, m: 4 },  // Maio
-  { y: 2026, m: 5 },  // Junho
-  { y: 2026, m: 6 },  // Julho
-  { y: 2026, m: 7 },  // Agosto
-  { y: 2026, m: 8 }   // Setembro
-];
 
 function bizDaysInMonth(year, month0) {
   let count = 0;
@@ -1855,6 +1919,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   if(stored && stored.data && stored.data.length) {
     RAW_DATA = stored.data;
     if(stored.meta) FILE_META = stored.meta;
+    if(FILE_META.months && FILE_META.months.length) applyMonths(FILE_META.months);
   }
 
   updateAppDisplayState();
@@ -1892,6 +1957,7 @@ function updateAppDisplayState() {
     buildFocusStateButtons();
     populateStatesDropdown();
     buildSidebarConsultants();
+    buildGlobalMonthSelect();
     buildMonthSelectorButtons();
     renderCurrentPage();
   }
@@ -2070,7 +2136,7 @@ function setMonthFilter(m) {
   // Sincroniza Top Header Badge
   const mBadge = document.getElementById('hdr-month');
   if(mBadge) {
-    mBadge.textContent = m === 'todos' ? 'Ano Todo (12M)' : MONTH_NAMES[parseInt(m, 10)];
+    mBadge.textContent = m === 'todos' ? allPeriodShort() : MONTH_NAMES[parseInt(m, 10)];
   }
 
   renderCurrentPage();
@@ -2084,7 +2150,7 @@ function resetAllFilters() {
   const selM = document.getElementById('sel-global-month');
   if(selM) selM.value = 'todos';
   const mBadge = document.getElementById('hdr-month');
-  if(mBadge) mBadge.textContent = 'Ano Todo (12M)';
+  if(mBadge) mBadge.textContent = allPeriodShort();
 
   updateStateButtonsUI();
   buildSidebarConsultants();
@@ -2110,7 +2176,7 @@ function changeSupervisor(sup) {
   const selM = document.getElementById('sel-global-month');
   if(selM) selM.value = 'todos';
   const mBadge = document.getElementById('hdr-month');
-  if(mBadge) mBadge.textContent = 'Ano Todo (12M)';
+  if(mBadge) mBadge.textContent = allPeriodShort();
 
   buildFocusStateButtons();
   updateStateButtonsUI();
@@ -2222,7 +2288,7 @@ function updateFilterSummaries() {
   const consLbl = STATE.consultant === 'todos' ? 'Toda a Equipe' : STATE.consultant;
   const isMonthFiltered = STATE.month && STATE.month !== 'todos';
   const mIdx = isMonthFiltered ? parseInt(STATE.month, 10) : null;
-  const monthLbl = isMonthFiltered ? `${MONTH_NAMES[mIdx]} 2026 (Mensal)` : 'Ano Todo (Acumulado 12M)';
+  const monthLbl = isMonthFiltered ? `${MONTH_NAMES[mIdx]} (Mensal)` : `Todo o período (${periodLabel()})`;
   const isAllSup = STATE.supervisor === 'TODOS';
   const supLbl = isAllSup ? 'Todos os Supervisores (Consolidado)' : STATE.supervisor;
   const hasAnyFilter = STATE.state !== 'geral' || STATE.consultant !== 'todos' || isMonthFiltered || isAllSup;
@@ -2253,9 +2319,9 @@ function renderVisaoGeral() {
   let activeClients = 0;
   const totalClients = rows.length;
 
-  const monthlyFat = Array(12).fill(0);
-  const monthlyPed = Array(12).fill(0);
-  const monthlyCli = Array(12).fill(0);
+  const monthlyFat = Array(MONTH_KEYS.length).fill(0);
+  const monthlyPed = Array(MONTH_KEYS.length).fill(0);
+  const monthlyCli = Array(MONTH_KEYS.length).fill(0);
 
   const consMap = new Map();
   const stateMap = new Map();
@@ -2341,12 +2407,12 @@ function renderVisaoGeral() {
     <div class="kpi-card k-fat">
       <div class="kpi-label">Faturamento ${isMonthFiltered ? '(' + mName + ')' : 'Total'} <span>💰</span></div>
       <div class="kpi-value">${fK(totFat)}</div>
-      <div class="kpi-sub">${isMonthFiltered ? 'Mês selecionado: <b>' + fR0(totFat) + '</b>' : 'Acumulado 12 meses: <b>' + fR0(totFat) + '</b>'}</div>
+      <div class="kpi-sub">${isMonthFiltered ? 'Mês selecionado: <b>' + fR0(totFat) + '</b>' : 'Acumulado do período: <b>' + fR0(totFat) + '</b>'}</div>
     </div>
     <div class="kpi-card k-ped">
       <div class="kpi-label">Pedidos ${isMonthFiltered ? '(' + mName + ')' : 'Totais'} <span>📦</span></div>
       <div class="kpi-value">${fNum(totPed)}</div>
-      <div class="kpi-sub">${isMonthFiltered ? 'Volume em ' + mName : 'Média de <b>' + Math.round(totPed/12) + '</b> pedidos/mês'}</div>
+      <div class="kpi-sub">${isMonthFiltered ? 'Volume em ' + mName : 'Média de <b>' + Math.round(totPed/Math.max(1, MONTH_KEYS.length)) + '</b> pedidos/mês'}</div>
     </div>
     <div class="kpi-card k-tkm">
       <div class="kpi-label">Ticket Médio <span>🏷️</span></div>
@@ -2432,12 +2498,12 @@ function renderVisaoGeral() {
   if(sTimeline) {
     const consStr = STATE.consultant !== 'todos' ? ` · ${STATE.consultant}` : '';
     sTimeline.textContent = isSpecificState
-      ? `Histórico de Out/2025 a Set/2026 em ${STATE.state}${consStr}`
-      : `Histórico consolidado de Outubro/2025 até Setembro/2026${consStr}`;
+      ? `Histórico de ${periodLabel()} em ${STATE.state}${consStr}`
+      : `Histórico consolidado de ${periodLabel()}${consStr}`;
   }
 
   // Point Radius highlight for selected month
-  const pointRadii = Array(12).fill(4);
+  const pointRadii = Array(MONTH_KEYS.length).fill(4);
   if(isMonthFiltered) pointRadii[m] = 8;
 
   // Gráfico 1: Linha de Evolução Mensal
@@ -2721,12 +2787,12 @@ function renderEstadosFoco() {
       : `Histórico consolidado de ${joinList(FOCUS_STATES)}${consSuffix}`;
   }
 
-  const focusMonthlyFat = Array(12).fill(0);
-  const focusMonthlyCli = Array(12).fill(0);
+  const focusMonthlyFat = Array(MONTH_KEYS.length).fill(0);
+  const focusMonthlyCli = Array(MONTH_KEYS.length).fill(0);
 
   focusRows.forEach(r => {
     (r.fat || []).forEach((v, i) => {
-      if(i < 12) {
+      if(i < MONTH_KEYS.length) {
         focusMonthlyFat[i] += (v || 0);
         const p = (r.ped && r.ped[i]) || 0;
         if((v || 0) > 0 || p > 0) {
@@ -2736,7 +2802,7 @@ function renderEstadosFoco() {
     });
   });
 
-  const pointRadii = Array(12).fill(4);
+  const pointRadii = Array(MONTH_KEYS.length).fill(4);
   if(isMonthFiltered) pointRadii[m] = 8;
 
   renderChart('ch-state-focus-timeline', {
@@ -3065,7 +3131,7 @@ function renderRanking() {
     const statesArr = Array.from(c.states).slice(0, 4);
     const meta = getConsultantMeta(c.name);
     const lvlInfo = TIPOS_MAP[meta.level] || { label: 'Sênior 1', grp: 'sen' };
-    const targetMeta = isMonthFiltered ? (meta.metaFat || 450000) : ((meta.metaFat || 450000) * 12);
+    const targetMeta = isMonthFiltered ? (meta.metaFat || 450000) : ((meta.metaFat || 450000) * MONTH_KEYS.length);
     const pctMeta = targetMeta > 0 ? (c.fat / targetMeta * 100) : 0;
     return `
       <div class="ccons">
@@ -3075,7 +3141,7 @@ function renderRanking() {
         </div>
         <div class="ccons-name">${c.name}</div>
         <div class="ccons-fat">${fK(c.fat)}</div>
-        <div style="font-size:10.5px;color:var(--muted);margin-bottom:8px">Meta ${isMonthFiltered ? mName : 'Anual'}: <b>${fK(targetMeta)}</b> (${pctMeta.toFixed(0)}% ref.)</div>
+        <div style="font-size:10.5px;color:var(--muted);margin-bottom:8px">Meta ${isMonthFiltered ? mName : 'do Período'}: <b>${fK(targetMeta)}</b> (${pctMeta.toFixed(0)}% ref.)</div>
         <div class="ccons-states-tag">
           ${statesArr.map(s => `<span class="ccons-st-pill">${s}</span>`).join('')}
           ${c.states.size > 4 ? `<span class="ccons-st-pill">+${c.states.size-4}</span>` : ''}
@@ -3149,10 +3215,13 @@ function getClientStatus(r) {
   const totFat = (r.fat || []).reduce((a, b) => a + b, 0);
   if(totFat === 0) return { code: 'never', label: 'Nunca Comprou', cls: 'never' };
 
-  const recentFat = (r.fat[9] || 0) + (r.fat[10] || 0) + (r.fat[11] || 0);
+  // Últimos 3 meses da planilha = ativo; 3 meses anteriores = em risco
+  const n = (r.fat || []).length;
+  const sumRange = (a, b) => { let t = 0; for(let i = Math.max(0, a); i < b; i++) t += (r.fat[i] || 0); return t; };
+  const recentFat = sumRange(n - 3, n);
   if(recentFat > 0) return { code: 'ativo', label: 'Ativo Recente', cls: 'active' };
 
-  const midFat = (r.fat[6] || 0) + (r.fat[7] || 0) + (r.fat[8] || 0);
+  const midFat = sumRange(n - 6, n - 3);
   if(midFat > 0) return { code: 'risco', label: 'Em Risco', cls: 'risk' };
 
   return { code: 'inativo', label: 'Inativo', cls: 'inactive' };
@@ -3471,11 +3540,11 @@ function renderMensal() {
   // Agrupar métricas mensais por consultor
   const consMonthlyData = consultantsToDisplay.map((cName, idx) => {
     const cRows = supRows.filter(r => (r.cons || '').trim() === cName);
-    const fatArr = Array(12).fill(0);
-    const pedArr = Array(12).fill(0);
-    const cliArr = Array(12).fill(0);
+    const fatArr = Array(MONTH_KEYS.length).fill(0);
+    const pedArr = Array(MONTH_KEYS.length).fill(0);
+    const cliArr = Array(MONTH_KEYS.length).fill(0);
 
-    for(let m = 0; m < 12; m++) {
+    for(let m = 0; m < MONTH_KEYS.length; m++) {
       let mFat = 0, mPed = 0, mCli = 0;
       cRows.forEach(r => {
         const f = (r.fat && r.fat[m]) || 0;
@@ -3651,7 +3720,7 @@ function renderMensal() {
 // ─── MOTOR DE PROJEÇÕES POR DIAS ÚTEIS ────────────────────────────────────────
 function calcProjections(metric = 'fat') {
   const mIdx = CURRENT_METAS_MONTH_IDX;
-  const mInfo = MONTH_YEAR_MAP[mIdx] || { y: 2026, m: 8 };
+  const mInfo = MONTH_YEAR_MAP[mIdx] || { y: new Date().getFullYear(), m: new Date().getMonth() };
   const totalBiz = bizDaysInMonth(mInfo.y, mInfo.m);
   let elapsedBiz = bizDaysElapsed(mInfo.y, mInfo.m);
   if(elapsedBiz <= 0) elapsedBiz = 1;
@@ -3743,7 +3812,7 @@ function renderGaugesAndProjections() {
   const isAll = STATE.supervisor === 'TODOS';
   const targetSup = isAll ? (STATE.metasSupervisor || getPrimarySupervisor()) : STATE.supervisor;
   const lblEl = document.getElementById('gauge-month-label');
-  if(lblEl) lblEl.textContent = isAll ? `${mName}/2026 · Equipe ${targetSup}` : `${mName}/2026 (Mês Atual)`;
+  if(lblEl) lblEl.textContent = isAll ? `${mName} · Equipe ${targetSup}` : `${mName} (Mês Atual)`;
 
   const data = calcProjections('fat');
   const t = data.team;
@@ -3895,7 +3964,7 @@ function renderProjectionsWidget() {
   const mIdx = CURRENT_METAS_MONTH_IDX;
   const mName = MONTH_NAMES[mIdx];
   const titleEl = document.getElementById('proj-month-title');
-  if(titleEl) titleEl.textContent = `${mName}/2026 (Mês Atual)`;
+  if(titleEl) titleEl.textContent = `${mName} (Mês Atual)`;
 
   const data = calcProjections(PROJ_METRIC);
   const descEl = document.getElementById('proj-biz-desc');
@@ -4177,7 +4246,7 @@ function openConsultantRaioX(consName) {
   const modal = document.getElementById('modal-consultant-profile');
   if(!modal) return;
 
-  const mIdx = typeof CURRENT_METAS_MONTH_IDX !== 'undefined' ? CURRENT_METAS_MONTH_IDX : 11;
+  const mIdx = CURRENT_METAS_MONTH_IDX;
   const mName = MONTH_NAMES[mIdx];
   const consRows = RAW_DATA.filter(r => (r.cons || '').trim().toUpperCase() === (consName || '').trim().toUpperCase());
   const meta = getConsultantMeta(consName);
@@ -4599,7 +4668,7 @@ function suggestMetasAuto() {
   const currentSup = (rawSup === 'TODOS') ? (STATE.metasSupervisor || getPrimarySupervisor()).trim().toUpperCase() : rawSup;
   const supRows = RAW_DATA.filter(r => (r.sup || '').trim().toUpperCase() === currentSup);
 
-  const mIdx = typeof CURRENT_METAS_MONTH_IDX !== 'undefined' ? CURRENT_METAS_MONTH_IDX : 11;
+  const mIdx = CURRENT_METAS_MONTH_IDX;
 
   document.querySelectorAll('#tbl-metas-body tr').forEach(r => {
     const consName = r.getAttribute('data-cons');
@@ -4739,7 +4808,7 @@ function renderMensalProjTable() {
   const mName = MONTH_NAMES[mIdx];
   const noteEl = document.getElementById('proj-table-note');
   if(noteEl) {
-    noteEl.textContent = `Extrapolação linear para ${mName}/2026: ${data.elapsedBiz} de ${data.totalBiz} dias úteis decorridos (${((data.elapsedBiz/data.totalBiz)*100).toFixed(0)}% do mês).`;
+    noteEl.textContent = `Extrapolação linear para ${mName}: ${data.elapsedBiz} de ${data.totalBiz} dias úteis decorridos (${((data.elapsedBiz/data.totalBiz)*100).toFixed(0)}% do mês).`;
   }
 
   function badgeStatus(pct) {
@@ -4819,7 +4888,7 @@ function updateNotifications() {
   const notifDot = document.getElementById('notif-dot');
   if(!notifList) return;
 
-  const mIdx = typeof CURRENT_METAS_MONTH_IDX !== 'undefined' ? CURRENT_METAS_MONTH_IDX : 11;
+  const mIdx = CURRENT_METAS_MONTH_IDX;
   const mName = MONTH_NAMES[mIdx];
   const rawSup = (STATE.supervisor || '').trim().toUpperCase();
   const currentSup = (rawSup === 'TODOS') ? (STATE.metasSupervisor || getPrimarySupervisor()).trim().toUpperCase() : rawSup;
@@ -4961,7 +5030,8 @@ function handleFileInput(files) {
         return;
       }
 
-      processImportedRows(jsonRows, file.name);
+      const headerRow = (XLSX.utils.sheet_to_json(firstSheet, { header: 1, range: 0 })[0] || []).map(h => String(h).trim());
+      processImportedRows(jsonRows, file.name, headerRow);
     } catch(err) {
       console.error('Erro ao ler planilha:', err);
       alert('Erro ao processar arquivo. Verifique se é um arquivo Excel (.xlsx) ou CSV válido.');
@@ -4970,7 +5040,16 @@ function handleFileInput(files) {
   reader.readAsArrayBuffer(file);
 }
 
-async function processImportedRows(rawRows, fileName) {
+async function processImportedRows(rawRows, fileName, headerRow) {
+  const headers = (headerRow && headerRow.length) ? headerRow : Object.keys(rawRows[0] || {});
+  const months = detectMonthsFromHeaders(headers, rawRows);
+  if(!months.length) {
+    alert('Não encontrei colunas de mês na planilha (ex.: VL_EQUIP_outubro2026 e QT_PEDIDO_outubro2026). Confira o cabeçalho e importe de novo.');
+    return;
+  }
+  applyMonths(months);
+  STATE.month = 'todos';
+
   const parseVal = v => {
     if(!v) return 0.0;
     if(typeof v === 'number') return v;
@@ -4993,8 +5072,8 @@ async function processImportedRows(rawRows, fileName) {
       cons: String(r.CONSULTOR || r.consultor || ''),
       sup: sup,
       last_buy: String(r.DT_ULTIMA_COMPRA || r.dt_ultima_compra || ''),
-      fat: MONTH_KEYS.map(m => parseVal(r[`VL_EQUIP_${m}`] || r[m] || 0)),
-      ped: MONTH_KEYS.map(m => parseInt(parseVal(r[`QT_PEDIDO_${m}`] || 0)) || 0)
+      fat: MONTH_COLS.map(c => parseVal(r[c.fat] || 0)),
+      ped: MONTH_COLS.map(c => parseInt(parseVal(r[c.ped] || 0)) || 0)
     };
   }).filter(r => r.name || r.sup);
 
@@ -5002,13 +5081,14 @@ async function processImportedRows(rawRows, fileName) {
   FILE_META = {
     name: fileName,
     rows: parsed.length,
-    date: new Date().toLocaleDateString('pt-BR')
+    date: new Date().toLocaleDateString('pt-BR'),
+    months: months.map(x => ({ key: x.key, y: x.y, m: x.m }))
   };
 
   await saveStoredData(parsed, FILE_META);
 
   updateAppDisplayState();
-  alert(`✅ Planilha "${fileName}" importada com sucesso!\n${parsed.length.toLocaleString('pt-BR')} registros carregados e salvos no seu navegador.`);
+  alert(`✅ Planilha "${fileName}" importada com sucesso!\n${parsed.length.toLocaleString('pt-BR')} registros carregados.\nMeses encontrados: ${periodLabel()} (${MONTH_KEYS.length}).`);
 }
 
 async function clearAllData() {
