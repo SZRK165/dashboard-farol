@@ -87,6 +87,17 @@ header {
 .empty-title span{color:var(--red)}
 .empty-subtitle{font-size:13.5px;color:var(--muted);max-width:500px;margin:0 auto 26px;line-height:1.6}
 
+/* TELA DE CARREGAMENTO E AVISO DE SALVAMENTO */
+.loading-screen{position:fixed;top:64px;left:0;right:0;bottom:0;background:var(--bg);z-index:150;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted);font-size:13px}
+.loading-spinner{width:38px;height:38px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--orange);animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.save-toast{position:fixed;right:20px;bottom:20px;z-index:10000;background:var(--card);border:1px solid var(--border);border-left:4px solid var(--orange);border-radius:10px;padding:12px 16px;font-size:12.5px;color:var(--text);box-shadow:0 10px 30px rgba(0,0,0,.45);max-width:360px;display:none;line-height:1.5}
+.save-toast.show{display:block}
+.save-toast.ok{border-left-color:var(--green)}
+.save-toast.err{border-left-color:var(--red)}
+.db-error-box{margin:0 auto 18px;max-width:520px;background:rgba(255,0,0,.08);border:1px solid rgba(255,0,0,.3);color:var(--text);border-radius:10px;padding:10px 14px;font-size:12px;line-height:1.5;text-align:left;display:none}
+@media(max-width:768px){.save-toast{left:12px;right:12px;bottom:72px;max-width:none}}
+
 /* SIDEBAR */
 .sidebar {
   width:270px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);
@@ -560,7 +571,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
 
 <header>
   <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileSidebar()" title="Abrir Menu de Navegação">☰</button>
-  <div class="logo-mark">CL</div>
+  <div class="logo-mark">FA</div>
   <div>
     <div class="logo-text">FAROL <span>Analytics</span></div>
     <div style="font-size:10px;color:var(--muted);letter-spacing:.5px" id="hdr-sub-title">SUPERVISÃO COMERCIAL</div>
@@ -589,11 +600,18 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
 <!-- ========================================================================= -->
 <!-- EMPTY STATE OVERLAY (EXIBIDO QUANDO NÃO HÁ PLANILHA CARREGADA) -->
 <!-- ========================================================================= -->
+<div class="loading-screen" id="loading-screen">
+  <div class="loading-spinner"></div>
+  <div id="loading-text">Carregando a última planilha salva…</div>
+</div>
+<div class="save-toast" id="save-toast"></div>
+
 <div class="empty-state-overlay" id="empty-state-screen" style="display:none">
   <div class="empty-state-card">
-    <div class="empty-logo">CL</div>
+    <div class="empty-logo">FA</div>
     <div class="empty-title">FAROL <span>Analytics</span></div>
-    <div class="empty-subtitle">Carregue a planilha de <b>Carteiras Unificadas</b> para visualizar as análises executivas, rankings e indicadores comerciais.</div>
+    <div class="empty-subtitle" id="empty-subtitle">Ainda não há nenhuma planilha salva. Carregue a planilha de <b>Carteiras Unificadas</b> uma vez: ela fica salva no banco de dados e o painel abre direto nas próximas vezes.</div>
+    <div class="db-error-box" id="db-error-box"></div>
 
     <div class="dropzone" id="onboarding-dropzone" onclick="document.getElementById('onboarding-file-input').click()">
       <input type="file" id="onboarding-file-input" accept=".xlsx, .xls, .csv" style="display:none" onchange="handleFileInput(this.files)">
@@ -605,7 +623,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
 
     <div>
       <div class="security-notice">
-        🔒 <b>100% Seguro &amp; Privado:</b> Seus dados são processados e armazenados apenas no seu navegador. Nada é enviado para servidores externos.
+        ☁️ A planilha e as metas ficam salvas no banco de dados do painel (Firebase).
       </div>
     </div>
   </div>
@@ -620,7 +638,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
   <aside class="sidebar" id="app-sidebar">
     <div class="sidebar-mobile-head">
       <div style="display:flex;align-items:center;gap:8px">
-        <div class="logo-mark" style="width:28px;height:28px;font-size:12px">CL</div>
+        <div class="logo-mark" style="width:28px;height:28px;font-size:12px">FA</div>
         <div style="font-weight:700;font-size:13px">Menu &amp; Filtros</div>
       </div>
       <button class="sidebar-close-btn" onclick="closeMobileSidebar()" title="Fechar Menu">✕</button>
@@ -988,7 +1006,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
           <div style="font-size:12px;color:var(--muted);line-height:1.7">
             <p>• <b>Fator de Recompra Alvo (2,00×):</b> O ideal é que cada cliente ativo compre em média 2 vezes no mês.</p>
             <p style="margin-top:6px">• <b>Ticket Médio Equilibrado:</b> Monitore se o ticket alvo é compatível com o perfil dos integradores atendidos.</p>
-            <p style="margin-top:6px">• <b>Persistência Automática:</b> As metas salvas ficam guardadas com segurança no navegador.</p>
+            <p style="margin-top:6px">• <b>Salvamento Automático:</b> As metas salvas ficam guardadas no banco de dados e aparecem em qualquer computador que abrir o painel.</p>
           </div>
         </div>
       </div>
@@ -1232,10 +1250,10 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
       <div class="page-header">
         <div>
           <div class="page-title">Gerenciar <span>Planilha Excel</span></div>
-          <div class="page-subtitle">Atualize os dados arrastando uma nova versão da planilha ou limpe a memória do navegador</div>
+          <div class="page-subtitle">Envie uma nova versão da planilha. Ela substitui a anterior no banco de dados.</div>
         </div>
         <div class="page-actions">
-          <button class="btn btn-danger" onclick="clearAllData()">🗑️ Limpar Dados do Navegador</button>
+          <button class="btn btn-danger" onclick="clearAllData()">🗑️ Apagar Planilha do Banco</button>
         </div>
       </div>
 
@@ -1243,14 +1261,14 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
         <input type="file" id="dashboard-file-input" accept=".xlsx, .xls, .csv" style="display:none" onchange="handleFileInput(this.files)">
         <div class="dropzone-icon">📊</div>
         <div class="dropzone-title">Arraste e solte uma nova planilha Excel aqui</div>
-        <div class="dropzone-desc">Substitua a base atual por um novo arquivo <b>.xlsx</b> ou <b>.csv</b> contendo as carteiras unificadas.</div>
+        <div class="dropzone-desc">Substitua a base atual por um novo arquivo <b>.xlsx</b> ou <b>.csv</b> com as carteiras unificadas. A nova planilha é salva no banco e passa a ser a que abre por padrão.</div>
         <button class="btn btn-primary" type="button">📁 Selecionar Arquivo do Computador</button>
       </div>
 
       <div class="file-status-box" id="file-status-box">
         <div>
           <div style="font-size:13px;font-weight:700;color:var(--text)" id="status-box-title">Planilha Carregada</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px" id="status-box-desc">Dados desta sessão do navegador.</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px" id="status-box-desc">—</div>
         </div>
         <div style="display:flex;gap:8px">
           <button class="btn btn-ghost" onclick="exportCurrentDataJson()">💾 Baixar Cópia JSON</button>
@@ -1260,14 +1278,14 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
       <div class="chart-card" style="margin-top:20px">
         <div class="chart-head">
           <div>
-            <div class="chart-title">🔒 Segurança &amp; Privacidade Garantida</div>
-            <div class="chart-subtitle">Como sua empresa e seus dados são protegidos</div>
+            <div class="chart-title">☁️ Onde os dados ficam salvos</div>
+            <div class="chart-subtitle">Como o painel guarda a planilha e as metas</div>
           </div>
         </div>
         <div style="font-size:12.5px;color:var(--muted);line-height:1.8">
-          <p>• <b>Sem Servidores de Armazenamento:</b> O site não possui banco de dados na nuvem que guarde seus clientes. Cada planilha é processada diretamente na memória RAM do computador da pessoa que a abriu.</p>
-          <p>• <b>Privacidade Individual:</b> Se você compartilhar o link com sua coordenadora ou diretoria, o site abrirá vazio para ela até que ela insira a planilha dela no computador dela.</p>
-          <p>• <b>Sem Persistência:</b> Os dados não ficam salvos no navegador. Ao fechar ou recarregar a página, será necessário carregar a planilha novamente.</p>
+          <p>• <b>Banco de dados (Firebase):</b> a última planilha enviada e as metas da equipe ficam salvas na nuvem.</p>
+          <p>• <b>Abertura direta:</b> ao abrir o link, o painel carrega sozinho a última planilha salva, em qualquer computador ou celular.</p>
+          <p>• <b>Atualização:</b> ao enviar uma nova planilha, ela substitui a anterior para todos que acessam o link.</p>
         </div>
       </div>
     </div>
@@ -1718,11 +1736,13 @@ async function loadTeamMetas() {
 }
 
 async function saveTeamMetas(metas) {
-  TEAM_METAS = metas; // aplicado imediatamente (síncrono) para a UI atualizar na hora
+  TEAM_METAS = metas; // aplicado imediatamente para a UI atualizar na hora
   try {
-    await FirebaseStore.saveMetas(metas);
+    const ok = await FirebaseStore.saveMetas(metas);
+    return ok;
   } catch(e) {
     console.warn('Firebase indisponível ao salvar metas:', e);
+    return false;
   }
 }
 
@@ -1813,7 +1833,7 @@ const FirebaseStore = {
   async saveMetas(metas) {
     if(!this.ready || !this.db) return false;
     try {
-      await this.db.collection('farol_metas').doc('equipe').set(metas, { merge: true });
+      await this.db.collection('farol_metas').doc('equipe').set(metas);
       console.log('✅ Metas salvas no Firestore');
       return true;
     } catch(e) {
@@ -1837,75 +1857,152 @@ const FirebaseStore = {
     }
   },
 
-  // ── PLANILHA CARREGADA (dados brutos + metadados do arquivo) ───────────
-  async saveDashboardData(data, meta) {
-    if(!this.ready || !this.db) return false;
-    try {
-      await this.db.collection('farol_data').doc('dashboard').set({
-        data: data,
-        meta: meta,
-        savedAt: new Date().toISOString()
-      });
-      console.log('✅ Planilha salva no Firestore');
-      return true;
-    } catch(e) {
-      console.error('❌ Erro ao salvar planilha:', e);
-      return false;
-    }
+  // ── PLANILHA CARREGADA ─────────────────────────────────────────────────
+  // O Firestore aceita no máximo 1 MB por documento, então a planilha é
+  // dividida em partes (coleção farol_chunks). O documento farol_data/dashboard
+  // guarda só os metadados e aponta para a versão atual. As partes da versão
+  // nova são gravadas primeiro; o ponteiro só muda no fim, então uma falha no
+  // meio do envio nunca deixa o painel com dados misturados.
+  CHUNK_MAX_BYTES: 700000,
+
+  splitIntoChunks(rows) {
+    const chunks = [];
+    let cur = [], size = 0;
+    rows.forEach(r => {
+      const sz = JSON.stringify(r).length + 1;
+      if(cur.length && size + sz > this.CHUNK_MAX_BYTES) { chunks.push(cur); cur = []; size = 0; }
+      cur.push(r); size += sz;
+    });
+    if(cur.length) chunks.push(cur);
+    return chunks;
   },
-  
-  async loadDashboardData() {
-    if(!this.ready || !this.db) return null;
+
+  async saveDashboardData(data, meta, onProgress) {
+    if(!this.ready || !this.db) throw new Error('Banco de dados não conectado');
+    const pointerRef = this.db.collection('farol_data').doc('dashboard');
+    const prevSnap = await pointerRef.get();
+    const prev = prevSnap.exists ? prevSnap.data() : null;
+
+    const version = String(Date.now());
+    const chunks = this.splitIntoChunks(data);
+    let written = 0;
     try {
-      const snap = await this.db.collection('farol_data').doc('dashboard').get();
-      if(snap.exists) {
-        const doc = snap.data();
-        console.log('✅ Planilha carregada do Firestore');
-        return { data: doc.data, meta: doc.meta };
+      for(let i = 0; i < chunks.length; i++) {
+        if(onProgress) onProgress(i, chunks.length);
+        await this.db.collection('farol_chunks').doc(`${version}_${i}`).set({ version, idx: i, rows: chunks[i] });
+        written++;
       }
-      return null;
     } catch(e) {
-      console.error('❌ Erro ao carregar planilha:', e);
-      return null;
+      // Desfaz as partes já gravadas desta tentativa; a versão anterior continua valendo
+      for(let i = 0; i < written; i++) {
+        try { await this.db.collection('farol_chunks').doc(`${version}_${i}`).delete(); } catch(_) {}
+      }
+      throw e;
     }
+    if(onProgress) onProgress(chunks.length, chunks.length);
+
+    await pointerRef.set({ meta: meta, version: version, chunks: chunks.length, savedAt: new Date().toISOString() });
+
+    // Remove as partes da versão anterior
+    if(prev && prev.version && prev.chunks) {
+      for(let i = 0; i < prev.chunks; i++) {
+        try { await this.db.collection('farol_chunks').doc(`${prev.version}_${i}`).delete(); } catch(e) {}
+      }
+    }
+    console.log(`✅ Planilha salva no Firestore (${chunks.length} partes)`);
+    return true;
   },
-  
+
+  async loadDashboardData() {
+    if(!this.ready || !this.db) throw new Error('Banco de dados não conectado');
+    const snap = await this.db.collection('farol_data').doc('dashboard').get();
+    if(!snap.exists) return null;
+    const doc = snap.data();
+    if(Array.isArray(doc.data)) return { data: doc.data, meta: doc.meta, savedAt: doc.savedAt }; // formato antigo
+    if(!doc.version || !doc.chunks) return null;
+    const parts = await Promise.all(Array.from({ length: doc.chunks }, (_, i) =>
+      this.db.collection('farol_chunks').doc(`${doc.version}_${i}`).get()));
+    const data = [];
+    parts.forEach((p, i) => {
+      if(!p.exists) throw new Error(`Parte ${i + 1} de ${doc.chunks} da planilha não encontrada no banco`);
+      data.push(...(p.data().rows || []));
+    });
+    console.log(`✅ Planilha carregada do Firestore (${data.length} linhas)`);
+    return { data, meta: doc.meta, savedAt: doc.savedAt };
+  },
+
   async clearDashboardData() {
-    if(!this.ready || !this.db) return true;
-    try {
-      await this.db.collection('farol_data').doc('dashboard').delete();
-      console.log('✅ Planilha deletada do Firestore');
-      return true;
-    } catch(e) {
-      console.error('❌ Erro ao deletar planilha:', e);
-      return true; // retorna true mesmo se falhar, para não bloquear
+    if(!this.ready || !this.db) throw new Error('Banco de dados não conectado');
+    const ref = this.db.collection('farol_data').doc('dashboard');
+    const snap = await ref.get();
+    if(snap.exists) {
+      const doc = snap.data();
+      if(doc.version && doc.chunks) {
+        for(let i = 0; i < doc.chunks; i++) {
+          try { await this.db.collection('farol_chunks').doc(`${doc.version}_${i}`).delete(); } catch(e) {}
+        }
+      }
+      await ref.delete();
     }
+    return true;
   }
 };
 
-// ─── PERSISTÊNCIA (usa o Firebase quando configurado; senão, fica em memória)
+// ─── PERSISTÊNCIA NO BANCO DE DADOS ──────────────────────────────────────────
+function dbErrorHint(e) {
+  const msg = String((e && (e.message || e.code)) || e || '');
+  if(/permission|insufficient/i.test(msg)) {
+    return 'O banco de dados recusou o acesso (permissão negada). As regras do Firestore provavelmente expiraram: atualize-as no Console do Firebase → Firestore Database → Regras.';
+  }
+  if(/offline|unavailable|network|Failed to fetch/i.test(msg)) {
+    return 'Não foi possível conectar ao banco de dados. Verifique a internet e recarregue a página.';
+  }
+  return 'Erro no banco de dados: ' + msg;
+}
+
+function showSaveToast(html, type, autoHideMs) {
+  const el = document.getElementById('save-toast');
+  if(!el) return;
+  el.className = 'save-toast show' + (type ? ' ' + type : '');
+  el.innerHTML = html;
+  clearTimeout(showSaveToast._t);
+  if(autoHideMs) showSaveToast._t = setTimeout(() => { el.className = 'save-toast'; }, autoHideMs);
+}
+
 async function saveStoredData(data, meta) {
   try {
-    await FirebaseStore.saveDashboardData(data, meta);
+    await FirebaseStore.saveDashboardData(data, meta, (done, total) => {
+      showSaveToast(`☁️ Salvando planilha no banco de dados… <b>${Math.round(done / total * 100)}%</b>`, '', 0);
+    });
+    return { ok: true };
   } catch(e) {
-    console.warn('Firebase indisponível ao salvar a planilha:', e);
+    console.error('❌ Erro ao salvar planilha:', e);
+    return { ok: false, error: dbErrorHint(e) };
   }
-  return true;
 }
 async function loadStoredData() {
   try {
-    return await FirebaseStore.loadDashboardData();
+    return { ok: true, stored: await FirebaseStore.loadDashboardData() };
   } catch(e) {
-    console.warn('Firebase indisponível ao carregar a planilha:', e);
-    return null;
+    console.error('❌ Erro ao carregar planilha:', e);
+    return { ok: false, error: dbErrorHint(e) };
   }
 }
 async function clearStoredData() {
   try {
     await FirebaseStore.clearDashboardData();
+    return { ok: true };
   } catch(e) {
-    console.warn('Firebase indisponível ao limpar a planilha:', e);
+    console.error('❌ Erro ao apagar planilha:', e);
+    return { ok: false, error: dbErrorHint(e) };
   }
+}
+
+function formatSavedAt(iso) {
+  if(!iso) return '';
+  const d = new Date(iso);
+  if(isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
 // ─── INITIALIZATION ───────────────────────────────────────────────────────────
@@ -1914,14 +2011,23 @@ window.addEventListener('DOMContentLoaded', async () => {
   await FirebaseStore.init();
   await loadTeamMetas();
 
-  // Restaura planilha salva anteriormente (se o Firebase estiver configurado)
-  const stored = await loadStoredData();
-  if(stored && stored.data && stored.data.length) {
-    RAW_DATA = stored.data;
-    if(stored.meta) FILE_META = stored.meta;
+  // Abre direto com a última planilha salva no banco de dados
+  const res = await loadStoredData();
+  const errBox = document.getElementById('db-error-box');
+  if(res.ok && res.stored && res.stored.data && res.stored.data.length) {
+    RAW_DATA = res.stored.data;
+    if(res.stored.meta) FILE_META = res.stored.meta;
+    if(res.stored.savedAt) FILE_META.savedAt = res.stored.savedAt;
     if(FILE_META.months && FILE_META.months.length) applyMonths(FILE_META.months);
+  } else if(!res.ok && errBox) {
+    errBox.innerHTML = '⚠️ ' + res.error;
+    errBox.style.display = 'block';
+    const sub = document.getElementById('empty-subtitle');
+    if(sub) sub.innerHTML = 'Não foi possível ler a planilha salva no banco de dados. Corrija o problema abaixo e recarregue a página. Se enviar uma planilha agora, ela aparece nesta tela, mas só fica salva depois que o banco voltar a aceitar gravações.';
   }
 
+  const loading = document.getElementById('loading-screen');
+  if(loading) loading.style.display = 'none';
   updateAppDisplayState();
 });
 
@@ -1950,7 +2056,7 @@ function updateAppDisplayState() {
     srcBadge.className = 'hbadge file';
 
     document.getElementById('status-box-title').innerHTML = `Planilha em Uso: <b>${fileName}</b>`;
-    document.getElementById('status-box-desc').innerHTML = `${RAW_DATA.length.toLocaleString('pt-BR')} linhas carregadas · Dados desta sessão do navegador`;
+    document.getElementById('status-box-desc').innerHTML = `${RAW_DATA.length.toLocaleString('pt-BR')} linhas · Meses: ${periodLabel()}${FILE_META.savedAt ? ' · Salva no banco em ' + formatSavedAt(FILE_META.savedAt) : ''}`;
 
     populateSupervisorsDropdown();
     FOCUS_STATES = getFocusStatesForSupervisor(STATE.supervisor);
@@ -4658,9 +4764,12 @@ function saveTeamMetasFromUI() {
     newMetas[consName] = { level, metaFat, metaPed, metaCli, pts };
   });
 
-  saveTeamMetas(newMetas);
-  alert('✅ Metas salvas com sucesso! O dashboard foi atualizado com os novos parâmetros.');
   renderCurrentPage();
+  showSaveToast('☁️ Salvando metas…', '', 0);
+  saveTeamMetas(newMetas).then(ok => {
+    if(ok) showSaveToast('✅ Metas salvas no banco de dados.', 'ok', 4000);
+    else showSaveToast('❌ As metas foram aplicadas nesta tela, mas <b>não foram salvas</b> no banco. Verifique as regras do Firestore.', 'err', 0);
+  });
 }
 
 function suggestMetasAuto() {
@@ -4699,7 +4808,10 @@ function suggestMetasAuto() {
 
 function resetTeamMetasToDefault() {
   if(!confirm('Deseja restaurar as metas da equipe para os valores padrão sugeridos?')) return;
-  TEAM_METAS = {};
+  saveTeamMetas({}).then(ok => {
+    if(ok) showSaveToast('✅ Metas restauradas para o padrão e salvas.', 'ok', 4000);
+    else showSaveToast('❌ Metas restauradas só nesta tela; não foi possível salvar no banco.', 'err', 0);
+  });
   renderMetasPage();
   renderCurrentPage();
 }
@@ -5085,15 +5197,24 @@ async function processImportedRows(rawRows, fileName, headerRow) {
     months: months.map(x => ({ key: x.key, y: x.y, m: x.m }))
   };
 
-  await saveStoredData(parsed, FILE_META);
-
+  FILE_META.savedAt = null;
   updateAppDisplayState();
-  alert(`✅ Planilha "${fileName}" importada com sucesso!\n${parsed.length.toLocaleString('pt-BR')} registros carregados.\nMeses encontrados: ${periodLabel()} (${MONTH_KEYS.length}).`);
+  showSaveToast('☁️ Salvando planilha no banco de dados…', '', 0);
+
+  const res = await saveStoredData(parsed, FILE_META);
+  if(res.ok) {
+    FILE_META.savedAt = new Date().toISOString();
+    updateAppDisplayState();
+    showSaveToast(`✅ <b>${fileName}</b> salva no banco de dados.<br>${parsed.length.toLocaleString('pt-BR')} linhas · Meses: ${periodLabel()}.<br>Ela passa a abrir automaticamente no painel.`, 'ok', 7000);
+  } else {
+    showSaveToast(`❌ A planilha foi carregada nesta tela, mas <b>não foi salva</b> no banco de dados.<br>${res.error}`, 'err', 0);
+  }
 }
 
 async function clearAllData() {
-  if(!confirm('Deseja limpar os dados carregados deste navegador?')) return;
-  await clearStoredData();
+  if(!confirm('Apagar a planilha salva no banco de dados? O painel vai abrir vazio para todos até uma nova planilha ser enviada. As metas não são apagadas.')) return;
+  const res = await clearStoredData();
+  if(!res.ok) { showSaveToast('❌ Não foi possível apagar.<br>' + res.error, 'err', 0); return; }
   RAW_DATA = [];
   FILE_META = { name: '', size: 0, rows: 0, date: '' };
   updateAppDisplayState();
