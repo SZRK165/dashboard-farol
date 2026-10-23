@@ -4,9 +4,11 @@
   <!-- Firebase SDK (Compatibility Mode) -->
   <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth-compat.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Farol Analytics — Gestão Comercial</title>
+<title>Analytics — Gestão Comercial</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%23ff3300%27/%3E%3Cg transform=%27translate(4 4) scale(1)%27 stroke=%27%23fff%27 stroke-width=%272%27 stroke-linecap=%27round%27 fill=%27none%27%3E%3Ccircle cx=%2712%27 cy=%2712%27 r=%274.3%27 fill=%27%23fff%27 stroke=%27none%27/%3E%3Cpath d=%27M12 2.6v2.3M12 19.1v2.3M2.6 12h2.3M19.1 12h2.3M5.35 5.35l1.62 1.62M17.03 17.03l1.62 1.62M5.35 18.65l1.62-1.62M17.03 6.97l1.62-1.62%27/%3E%3C/g%3E%3C/svg%3E">
 <!-- Chart.js 4.4.1 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <!-- SheetJS (xlsx) para leitura 100% no cliente de arquivos Excel/CSV via Drag & Drop -->
@@ -86,6 +88,34 @@ header {
 .empty-title{font-size:24px;font-weight:700;letter-spacing:-.5px;margin-bottom:8px}
 .empty-title span{color:var(--red)}
 .empty-subtitle{font-size:13.5px;color:var(--muted);max-width:500px;margin:0 auto 26px;line-height:1.6}
+
+/* ÍCONE DO SOL (logo) */
+.sun-icon{width:62%;height:62%;display:block}
+
+/* TELA DE LOGIN */
+.login-screen{position:fixed;inset:0;background:var(--bg);z-index:9000;display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.login-screen.show{display:flex}
+.login-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:38px 32px 30px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5);position:relative;overflow:hidden}
+.login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--red),var(--orange),var(--gold))}
+.login-head{text-align:center;margin-bottom:24px}
+.login-head .empty-logo{margin-bottom:14px}
+.login-head .empty-title{font-size:22px;margin-bottom:4px}
+.login-head p{font-size:13px;color:var(--muted)}
+.login-field{margin-bottom:14px}
+.login-field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.login-field .form-input{font-size:14px;padding:11px 12px}
+.login-pass-wrap{position:relative}
+.login-pass-wrap .form-input{padding-right:64px}
+.login-pass-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);font-size:11.5px;font-weight:600;cursor:pointer;padding:6px 8px;border-radius:6px}
+.login-pass-toggle:hover{color:var(--text)}
+.login-submit{width:100%;justify-content:center;padding:12px;font-size:13px;margin-top:6px}
+.login-submit:disabled{opacity:.6;cursor:wait}
+.login-msg{font-size:12.5px;line-height:1.5;border-radius:8px;padding:9px 12px;margin-bottom:14px;display:none}
+.login-msg.err{display:block;background:rgba(255,0,0,.08);border:1px solid rgba(255,0,0,.3);color:var(--text)}
+.login-msg.ok{display:block;background:rgba(63,214,113,.08);border:1px solid rgba(63,214,113,.35);color:var(--text)}
+.login-forgot{display:block;margin:16px auto 0;background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.login-forgot:hover{color:var(--text)}
+.login-screen :focus-visible{outline:2px solid var(--orange);outline-offset:2px}
 
 /* TELA DE CARREGAMENTO E AVISO DE SALVAMENTO */
 .loading-screen{position:fixed;top:64px;left:0;right:0;bottom:0;background:var(--bg);z-index:150;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted);font-size:13px}
@@ -364,6 +394,18 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
 /* TABELA DE METAS */
 .metas-toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px;padding:14px 18px;background:var(--card);border:1px solid var(--border);border-radius:12px}
 .metas-table{width:100%;border-collapse:collapse;font-size:12px}
+.metas-table td.num{text-align:right;font-family:'DM Mono',monospace;white-space:nowrap}
+.metas-table td.muted{color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px}
+.metas-table tr.metas-total td{font-weight:700;border-top:2px solid var(--border);background:var(--bg3)}
+.metas-footnote{font-size:11px;color:var(--muted);line-height:1.55;margin-top:12px}
+.metas-plan-status{font-size:12px;color:var(--muted);line-height:1.55;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:16px}
+.metas-plan-status b{color:var(--text)}
+.metas-plan-status.warn{border-color:rgba(243,118,0,.45)}
+.metas-levels{width:100%;border-collapse:collapse;font-size:12px}
+.metas-levels th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--border)}
+.metas-levels td{padding:6px 8px;border-bottom:1px solid rgba(30,37,53,.5);color:var(--text)}
+.metas-levels td + td, .metas-levels th + th{text-align:right}
+.metas-empty{padding:28px 12px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6}
 .metas-table th{background:var(--bg3);padding:10px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border);text-align:left}
 .metas-table td{padding:8px 12px;border-bottom:1px solid rgba(30,37,53,.5);vertical-align:middle}
 .metas-table input{background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:6px 10px;border-radius:6px;width:100%;outline:none;transition:.15s}
@@ -511,6 +553,12 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
 
 @media(max-width:768px){
   header { padding: 0 12px; gap: 8px; }
+  #hdr-sub-title, header .sep { display: none; }
+  header { gap: 6px; }
+  header .logo-mark { width: 34px; height: 34px; }
+  .mode-btn, .notif-bell { width: 34px !important; height: 34px !important; }
+  .logo-text { font-size: 15px; }
+  .hbadge.sup { padding: 4px 9px; font-size: 10px; }
   .main { padding: 14px 12px 75px 12px !important; }
   .page-header { flex-direction: column; align-items: flex-start; gap: 10px; }
   .page-actions { width: 100%; display: flex; gap: 8px; }
@@ -571,13 +619,13 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
 
 <header>
   <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileSidebar()" title="Abrir Menu de Navegação">☰</button>
-  <div class="logo-mark">FA</div>
+  <div class="logo-mark"><svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.3" fill="#fff" stroke="none"/><path d="M12 2.6v2.3M12 19.1v2.3M2.6 12h2.3M19.1 12h2.3M5.35 5.35l1.62 1.62M17.03 17.03l1.62 1.62M5.35 18.65l1.62-1.62M17.03 6.97l1.62-1.62"/></svg></div>
   <div>
-    <div class="logo-text">FAROL <span>Analytics</span></div>
+    <div class="logo-text"><span>ANALYTICS</span></div>
     <div style="font-size:10px;color:var(--muted);letter-spacing:.5px" id="hdr-sub-title">SUPERVISÃO COMERCIAL</div>
   </div>
   <div class="sep"></div>
-  <div class="hbadge sup" id="hdr-sup-badge">👤 <b id="hdr-sup">CAIO CESAR</b></div>
+  <div class="hbadge sup" id="hdr-sup-badge">👥 <b id="hdr-sup">CLAREOU</b></div>
   <div class="hbadge desktop-only" id="hdr-state-badge">Estado: <b id="hdr-state">Consolidado</b></div>
   <div class="hbadge desktop-only" id="hdr-cons-badge">Consultor: <b id="hdr-cons">Todos</b></div>
   <div class="hbadge desktop-only" id="hdr-month-badge">Período: <b id="hdr-month">Todo o período</b></div>
@@ -595,11 +643,36 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
     </div>
   </div>
   <button class="mode-btn" onclick="toggleMode()" id="mode-btn" title="Alternar modo Claro/Escuro">☀️</button>
+  <button class="mode-btn" onclick="doLogout()" id="logout-btn" title="Sair do painel" aria-label="Sair do painel" style="display:none;font-size:15px">⏻</button>
 </header>
 
 <!-- ========================================================================= -->
 <!-- EMPTY STATE OVERLAY (EXIBIDO QUANDO NÃO HÁ PLANILHA CARREGADA) -->
 <!-- ========================================================================= -->
+<div class="login-screen" id="login-screen" role="dialog" aria-labelledby="login-title">
+  <form class="login-card" id="login-form" onsubmit="event.preventDefault(); doLogin();" novalidate>
+    <div class="login-head">
+      <div class="empty-logo"><svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.3" fill="#fff" stroke="none"/><path d="M12 2.6v2.3M12 19.1v2.3M2.6 12h2.3M19.1 12h2.3M5.35 5.35l1.62 1.62M17.03 17.03l1.62 1.62M5.35 18.65l1.62-1.62M17.03 6.97l1.62-1.62"/></svg></div>
+      <div class="empty-title" id="login-title"><span>ANALYTICS</span></div>
+      <p>Entre com o acesso da equipe para ver o painel.</p>
+    </div>
+    <div class="login-msg" id="login-msg" role="alert"></div>
+    <div class="login-field">
+      <label for="login-email">E-mail</label>
+      <input class="form-input" type="email" id="login-email" autocomplete="username" required>
+    </div>
+    <div class="login-field">
+      <label for="login-pass">Senha</label>
+      <div class="login-pass-wrap">
+        <input class="form-input" type="password" id="login-pass" autocomplete="current-password" required>
+        <button type="button" class="login-pass-toggle" id="login-pass-toggle" onclick="toggleLoginPass()">Mostrar</button>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary login-submit" id="login-submit">Entrar</button>
+    <button type="button" class="login-forgot" onclick="doPasswordReset()">Esqueci a senha</button>
+  </form>
+</div>
+
 <div class="loading-screen" id="loading-screen">
   <div class="loading-spinner"></div>
   <div id="loading-text">Carregando a última planilha salva…</div>
@@ -608,8 +681,8 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
 
 <div class="empty-state-overlay" id="empty-state-screen" style="display:none">
   <div class="empty-state-card">
-    <div class="empty-logo">FA</div>
-    <div class="empty-title">FAROL <span>Analytics</span></div>
+    <div class="empty-logo"><svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.3" fill="#fff" stroke="none"/><path d="M12 2.6v2.3M12 19.1v2.3M2.6 12h2.3M19.1 12h2.3M5.35 5.35l1.62 1.62M17.03 17.03l1.62 1.62M5.35 18.65l1.62-1.62M17.03 6.97l1.62-1.62"/></svg></div>
+    <div class="empty-title"><span>ANALYTICS</span></div>
     <div class="empty-subtitle" id="empty-subtitle">Ainda não há nenhuma planilha salva. Carregue a planilha de <b>Carteiras Unificadas</b> uma vez: ela fica salva no banco de dados e o painel abre direto nas próximas vezes.</div>
     <div class="db-error-box" id="db-error-box"></div>
 
@@ -638,7 +711,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
   <aside class="sidebar" id="app-sidebar">
     <div class="sidebar-mobile-head">
       <div style="display:flex;align-items:center;gap:8px">
-        <div class="logo-mark" style="width:28px;height:28px;font-size:12px">FA</div>
+        <div class="logo-mark" style="width:28px;height:28px;font-size:12px"><svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.3" fill="#fff" stroke="none"/><path d="M12 2.6v2.3M12 19.1v2.3M2.6 12h2.3M19.1 12h2.3M5.35 5.35l1.62 1.62M17.03 17.03l1.62 1.62M5.35 18.65l1.62-1.62M17.03 6.97l1.62-1.62"/></svg></div>
         <div style="font-weight:700;font-size:13px">Menu &amp; Filtros</div>
       </div>
       <button class="sidebar-close-btn" onclick="closeMobileSidebar()" title="Fechar Menu">✕</button>
@@ -673,7 +746,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
 
     <!-- SELETOR DE SUPERVISOR -->
     <div class="sidebar-section">
-      <div class="filter-label">Supervisor</div>
+      <div class="filter-label">Equipe</div>
       <select class="form-select" id="sel-supervisor" onchange="changeSupervisor(this.value)"></select>
     </div>
 
@@ -719,7 +792,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
     <div id="page-geral" class="page active">
       <div class="page-header">
         <div>
-          <div class="page-title">Painel Executivo — <span id="view-sup-title">Supervisor Caio Cesar</span></div>
+          <div class="page-title">Painel Executivo — <span id="view-sup-title">Equipe Clareou</span></div>
           <div class="page-subtitle">Desempenho comercial consolidado e evolução das carteiras no período da planilha</div>
         </div>
         <div class="page-actions">
@@ -739,7 +812,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
             <div class="chart-title">🎯 Atingimento das Metas do Mês (<span id="gauge-month-label">—</span>)</div>
             <div class="chart-subtitle">Progresso semafórico em tempo real da equipe vs metas estabelecidas</div>
           </div>
-          <button class="btn btn-ghost btn-pill" onclick="setPage('metas')" style="font-size:11px">⚙️ Ajustar Metas</button>
+          <button class="btn btn-ghost btn-pill" onclick="setPage('metas')" style="font-size:11px">🎯 Ver Metas</button>
         </div>
         <div class="gauges-unified-row">
           <div class="gauge-col">
@@ -928,41 +1001,35 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
     <div id="page-metas" class="page">
       <div class="page-header">
         <div>
-          <div class="page-title">Gestão de <span>Metas &amp; Níveis da Equipe</span></div>
-          <div class="page-subtitle">Defina as metas mensais individuais para cada consultor do time e acompanhe os indicadores alvo</div>
+          <div class="page-title">Metas &amp; <span>Níveis da Equipe</span></div>
+          <div class="page-subtitle">As metas vêm da planilha de metas (uma aba por mês). Escolha o mês e a equipe para ver quem estava no time, a meta de cada um e o realizado.</div>
         </div>
         <div class="page-actions">
-          <button class="btn btn-ghost" onclick="suggestMetasAuto()">✨ Sugerir Metas (+10%)</button>
-          <button class="btn btn-primary" onclick="saveTeamMetasFromUI()">💾 Salvar Metas</button>
+          <button class="btn btn-primary" onclick="document.getElementById('metas-file-input').click()">📤 Enviar Planilha de Metas</button>
+          <input type="file" id="metas-file-input" accept=".xlsx,.xls" style="display:none" onchange="handleMetasFile(this)">
         </div>
       </div>
 
-      <div class="filter-summary" id="fs-metas"></div>
+      <div class="metas-plan-status" id="metas-plan-status"></div>
       <div class="kpi-strip" id="metas-kpi-strip"></div>
 
-      <!-- TOOLBAR DE AÇÕES -->
       <div class="metas-toolbar">
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <div style="display:flex;align-items:center;gap:6px;margin-right:6px">
-            <span style="font-size:12px;font-weight:700">👤 Equipe:</span>
-            <select class="form-select" id="sel-metas-supervisor" style="padding:4px 10px;font-size:11px;font-weight:700" onchange="changeMetasSupervisor(this.value)" title="Selecione o supervisor para gerenciar as metas da sua equipe"></select>
-          </div>
-          <span style="font-size:12px;font-weight:700">⚡ Ações:</span>
-          <button class="btn btn-ghost btn-pill" onclick="suggestMetasAuto()" style="font-size:11px">✨ Sugerir (+10%)</button>
-          <button class="btn btn-ghost btn-pill" onclick="resetTeamMetasToDefault()" style="font-size:11px">↺ Restaurar Padrão</button>
-          <button class="btn btn-ghost btn-pill" onclick="downloadMetasTemplateExcel()" style="font-size:11px">⬇️ Baixar Excel</button>
+        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700">📅 Mês
+            <select class="form-select" id="sel-metas-month" style="padding:5px 10px;font-size:12px;font-weight:700;width:auto;min-width:150px" onchange="changeMetasMonth(this.value)"></select>
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700">👥 Equipe
+            <select class="form-select" id="sel-metas-supervisor" style="padding:5px 10px;font-size:12px;font-weight:700;width:auto;min-width:150px" onchange="changeMetasSupervisor(this.value)"></select>
+          </label>
         </div>
-        <div>
-          <button class="btn btn-primary" onclick="saveTeamMetasFromUI()">✓ Salvar e Atualizar Dashboard</button>
-        </div>
+        <button class="btn btn-ghost btn-pill" onclick="downloadMetasTemplateExcel()" style="font-size:11px">⬇️ Baixar Excel desta equipe</button>
       </div>
 
-      <!-- TABELA INTERATIVA DE METAS -->
       <div class="chart-card" style="margin-bottom:20px">
         <div class="chart-head">
           <div>
-            <div class="chart-title">Metas Individuais por Consultor</div>
-            <div class="chart-subtitle">Edite os valores diretamente nos campos. O Ticket Alvo e Fator Alvo são calculados automaticamente.</div>
+            <div class="chart-title" id="metas-table-title">Metas por Consultor</div>
+            <div class="chart-subtitle" id="metas-table-sub">Só aparecem os consultores que estavam na equipe no mês escolhido.</div>
           </div>
           <span class="chart-pill pill-r" id="metas-count-badge">Consultores</span>
         </div>
@@ -972,41 +1039,36 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
               <tr>
                 <th style="width:36px">#</th>
                 <th>Consultor</th>
-                <th style="width:140px">Nível</th>
-                <th style="width:180px">Meta Faturamento (R$)</th>
-                <th style="width:130px">Meta Pedidos</th>
-                <th style="width:150px">Meta Clientes Positivados</th>
-                <th style="width:130px;color:var(--orange)">⚡ Ticket Alvo</th>
-                <th style="width:120px;color:var(--orange)">⚡ Fator Alvo</th>
-                <th style="width:120px">Pts Trainee</th>
+                <th>Nível</th>
+                <th style="text-align:right">Meta Faturamento</th>
+                <th style="text-align:right">Realizado</th>
+                <th style="text-align:right">% Meta</th>
+                <th style="text-align:right">Pedidos (real / meta)</th>
+                <th style="text-align:right">Clientes (real / meta)</th>
+                <th style="text-align:right">Fator Meta</th>
               </tr>
             </thead>
             <tbody id="tbl-metas-body"></tbody>
           </table>
         </div>
+        <div class="metas-footnote">O realizado vem da carteira atual: se um cliente trocou de consultor, as compras antigas dele aparecem com o consultor de hoje. Consultores que saíram não têm mais clientes na carteira, por isso aparecem sem realizado.</div>
       </div>
 
-      <!-- INFORMAÇÕES E REGRAS DE NÍVEIS -->
       <div class="chart-grid c2">
         <div class="chart-card">
           <div class="chart-head">
-            <div class="chart-title">🏷️ Classificação de Níveis</div>
+            <div class="chart-title">🏷️ Metas por Nível</div>
           </div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.7">
-            <p><span class="lvl lvl-sen">Sênior 1/2/3</span> — Consultores veteranos com carteira consolidada e meta alta de faturamento.</p>
-            <p style="margin-top:6px"><span class="lvl lvl-ple">Pleno 1/2</span> — Consultores intermediários com expansão de carteira ativa.</p>
-            <p style="margin-top:6px"><span class="lvl lvl-jun">Júnior 1/2</span> — Consultores em maturação de carteira.</p>
-            <p style="margin-top:6px"><span class="lvl lvl-trn">Trainee</span> — Novos integrantes com foco em positivação inicial e pontuação de transição.</p>
-          </div>
+          <div id="metas-levels-box" style="font-size:12px;color:var(--muted);line-height:1.7"></div>
         </div>
         <div class="chart-card">
           <div class="chart-head">
-            <div class="chart-title">💡 Dicas de Dimensionamento de Metas</div>
+            <div class="chart-title">📄 Como atualizar as metas</div>
           </div>
           <div style="font-size:12px;color:var(--muted);line-height:1.7">
-            <p>• <b>Fator de Recompra Alvo (2,00×):</b> O ideal é que cada cliente ativo compre em média 2 vezes no mês.</p>
-            <p style="margin-top:6px">• <b>Ticket Médio Equilibrado:</b> Monitore se o ticket alvo é compatível com o perfil dos integradores atendidos.</p>
-            <p style="margin-top:6px">• <b>Salvamento Automático:</b> As metas salvas ficam guardadas no banco de dados e aparecem em qualquer computador que abrir o painel.</p>
+            <p>• Edite a planilha de metas no Excel: uma aba por mês (Janeiro, Fevereiro…), com as colunas <b>SUPERVISÃO, ID WINTHOR, CONSULTOR, NIVEL, META FATURAMENTO, META CLIENTES, META PEDIDOS</b> e <b>META FATOR</b>.</p>
+            <p style="margin-top:6px">• Clique em <b>Enviar Planilha de Metas</b>. A planilha nova substitui a anterior e fica salva no banco de dados.</p>
+            <p style="margin-top:6px">• Esse botão aceita somente a planilha de metas. A carteira continua sendo enviada em <b>Importar Planilha</b>.</p>
           </div>
         </div>
       </div>
@@ -1331,7 +1393,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
             <span id="modal-cons-level-badge"></span>
           </div>
           <div style="font-size:11px;color:var(--muted);font-weight:400;margin-top:2px">
-            <span id="modal-cons-sup">Supervisor</span> • <span id="modal-cons-states">Estados</span>
+            <span id="modal-cons-sup">Equipe</span> • <span id="modal-cons-states">Estados</span>
           </div>
         </div>
       </div>
@@ -1746,7 +1808,7 @@ async function saveTeamMetas(metas) {
   }
 }
 
-function getConsultantMeta(consName) {
+function getLegacyConsultantMeta(consName) {
   const normName = (consName || '').trim().toUpperCase();
   if(TEAM_METAS[normName]) return TEAM_METAS[normName];
 
@@ -1772,6 +1834,133 @@ function getConsultantMeta(consName) {
     metaCli: defaultCli,
     pts: 0
   };
+}
+
+
+// ─── PLANILHA DE METAS (uma aba por mês) ──────────────────────────────────────
+// Fonte das metas, dos níveis e de quem faz parte de cada equipe em cada mês.
+// Cada mês tem a sua lista: quem saiu não aparece nos meses seguintes e quem
+// entrou só aparece a partir do mês em que entrou. Consultores são ligados à
+// carteira pelo ID WINTHOR (= ID_CONSULTOR da carteira); sem ID, pelo nome.
+let METAS_PLAN = null; // { fileName, savedAt, months:[{y,m,rows:[...]}], levels:[...] }
+
+const TEAM_NAMES = { CAIO: 'CLAREOU', JESSICA: 'FAROL', EDUARDA: 'AURORA', LUCAS: 'CACTOS', ELAINE: 'GIRASSOL' };
+
+function normTxt(v) {
+  return String(v == null ? '' : v).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/\s+/g, ' ').trim();
+}
+function teamNameOf(sup) {
+  const k = normTxt(sup).split(' ')[0];
+  return TEAM_NAMES[k] || (sup ? String(sup).trim() : '—');
+}
+function sameSup(a, b) { return normTxt(a) === normTxt(b); }
+function normConsId(v) {
+  if(v === null || v === undefined || v === '') return '';
+  const n = Math.round(parseFloat(String(v).replace(',', '.')));
+  return isNaN(n) ? '' : String(n);
+}
+function levelKeyOf(label) {
+  const k = normTxt(label).replace(/\s+/g, '').toLowerCase();
+  return TIPOS_MAP[k] ? k : null;
+}
+function lvlInfoOf(meta) {
+  if(meta && meta.noMeta) return { label: 'Sem meta', grp: 'trn' };
+  if(meta && TIPOS_MAP[meta.level]) return TIPOS_MAP[meta.level];
+  return { label: (meta && meta.levelLabel) || '—', grp: 'trn' };
+}
+function metaFromPlanRow(x) {
+  return {
+    level: levelKeyOf(x.level),
+    levelLabel: x.level || '—',
+    metaFat: x.metaFat || 0,
+    metaPed: x.metaPed || 0,
+    metaCli: x.metaCli || 0,
+    metaFator: x.metaFator || 0,
+    pts: 0,
+    fromPlan: true
+  };
+}
+function planMonthLabel(pm) { return pm ? `${PT_MONTH_LABEL[pm.m]}/${pm.y}` : '—'; }
+function planMonthForIdx(idx) {
+  if(!METAS_PLAN || !METAS_PLAN.months) return null;
+  const mi = MONTH_YEAR_MAP[idx];
+  if(!mi) return null;
+  return METAS_PLAN.months.find(x => x.y === mi.y && x.m === mi.m) || null;
+}
+function carteiraIdxForPlanMonth(pm) {
+  if(!pm) return -1;
+  return MONTH_YEAR_MAP.findIndex(x => x.y === pm.y && x.m === pm.m);
+}
+
+// Índice da carteira por ID e por nome do consultor (refeito quando a carteira muda)
+let _consIdxSrc = null, _consById = new Map(), _consByName = new Map();
+function buildConsIndex() {
+  if(_consIdxSrc === RAW_DATA) return;
+  _consIdxSrc = RAW_DATA; _consById = new Map(); _consByName = new Map();
+  (RAW_DATA || []).forEach(r => {
+    if(r.consId) { if(!_consById.has(r.consId)) _consById.set(r.consId, []); _consById.get(r.consId).push(r); }
+    const nk = normTxt(r.cons);
+    if(nk) { if(!_consByName.has(nk)) _consByName.set(nk, []); _consByName.get(nk).push(r); }
+  });
+}
+function rowsOfPlanMember(x) {
+  buildConsIndex();
+  if(x.id && _consById.has(x.id)) return _consById.get(x.id);
+  return _consByName.get(normTxt(x.name)) || [];
+}
+function findPlanMember(consName, idx) {
+  const pm = planMonthForIdx(idx);
+  if(!pm) return null;
+  buildConsIndex();
+  const nk = normTxt(consName);
+  const rows = _consByName.get(nk) || [];
+  const id = (rows.find(r => r.consId) || {}).consId;
+  return pm.rows.find(x => (id && x.id === id) || normTxt(x.name) === nk) || null;
+}
+
+// Meta de um consultor num mês da carteira (padrão: mês atual)
+function getConsultantMeta(consName, idx) {
+  const i = (idx === undefined || idx === null) ? CURRENT_METAS_MONTH_IDX : idx;
+  const pr = findPlanMember(consName, i);
+  if(pr) return metaFromPlanRow(pr);
+  if(planMonthForIdx(i)) return { level: null, levelLabel: 'Sem meta', metaFat: 0, metaPed: 0, metaCli: 0, metaFator: 0, pts: 0, noMeta: true };
+  return getLegacyConsultantMeta(consName);
+}
+
+// Integrantes de uma equipe num mês da carteira.
+// Com planilha de metas para o mês: só quem estava na equipe naquele mês.
+// Sem planilha para o mês: consultores da carteira atual daquela equipe.
+function getTeamRoster(sup, idx) {
+  const pm = planMonthForIdx(idx);
+  if(pm) {
+    const members = pm.rows.filter(x => sameSup(x.sup, sup)).map(x => {
+      const rows = rowsOfPlanMember(x);
+      return { name: rows[0] ? String(rows[0].cons).trim() : x.name, planName: x.name, id: x.id, rows, meta: metaFromPlanRow(x) };
+    });
+    return { fromPlan: true, planMonth: pm, members };
+  }
+  const map = new Map();
+  (RAW_DATA || []).forEach(r => {
+    if(!r.cons || !sameSup(r.sup, sup)) return;
+    const k = r.cons.trim().toUpperCase();
+    if(!map.has(k)) map.set(k, []);
+    map.get(k).push(r);
+  });
+  const members = Array.from(map.keys()).sort().map(k => ({ name: k, planName: k, id: '', rows: map.get(k), meta: getConsultantMeta(k, idx) }));
+  return { fromPlan: false, planMonth: null, members };
+}
+
+// Aplica os filtros de estado e consultor da barra lateral à lista da equipe
+function filterRosterMembers(members, st, cons) {
+  let list = members;
+  if(cons && cons !== 'todos') {
+    const nk = normTxt(cons);
+    list = list.filter(mb => normTxt(mb.name) === nk || normTxt(mb.planName) === nk);
+  }
+  return list.map(mb => {
+    const rows = (st && st !== 'geral') ? mb.rows.filter(r => r.state === st) : mb.rows;
+    return { ...mb, rows };
+  }).filter(mb => !(st && st !== 'geral') || mb.rows.length > 0);
 }
 
 let PROJ_METRIC = 'fat';
@@ -1820,6 +2009,7 @@ const FirebaseStore = {
     try {
       firebase.initializeApp(FAROL_FIREBASE_CONFIG);
       this.db = firebase.firestore();
+      this.auth = firebase.auth();
       this.ready = true;
       console.log('✅ Firebase Firestore inicializado com sucesso');
       return true;
@@ -1855,6 +2045,18 @@ const FirebaseStore = {
       console.error('❌ Erro ao carregar metas:', e);
       return null;
     }
+  },
+
+  // ── PLANILHA DE METAS (farol_metas/planilha) ────────────────────────────
+  async saveMetasPlan(plan) {
+    if(!this.ready || !this.db) throw new Error('Banco de dados não conectado');
+    await this.db.collection('farol_metas').doc('planilha').set(plan);
+    return true;
+  },
+  async loadMetasPlan() {
+    if(!this.ready || !this.db) throw new Error('Banco de dados não conectado');
+    const snap = await this.db.collection('farol_metas').doc('planilha').get();
+    return snap.exists ? snap.data() : null;
   },
 
   // ── PLANILHA CARREGADA ─────────────────────────────────────────────────
@@ -2005,11 +2207,95 @@ function formatSavedAt(iso) {
   return d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
-// ─── INITIALIZATION ───────────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', async () => {
-  setupDragAndDrop();
-  await FirebaseStore.init();
+// ─── LOGIN (Firebase Authentication) ─────────────────────────────────────────
+// Os dados só são lidos do banco depois do login. As regras do Firestore
+// também exigem o login, então sem ele ninguém lê a planilha nem pelo código.
+let APP_DATA_LOADED = false;
+
+function showLoginMsg(text, type) {
+  const el = document.getElementById('login-msg');
+  if(!el) return;
+  el.className = 'login-msg' + (text ? ' ' + (type || 'err') : '');
+  el.textContent = text || '';
+}
+
+function loginErrorText(e) {
+  const code = (e && e.code) || '';
+  if(/invalid-credential|wrong-password|user-not-found|invalid-email|invalid-login/.test(code)) return 'E-mail ou senha incorretos.';
+  if(/too-many-requests/.test(code)) return 'Muitas tentativas seguidas. Aguarde alguns minutos e tente de novo.';
+  if(/network-request-failed/.test(code)) return 'Sem conexão com a internet. Verifique a rede e tente de novo.';
+  if(/user-disabled/.test(code)) return 'Este acesso foi desativado.';
+  if(/operation-not-allowed|configuration-not-found/.test(code)) return 'O login por e-mail e senha ainda não foi ativado no Firebase (Authentication → Método de login).';
+  return 'Não foi possível entrar: ' + ((e && e.message) || code);
+}
+
+function showLoginScreen() {
+  document.getElementById('login-screen').classList.add('show');
+  const loading = document.getElementById('loading-screen');
+  if(loading) loading.style.display = 'none';
+  document.getElementById('logout-btn').style.display = 'none';
+  setTimeout(() => {
+    const em = document.getElementById('login-email');
+    const pw = document.getElementById('login-pass');
+    (em && !em.value ? em : pw).focus();
+  }, 50);
+}
+
+function toggleLoginPass() {
+  const inp = document.getElementById('login-pass');
+  const btn = document.getElementById('login-pass-toggle');
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  btn.textContent = show ? 'Ocultar' : 'Mostrar';
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if(!email || !pass) { showLoginMsg('Preencha o e-mail e a senha.'); return; }
+  if(!FirebaseStore.auth) { showLoginMsg('Não foi possível conectar ao Firebase. Verifique a internet e recarregue a página.'); return; }
+  const btn = document.getElementById('login-submit');
+  btn.disabled = true; btn.textContent = 'Entrando…';
+  showLoginMsg('');
+  try {
+    await FirebaseStore.auth.signInWithEmailAndPassword(email, pass);
+    document.getElementById('login-pass').value = '';
+  } catch(e) {
+    showLoginMsg(loginErrorText(e));
+  } finally {
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+}
+
+async function doPasswordReset() {
+  const email = document.getElementById('login-email').value.trim();
+  if(!email) { showLoginMsg('Digite o e-mail do acesso no campo acima e clique em "Esqueci a senha" de novo.'); return; }
+  try {
+    await FirebaseStore.auth.sendPasswordResetEmail(email);
+    showLoginMsg(`Se ${email} for o e-mail do acesso, um link para criar uma nova senha foi enviado para ele.`, 'ok');
+  } catch(e) {
+    showLoginMsg(loginErrorText(e));
+  }
+}
+
+async function doLogout() {
+  if(!confirm('Sair do painel? Será preciso entrar de novo com o e-mail e a senha.')) return;
+  try { await FirebaseStore.auth.signOut(); } catch(e) {}
+  location.reload(); // limpa da memória os dados que estavam na tela
+}
+
+async function loadAppData() {
+  if(APP_DATA_LOADED) return;
+  APP_DATA_LOADED = true;
+  const loading = document.getElementById('loading-screen');
+  if(loading) loading.style.display = 'flex';
+
   await loadTeamMetas();
+  try {
+    METAS_PLAN = await FirebaseStore.loadMetasPlan();
+  } catch(e) {
+    console.warn('Não foi possível carregar a planilha de metas:', e);
+  }
 
   // Abre direto com a última planilha salva no banco de dados
   const res = await loadStoredData();
@@ -2026,9 +2312,31 @@ window.addEventListener('DOMContentLoaded', async () => {
     if(sub) sub.innerHTML = 'Não foi possível ler a planilha salva no banco de dados. Corrija o problema abaixo e recarregue a página. Se enviar uma planilha agora, ela aparece nesta tela, mas só fica salva depois que o banco voltar a aceitar gravações.';
   }
 
-  const loading = document.getElementById('loading-screen');
   if(loading) loading.style.display = 'none';
   updateAppDisplayState();
+}
+
+// ─── INITIALIZATION ───────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  setupDragAndDrop();
+  await FirebaseStore.init();
+
+  if(!FirebaseStore.auth) {
+    showLoginScreen();
+    showLoginMsg('Não foi possível conectar ao Firebase. Verifique a internet e recarregue a página.');
+    return;
+  }
+
+  FirebaseStore.auth.onAuthStateChanged(user => {
+    if(user) {
+      document.getElementById('login-screen').classList.remove('show');
+      document.getElementById('logout-btn').style.display = '';
+      loadAppData();
+    } else {
+      if(APP_DATA_LOADED) { location.reload(); return; } // sessão encerrada: limpa a tela
+      showLoginScreen();
+    }
+  });
 });
 
 function updateAppDisplayState() {
@@ -2042,7 +2350,7 @@ function updateAppDisplayState() {
     appContainer.style.display = 'none';
     btnSwitch.style.display = 'none';
     srcBadge.innerHTML = '📁 <b>Nenhuma Planilha</b>';
-    srcBadge.className = 'hbadge';
+    srcBadge.className = 'hbadge desktop-only';
     document.getElementById('hdr-sup').textContent = '—';
     document.getElementById('hdr-state').textContent = '—';
     document.getElementById('hdr-cons').textContent = '—';
@@ -2053,7 +2361,7 @@ function updateAppDisplayState() {
     
     const fileName = FILE_META.name || 'Planilha Carregada';
     srcBadge.innerHTML = `📁 <b>${fileName}</b> (${RAW_DATA.length.toLocaleString('pt-BR')} linhas)`;
-    srcBadge.className = 'hbadge file';
+    srcBadge.className = 'hbadge file desktop-only';
 
     document.getElementById('status-box-title').innerHTML = `Planilha em Uso: <b>${fileName}</b>`;
     document.getElementById('status-box-desc').innerHTML = `${RAW_DATA.length.toLocaleString('pt-BR')} linhas · Meses: ${periodLabel()}${FILE_META.savedAt ? ' · Salva no banco em ' + formatSavedAt(FILE_META.savedAt) : ''}`;
@@ -2133,8 +2441,8 @@ function populateSupervisorsDropdown() {
   const sups = getSupervisorsList();
   if(!sups.length) return;
 
-  sel.innerHTML = `<option value="TODOS">👥 Todos os Supervisores</option>` +
-    sups.map(s => `<option value="${s}">👤 ${s}</option>`).join('');
+  sel.innerHTML = `<option value="TODOS">👥 Todas as Equipes</option>` +
+    sups.map(s => `<option value="${s}">${teamNameOf(s)}</option>`).join('');
   
   // Prioriza CAIO CESAR se existir na planilha
   const hasCaio = sups.some(s => s.toUpperCase().includes('CAIO'));
@@ -2150,13 +2458,13 @@ function populateSupervisorsDropdown() {
 
 function updateSupervisorUIHeaders() {
   const isAll = STATE.supervisor === 'TODOS';
-  const supLabel = isAll ? 'Todos os Supervisores' : STATE.supervisor;
+  const supLabel = isAll ? 'Todas as Equipes' : teamNameOf(STATE.supervisor);
   
   const hdrSup = document.getElementById('hdr-sup');
   if(hdrSup) hdrSup.textContent = supLabel;
   
   const titleSup = document.getElementById('view-sup-title');
-  if(titleSup) titleSup.textContent = isAll ? 'Consolidado Geral (Todos os Supervisores)' : `Supervisor ${STATE.supervisor}`;
+  if(titleSup) titleSup.textContent = isAll ? 'Consolidado Geral (Todas as Equipes)' : `Equipe ${teamNameOf(STATE.supervisor)}`;
 }
 
 function populateStatesDropdown() {
@@ -2396,11 +2704,11 @@ function updateFilterSummaries() {
   const mIdx = isMonthFiltered ? parseInt(STATE.month, 10) : null;
   const monthLbl = isMonthFiltered ? `${MONTH_NAMES[mIdx]} (Mensal)` : `Todo o período (${periodLabel()})`;
   const isAllSup = STATE.supervisor === 'TODOS';
-  const supLbl = isAllSup ? 'Todos os Supervisores (Consolidado)' : STATE.supervisor;
+  const supLbl = isAllSup ? 'Todas as Equipes (Consolidado)' : teamNameOf(STATE.supervisor);
   const hasAnyFilter = STATE.state !== 'geral' || STATE.consultant !== 'todos' || isMonthFiltered || isAllSup;
 
   const html = `
-    <div class="f-chip sup">👤 Supervisor: <b>${supLbl}</b></div>
+    <div class="f-chip sup">👥 Equipe: <b>${supLbl}</b></div>
     <div class="f-chip st">🗺️ Estado: <b>${stLbl}</b></div>
     <div class="f-chip">💼 Consultor: <b>${consLbl}</b></div>
     <div class="f-chip ${isMonthFiltered ? 'st' : ''}">📅 Período: <b>${monthLbl}</b></div>
@@ -3137,9 +3445,10 @@ function renderRanking() {
       p = (r.ped||[]).reduce((a,b)=>a+b,0);
     }
 
-    const cObj = consMap.get(r.cons) || { name: r.cons, fat: 0, ped: 0, clients: 0, active: 0, states: new Set() };
+    const cObj = consMap.get(r.cons) || { name: r.cons, fat: 0, ped: 0, clients: 0, active: 0, states: new Set(), curFat: 0 };
     cObj.fat += f;
     cObj.ped += p;
+    cObj.curFat += (r.fat && r.fat[CURRENT_METAS_MONTH_IDX]) || 0;
     cObj.clients++;
     if(f > 0 || p > 0) cObj.active++;
     if(r.state) cObj.states.add(r.state);
@@ -3235,10 +3544,15 @@ function renderRanking() {
     const tx = c.clients > 0 ? (c.active / c.clients * 100) : 0;
     const tkm = c.ped > 0 ? c.fat / c.ped : 0;
     const statesArr = Array.from(c.states).slice(0, 4);
-    const meta = getConsultantMeta(c.name);
-    const lvlInfo = TIPOS_MAP[meta.level] || { label: 'Sênior 1', grp: 'sen' };
-    const targetMeta = isMonthFiltered ? (meta.metaFat || 450000) : ((meta.metaFat || 450000) * MONTH_KEYS.length);
-    const pctMeta = targetMeta > 0 ? (c.fat / targetMeta * 100) : 0;
+    const metaIdx = isMonthFiltered ? m : CURRENT_METAS_MONTH_IDX;
+    const meta = getConsultantMeta(c.name, metaIdx);
+    const lvlInfo = lvlInfoOf(meta);
+    const targetMeta = meta.metaFat || 0;
+    const realForMeta = isMonthFiltered ? c.fat : c.curFat;
+    const pctMeta = targetMeta > 0 ? (realForMeta / targetMeta * 100) : 0;
+    const metaLine = meta.noMeta
+      ? `Sem meta em ${MONTH_NAMES[metaIdx]} (não estava na equipe)`
+      : `Meta ${MONTH_NAMES[metaIdx]}: <b>${fK(targetMeta)}</b> (${pctMeta.toFixed(0)}%${isMonthFiltered ? '' : ' no mês'})`;
     return `
       <div class="ccons">
         <div style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
@@ -3247,7 +3561,7 @@ function renderRanking() {
         </div>
         <div class="ccons-name">${c.name}</div>
         <div class="ccons-fat">${fK(c.fat)}</div>
-        <div style="font-size:10.5px;color:var(--muted);margin-bottom:8px">Meta ${isMonthFiltered ? mName : 'do Período'}: <b>${fK(targetMeta)}</b> (${pctMeta.toFixed(0)}% ref.)</div>
+        <div style="font-size:10.5px;color:var(--muted);margin-bottom:8px">${metaLine}</div>
         <div class="ccons-states-tag">
           ${statesArr.map(s => `<span class="ccons-st-pill">${s}</span>`).join('')}
           ${c.states.size > 4 ? `<span class="ccons-st-pill">+${c.states.size-4}</span>` : ''}
@@ -3838,24 +4152,16 @@ function calcProjections(metric = 'fat') {
   const currentSt = STATE.state;
   const currentCons = STATE.consultant;
 
-  const supRows = RAW_DATA.filter(r => {
-    const rSup = (r.sup || '').trim().toUpperCase();
-    if(currentSup && rSup !== currentSup) return false;
-    if(currentSt && currentSt !== 'geral' && r.state !== currentSt) return false;
-    if(currentCons && currentCons !== 'todos' && (r.cons || '').trim() !== currentCons) return false;
-    return true;
-  });
-
-  const consSet = new Set();
-  supRows.forEach(r => { if(r.cons) consSet.add(r.cons.trim().toUpperCase()); });
-  const consultants = Array.from(consSet).sort();
+  // Equipe do mês (planilha de metas) com os filtros de estado e consultor
+  const members = filterRosterMembers(getTeamRoster(currentSup, mIdx).members, currentSt, currentCons);
 
   let teamRealFat = 0, teamMetaFat = 0, teamProjFat = 0;
   let teamRealPed = 0, teamMetaPed = 0, teamProjPed = 0;
   let teamRealCli = 0, teamMetaCli = 0, teamProjCli = 0;
 
-  const consData = consultants.map(cName => {
-    const cRows = supRows.filter(r => (r.cons || '').trim().toUpperCase() === cName);
+  const consData = members.map(mb => {
+    const cName = mb.name;
+    const cRows = mb.rows;
     let cFat = 0, cPed = 0, cCli = 0;
     cRows.forEach(r => {
       const f = (r.fat && r.fat[mIdx]) || 0;
@@ -3865,7 +4171,7 @@ function calcProjections(metric = 'fat') {
       if(f > 0 || p > 0) cCli++;
     });
 
-    const metaObj = getConsultantMeta(cName);
+    const metaObj = mb.meta;
     const mFat = metaObj.metaFat || 0;
     const mPed = metaObj.metaPed || 0;
     const mCli = metaObj.metaCli || 0;
@@ -3884,7 +4190,8 @@ function calcProjections(metric = 'fat') {
 
     return {
       name: cName,
-      level: metaObj.level || 'senior1',
+      level: metaObj.level,
+      levelLabel: metaObj.levelLabel,
       pts: metaObj.pts || 0,
       real: real,
       meta: meta,
@@ -3918,7 +4225,7 @@ function renderGaugesAndProjections() {
   const isAll = STATE.supervisor === 'TODOS';
   const targetSup = isAll ? (STATE.metasSupervisor || getPrimarySupervisor()) : STATE.supervisor;
   const lblEl = document.getElementById('gauge-month-label');
-  if(lblEl) lblEl.textContent = isAll ? `${mName} · Equipe ${targetSup}` : `${mName} (Mês Atual)`;
+  if(lblEl) lblEl.textContent = isAll ? `${mName} · Equipe ${teamNameOf(targetSup)}` : `${mName} (Mês Atual)`;
 
   const data = calcProjections('fat');
   const t = data.team;
@@ -4177,29 +4484,20 @@ function renderCorridaMetasWidget() {
   const currentSt = STATE.state;
   const currentCons = STATE.consultant;
 
-  const supRows = RAW_DATA.filter(r => {
-    const rSup = (r.sup || '').trim().toUpperCase();
-    if(currentSup && rSup !== currentSup) return false;
-    if(currentSt && currentSt !== 'geral' && r.state !== currentSt) return false;
-    if(currentCons && currentCons !== 'todos' && (r.cons || '').trim() !== currentCons) return false;
-    return true;
-  });
+  const members = filterRosterMembers(getTeamRoster(currentSup, mIdx).members, currentSt, currentCons);
 
   const bData = calcProjections('fat');
   const totalBiz = bData.totalBiz || 22;
   const elapsedBiz = bData.elapsedBiz || 1;
   const remainBiz = Math.max(0, totalBiz - elapsedBiz);
 
-  const consSet = new Set();
-  supRows.forEach(r => { if(r.cons) consSet.add(r.cons.trim().toUpperCase()); });
-  const consultants = Array.from(consSet);
-
   let teamMetaFat = 0;
   let teamRealFat = 0;
   let teamRealPed = 0;
 
-  const consStats = consultants.map(cName => {
-    const cRows = supRows.filter(r => (r.cons || '').trim().toUpperCase() === cName);
+  const consStats = members.map(mb => {
+    const cName = mb.name;
+    const cRows = mb.rows;
     let cRealFat = 0;
     let cRealPed = 0;
     let cTotalClients = cRows.length;
@@ -4213,9 +4511,9 @@ function renderCorridaMetasWidget() {
       if(f > 0 || p > 0) cActiveClients++;
     });
 
-    const meta = getConsultantMeta(cName);
-    const metaFat = meta.metaFat || 450000;
-    const metaPed = meta.metaPed || 15;
+    const meta = mb.meta;
+    const metaFat = meta.metaFat || 0;
+    const metaPed = meta.metaPed || 0;
 
     teamMetaFat += metaFat;
     teamRealFat += cRealFat;
@@ -4243,6 +4541,7 @@ function renderCorridaMetasWidget() {
     return {
       name: cName,
       level: meta.level,
+      levelLabel: meta.levelLabel,
       metaFat,
       realFat: cRealFat,
       gap,
@@ -4266,7 +4565,7 @@ function renderCorridaMetasWidget() {
       <div class="chart-head">
         <div>
           <div class="chart-title" style="display:flex;align-items:center;gap:8px">
-            <span>🏁</span> Simulador de Ritmo &amp; Corrida de Meta (${mName})${isAll ? ' · Equipe ' + currentSup : ''}
+            <span>🏁</span> Simulador de Ritmo &amp; Corrida de Meta (${mName})${isAll ? ' · Equipe ' + teamNameOf(currentSup) : ''}
           </div>
           <div class="chart-subtitle">
             Cálculo diário em R$/dia e volume de pedidos necessários para atingir 100% da meta nos <b>${remainBiz} dias úteis restantes</b> (${elapsedBiz}/${totalBiz} dias decorridos).
@@ -4320,7 +4619,7 @@ function renderCorridaMetasWidget() {
               <tr>
                 <td>
                   <div style="font-weight:700">${c.name}</div>
-                  <div style="font-size:10px;color:var(--muted)">${TIPOS_MAP[c.level]?.label || c.level}</div>
+                  <div style="font-size:10px;color:var(--muted)">${TIPOS_MAP[c.level]?.label || c.levelLabel || '—'}</div>
                 </td>
                 <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:600">${fR0(c.metaFat)}</td>
                 <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:var(--blue)">${fR0(c.realFat)}</td>
@@ -4356,7 +4655,7 @@ function openConsultantRaioX(consName) {
   const mName = MONTH_NAMES[mIdx];
   const consRows = RAW_DATA.filter(r => (r.cons || '').trim().toUpperCase() === (consName || '').trim().toUpperCase());
   const meta = getConsultantMeta(consName);
-  const lvlInfo = TIPOS_MAP[meta.level] || { label: 'Sênior 1', grp: 'sen' };
+  const lvlInfo = lvlInfoOf(meta);
 
   // States
   const statesSet = new Set();
@@ -4384,7 +4683,7 @@ function openConsultantRaioX(consName) {
   // Set Header
   document.getElementById('modal-cons-name').textContent = consName;
   document.getElementById('modal-cons-level-badge').innerHTML = `<span class="lvl lvl-${lvlInfo.grp}">${lvlInfo.label}</span>`;
-  document.getElementById('modal-cons-sup').textContent = `Supervisor: ${supName}`;
+  document.getElementById('modal-cons-sup').textContent = `Equipe: ${teamNameOf(supName)}`;
   document.getElementById('modal-cons-states').textContent = `Estados: ${statesStr}`;
 
   // Month Pacing
@@ -4601,7 +4900,18 @@ document.addEventListener('keydown', e => {
 });
 
 // ─── GESTÃO DE METAS & EQUIPE (PAGE 4) ─────────────────────────────────────────
+// Mês e equipe escolhidos na página de Metas
+STATE.metasView = { monthId: null, sup: null, lastGlobalSup: null };
+
+function planMonthId(pm) { return pm.y * 100 + pm.m; }
+
+function changeMetasMonth(v) {
+  STATE.metasView.monthId = parseInt(v, 10);
+  renderMetasPage();
+}
+
 function changeMetasSupervisor(sup) {
+  STATE.metasView.sup = sup;
   STATE.metasSupervisor = sup;
   renderMetasPage();
   renderGaugesAndProjections();
@@ -4609,101 +4919,281 @@ function changeMetasSupervisor(sup) {
   renderCorridaMetasWidget();
 }
 
-function renderMetasPage() {
-  const rawSup = (STATE.supervisor || '').trim().toUpperCase();
-  const activeMetasSup = (rawSup === 'TODOS') ? (STATE.metasSupervisor || getPrimarySupervisor()) : STATE.supervisor;
-  const currentSup = activeMetasSup.trim().toUpperCase();
+function getMetasViewSelection() {
+  if(!METAS_PLAN || !METAS_PLAN.months || !METAS_PLAN.months.length) return null;
+  const months = METAS_PLAN.months;
+  // Mês: o escolhido; senão o mês atual da carteira; senão o último da planilha
+  let pm = months.find(x => planMonthId(x) === STATE.metasView.monthId);
+  if(!pm) pm = planMonthForIdx(CURRENT_METAS_MONTH_IDX) || months[months.length - 1];
+  STATE.metasView.monthId = planMonthId(pm);
 
-  // Atualiza seletor de supervisor de metas
-  const selMetasSup = document.getElementById('sel-metas-supervisor');
-  if(selMetasSup) {
-    const sups = getSupervisorsList();
-    selMetasSup.innerHTML = sups.map(s => `<option value="${s}" ${s.toUpperCase()===currentSup?'selected':''}>👤 ${s}</option>`).join('');
+  // Equipe: acompanha a equipe escolhida na barra lateral
+  const globalSup = STATE.supervisor && STATE.supervisor !== 'TODOS' ? STATE.supervisor : null;
+  if(globalSup && !sameSup(globalSup, STATE.metasView.lastGlobalSup)) STATE.metasView.sup = globalSup;
+  STATE.metasView.lastGlobalSup = globalSup;
+
+  const sups = [];
+  pm.rows.forEach(x => { if(!sups.some(s => sameSup(s, x.sup))) sups.push(x.sup); });
+  sups.sort((a, b) => teamNameOf(a).localeCompare(teamNameOf(b)));
+  let sup = sups.find(s => sameSup(s, STATE.metasView.sup))
+         || sups.find(s => sameSup(s, STATE.metasSupervisor))
+         || sups.find(s => sameSup(s, getPrimarySupervisor()))
+         || sups[0];
+  const wanted = STATE.metasView.sup;
+  const missing = wanted && !sups.some(s => sameSup(s, wanted)) ? wanted : null;
+  STATE.metasView.sup = sup;
+  return { pm, sups, sup, missing };
+}
+
+function renderMetasLevelsBox() {
+  const box = document.getElementById('metas-levels-box');
+  if(!box) return;
+  const levels = (METAS_PLAN && METAS_PLAN.levels) || [];
+  if(!levels.length) {
+    box.innerHTML = '<p>As metas de clientes, pedidos e fator de cada nível aparecem aqui quando a planilha de metas tiver a aba <b>BASE DE DADOS</b>.</p>';
+    return;
   }
+  box.innerHTML = `<table class="metas-levels">
+    <thead><tr><th>Nível</th><th>Clientes</th><th>Pedidos</th><th>Fator</th></tr></thead>
+    <tbody>${levels.map(l => `<tr><td>${l.level}</td><td>${fNum(l.metaCli)}</td><td>${fNum(l.metaPed)}</td><td>${(l.metaFator || 0).toFixed(1).replace('.', ',')}×</td></tr>`).join('')}</tbody>
+  </table>`;
+}
 
-  const supRows = RAW_DATA.filter(r => (r.sup || '').trim().toUpperCase() === currentSup);
-  const consSet = new Set();
-  supRows.forEach(r => { if(r.cons) consSet.add(r.cons.trim().toUpperCase()); });
-  const consList = Array.from(consSet).sort();
-
-  let totMetaFat = 0, totMetaPed = 0, totMetaCli = 0;
-
-  const countBadge = document.getElementById('metas-count-badge');
-  if(countBadge) countBadge.textContent = `${consList.length} Consultores (${activeMetasSup})`;
-
+function renderMetasPage() {
+  renderMetasLevelsBox();
+  const statusEl = document.getElementById('metas-plan-status');
+  const selMonth = document.getElementById('sel-metas-month');
+  const selSup = document.getElementById('sel-metas-supervisor');
   const tbody = document.getElementById('tbl-metas-body');
+  const kpiEl = document.getElementById('metas-kpi-strip');
+  const countBadge = document.getElementById('metas-count-badge');
   if(!tbody) return;
 
-  const rowsHtml = consList.map((cName, idx) => {
-    const meta = getConsultantMeta(cName);
-    totMetaFat += meta.metaFat || 0;
-    totMetaPed += meta.metaPed || 0;
-    totMetaCli += meta.metaCli || 0;
+  const sel = getMetasViewSelection();
+  if(!sel) {
+    statusEl.className = 'metas-plan-status warn';
+    statusEl.innerHTML = 'Nenhuma planilha de metas enviada ainda. Clique em <b>Enviar Planilha de Metas</b> para carregar as metas, os níveis e a equipe de cada mês.';
+    selMonth.innerHTML = ''; selSup.innerHTML = '';
+    if(kpiEl) kpiEl.innerHTML = '';
+    if(countBadge) countBadge.textContent = '0 Consultores';
+    tbody.innerHTML = '<tr><td colspan="9"><div class="metas-empty">Envie a planilha de metas para ver os consultores de cada equipe mês a mês.</div></td></tr>';
+    return;
+  }
+  const { pm, sups, sup, missing } = sel;
 
-    const tkm = meta.metaPed > 0 ? meta.metaFat / meta.metaPed : 0;
-    const fator = meta.metaCli > 0 ? meta.metaPed / meta.metaCli : 0;
+  const savedTxt = METAS_PLAN.savedAt ? ` · enviada em ${formatSavedAt(METAS_PLAN.savedAt)}` : '';
+  const first = METAS_PLAN.months[0], last = METAS_PLAN.months[METAS_PLAN.months.length - 1];
+  statusEl.className = 'metas-plan-status' + (missing ? ' warn' : '');
+  statusEl.innerHTML = `📄 <b>${METAS_PLAN.fileName || 'Planilha de metas'}</b> · ${METAS_PLAN.months.length} meses (${planMonthLabel(first)} a ${planMonthLabel(last)})${savedTxt}` +
+    (missing ? `<br>A equipe <b>${teamNameOf(missing)}</b> não aparece na planilha em ${planMonthLabel(pm)}. Mostrando a equipe ${teamNameOf(sup)}.` : '');
 
-    const optionsHtml = Object.keys(TIPOS_MAP).map(k => `
-      <option value="${k}" ${meta.level === k ? 'selected' : ''}>${TIPOS_MAP[k].label}</option>
-    `).join('');
+  selMonth.innerHTML = METAS_PLAN.months.slice().reverse().map(x =>
+    `<option value="${planMonthId(x)}" ${planMonthId(x) === planMonthId(pm) ? 'selected' : ''}>${planMonthLabel(x)}</option>`).join('');
+  selSup.innerHTML = sups.map(s => `<option value="${s}" ${sameSup(s, sup) ? 'selected' : ''}>${teamNameOf(s)}</option>`).join('');
 
-    return `
-      <tr data-cons="${cName}">
-        <td style="font-weight:700;color:var(--muted)">${idx + 1}</td>
-        <td><b>${cName}</b></td>
-        <td>
-          <select class="sel-lvl form-select" style="padding:4px 8px;font-size:11px" onchange="updateMetasTableCalculations(this)">
-            ${optionsHtml}
-          </select>
-        </td>
-        <td>
-          <input type="number" class="inp-fat form-select" value="${meta.metaFat || 0}" step="5000" style="padding:4px 8px;font-size:11px;font-weight:700;color:var(--text)" oninput="updateMetasTableCalculations(this)">
-        </td>
-        <td>
-          <input type="number" class="inp-ped form-select" value="${meta.metaPed || 0}" step="1" style="padding:4px 8px;font-size:11px;font-weight:700;color:var(--text)" oninput="updateMetasTableCalculations(this)">
-        </td>
-        <td>
-          <input type="number" class="inp-cli form-select" value="${meta.metaCli || 0}" step="1" style="padding:4px 8px;font-size:11px;font-weight:700;color:var(--text)" oninput="updateMetasTableCalculations(this)">
-        </td>
-        <td class="cell-tkm" style="font-weight:700;color:var(--orange)">${fR0(tkm)}</td>
-        <td class="cell-fator" style="font-weight:700;color:var(--orange)">${fator.toFixed(2)}×</td>
-        <td>
-          <input type="number" class="inp-pts form-select" value="${meta.pts || 0}" step="10" style="padding:4px 8px;font-size:11px;width:80px" oninput="updateMetasTableCalculations(this)">
-        </td>
-      </tr>
-    `;
-  }).join('');
+  const cIdx = carteiraIdxForPlanMonth(pm);
+  const hasReal = cIdx >= 0;
+  const members = pm.rows.filter(x => sameSup(x.sup, sup)).map(x => {
+    const rows = rowsOfPlanMember(x);
+    let fat = 0, ped = 0, cli = 0;
+    if(hasReal) rows.forEach(r => {
+      const f = (r.fat && r.fat[cIdx]) || 0, p = (r.ped && r.ped[cIdx]) || 0;
+      fat += f; ped += p; if(f > 0 || p > 0) cli++;
+    });
+    return { x, meta: metaFromPlanRow(x), inCarteira: rows.length > 0, fat, ped, cli };
+  }).sort((a, b) => a.x.name.localeCompare(b.x.name));
 
-  tbody.innerHTML = rowsHtml;
+  let tMetaFat = 0, tMetaPed = 0, tMetaCli = 0, tFat = 0, tPed = 0, tCli = 0;
+  members.forEach(c => {
+    tMetaFat += c.meta.metaFat; tMetaPed += c.meta.metaPed; tMetaCli += c.meta.metaCli;
+    tFat += c.fat; tPed += c.ped; tCli += c.cli;
+  });
 
-  const avgTkm = totMetaPed > 0 ? totMetaFat / totMetaPed : 0;
-  const avgFator = totMetaCli > 0 ? totMetaPed / totMetaCli : 0;
+  const teamLbl = teamNameOf(sup);
+  const monthLbl = planMonthLabel(pm);
+  if(countBadge) countBadge.textContent = `${members.length} Consultores`;
+  document.getElementById('metas-table-title').textContent = `Equipe ${teamLbl} · ${monthLbl}`;
+  document.getElementById('metas-table-sub').textContent = hasReal
+    ? 'Só aparecem os consultores que estavam na equipe neste mês.'
+    : `Só aparecem os consultores que estavam na equipe neste mês. A carteira atual não tem dados de ${monthLbl}, então não há realizado.`;
 
-  const kpiEl = document.getElementById('metas-kpi-strip');
-  if(kpiEl) {
-    kpiEl.innerHTML = `
+  const pctCell = (real, meta) => {
+    if(!hasReal || !meta) return '<td class="num muted">—</td>';
+    const p = real / meta * 100;
+    return `<td class="num" style="color:${pctColor(p)};font-weight:700">${p.toFixed(0)}%</td>`;
+  };
+  const realOrDash = (c, txt) => !hasReal ? '—' : (!c.inCarteira ? '<span title="Sem clientes na carteira atual">sem carteira</span>' : txt);
+
+  tbody.innerHTML = members.map((c, idx) => {
+    const lvl = lvlInfoOf(c.meta);
+    return `<tr>
+      <td style="font-weight:700;color:var(--muted)">${idx + 1}</td>
+      <td><b>${c.x.name}</b></td>
+      <td><span class="lvl lvl-${lvl.grp}" style="white-space:nowrap">${TIPOS_MAP[c.meta.level] ? lvl.label : c.meta.levelLabel}</span></td>
+      <td class="num">${fR0(c.meta.metaFat)}</td>
+      <td class="num ${hasReal && c.inCarteira ? '' : 'muted'}">${realOrDash(c, fR0(c.fat))}</td>
+      ${c.inCarteira ? pctCell(c.fat, c.meta.metaFat) : '<td class="num muted">—</td>'}
+      <td class="num ${hasReal && c.inCarteira ? '' : 'muted'}">${realOrDash(c, fNum(c.ped))} / ${fNum(c.meta.metaPed)}</td>
+      <td class="num ${hasReal && c.inCarteira ? '' : 'muted'}">${realOrDash(c, fNum(c.cli))} / ${fNum(c.meta.metaCli)}</td>
+      <td class="num">${(c.meta.metaFator || 0).toFixed(1).replace('.', ',')}×</td>
+    </tr>`;
+  }).join('') + (members.length ? `<tr class="metas-total">
+      <td></td><td>Total da equipe</td><td></td>
+      <td class="num">${fR0(tMetaFat)}</td>
+      <td class="num">${hasReal ? fR0(tFat) : '—'}</td>
+      ${pctCell(tFat, tMetaFat)}
+      <td class="num">${hasReal ? fNum(tPed) : '—'} / ${fNum(tMetaPed)}</td>
+      <td class="num">${hasReal ? fNum(tCli) : '—'} / ${fNum(tMetaCli)}</td>
+      <td></td>
+    </tr>` : '<tr><td colspan="9"><div class="metas-empty">Nenhum consultor desta equipe neste mês.</div></td></tr>');
+
+  const pctFat = tMetaFat > 0 ? tFat / tMetaFat * 100 : 0;
+  if(kpiEl) kpiEl.innerHTML = `
       <div class="kpi-card k-fat">
-        <div class="kpi-label">Meta Total Faturamento (${activeMetasSup})</div>
-        <div class="kpi-value" id="kpi-meta-fat">${fK(totMetaFat)}</div>
-        <div class="kpi-sub">Total: <b id="kpi-meta-fat-sub">${fR0(totMetaFat)}</b></div>
-      </div>
-      <div class="kpi-card k-ped">
-        <div class="kpi-label">Meta Total Pedidos</div>
-        <div class="kpi-value" id="kpi-meta-ped">${fNum(totMetaPed)}</div>
-        <div class="kpi-sub">Volume esperado</div>
+        <div class="kpi-label">Meta de Faturamento · ${teamLbl}</div>
+        <div class="kpi-value">${fK(tMetaFat)}</div>
+        <div class="kpi-sub">${monthLbl}: <b>${fR0(tMetaFat)}</b></div>
       </div>
       <div class="kpi-card k-pos">
-        <div class="kpi-label">Meta Total Clientes</div>
-        <div class="kpi-value" id="kpi-meta-cli">${fNum(totMetaCli)}</div>
-        <div class="kpi-sub">Positivação esperada</div>
+        <div class="kpi-label">Realizado no Mês</div>
+        <div class="kpi-value">${hasReal ? fK(tFat) : '—'}</div>
+        <div class="kpi-sub">${hasReal ? `<b style="color:${pctColor(pctFat)}">${pctFat.toFixed(0)}%</b> da meta` : 'Mês fora da carteira atual'}</div>
+      </div>
+      <div class="kpi-card k-ped">
+        <div class="kpi-label">Meta de Pedidos</div>
+        <div class="kpi-value">${fNum(tMetaPed)}</div>
+        <div class="kpi-sub">Realizado: <b>${hasReal ? fNum(tPed) : '—'}</b></div>
       </div>
       <div class="kpi-card k-tkm">
-        <div class="kpi-label">Ticket &amp; Fator Médio Alvo</div>
-        <div class="kpi-value" id="kpi-meta-tkm" style="font-size:18px">${fR0(avgTkm)}</div>
-        <div class="kpi-sub" id="kpi-meta-fator">Fator médio: <b>${avgFator.toFixed(2)}×</b></div>
-      </div>
-    `;
+        <div class="kpi-label">Meta de Clientes</div>
+        <div class="kpi-value">${fNum(tMetaCli)}</div>
+        <div class="kpi-sub">Positivados: <b>${hasReal ? fNum(tCli) : '—'}</b> · ${members.length} consultores</div>
+      </div>`;
+}
+
+// ── Leitura da planilha de metas (uma aba por mês + BASE DE DADOS) ──────────
+function parseMetaNumber(v) {
+  if(typeof v === 'number') return v;
+  const t = String(v == null ? '' : v).replace(/R\$/g, '').replace(/\s/g, '');
+  if(!t) return 0;
+  const n = t.includes(',') ? parseFloat(t.replace(/\./g, '').replace(',', '.')) : parseFloat(t);
+  return isNaN(n) ? 0 : n;
+}
+
+function parseMetasWorkbook(wb, fileName) {
+  const yearInName = String(fileName || '').match(/20\d{2}/);
+  const lastCart = MONTH_YEAR_MAP[MONTH_YEAR_MAP.length - 1];
+  const defaultYear = yearInName ? parseInt(yearInName[0], 10) : (lastCart ? lastCart.y : new Date().getFullYear());
+  const months = [];
+  let levels = [];
+  let looksLikeCarteira = false;
+
+  wb.SheetNames.forEach(sn => {
+    const grid = XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1, defval: '', raw: true });
+    const top = grid.slice(0, 15);
+    if(top.some(row => row.some(c => /^(VL_EQUIP|QT_PEDIDO)_/i.test(String(c))))) looksLikeCarteira = true;
+
+    // Aba BASE DE DADOS: metas por nível
+    const lvlHdr = top.findIndex(row => row.some(c => normTxt(c) === 'NIVEL') && row.some(c => normTxt(c).includes('META DE CLIENTES')));
+    if(lvlHdr >= 0) {
+      const h = grid[lvlHdr].map(normTxt);
+      const ci = name => h.findIndex(x => x.includes(name));
+      const cN = h.indexOf('NIVEL'), cC = ci('META DE CLIENTES'), cP = ci('META DE PEDIDOS'), cF = ci('META DE FATOR');
+      levels = grid.slice(lvlHdr + 1).filter(r => String(r[cN] || '').trim()).map(r => ({
+        level: String(r[cN]).trim(), metaCli: parseMetaNumber(r[cC]), metaPed: parseMetaNumber(r[cP]), metaFator: parseMetaNumber(r[cF])
+      }));
+      return;
+    }
+
+    // Abas dos meses
+    const mt = normTxt(sn).toLowerCase().match(/^([a-z]+)\s*[\/\-_ ]?\s*(\d{2,4})?$/);
+    if(!mt) return;
+    const m = PT_MONTHS.indexOf(mt[1]);
+    if(m < 0) return;
+    let y = defaultYear;
+    if(mt[2]) y = mt[2].length === 2 ? 2000 + parseInt(mt[2], 10) : parseInt(mt[2], 10);
+
+    const hIdx = top.findIndex(row => row.some(c => normTxt(c) === 'CONSULTOR') && row.some(c => normTxt(c).includes('META FATURAMENTO')));
+    if(hIdx < 0) return;
+    const h = grid[hIdx].map(normTxt);
+    const col = {
+      sup: h.findIndex(x => x.startsWith('SUPERVIS')),
+      id: h.findIndex(x => x === 'ID WINTHOR' || x === 'ID' || x.startsWith('ID ')),
+      name: h.indexOf('CONSULTOR'),
+      level: h.findIndex(x => x === 'NIVEL'),
+      fat: h.findIndex(x => x.includes('META FATURAMENTO')),
+      cli: h.findIndex(x => x.includes('META CLIENTES')),
+      ped: h.findIndex(x => x.includes('META PEDIDOS')),
+      fator: h.findIndex(x => x.includes('META FATOR'))
+    };
+    if(col.sup < 0 || col.name < 0) return;
+
+    const seen = new Set();
+    const rows = [];
+    grid.slice(hIdx + 1).forEach(r => {
+      const sup = String(r[col.sup] || '').trim();
+      const name = String(r[col.name] || '').trim();
+      if(!sup || !name) return; // linhas de total ou vazias
+      const id = col.id >= 0 ? normConsId(r[col.id]) : '';
+      const key = id || normTxt(name);
+      if(seen.has(key)) return;
+      seen.add(key);
+      rows.push({
+        sup, id, name,
+        level: col.level >= 0 ? String(r[col.level] || '').trim() : '',
+        metaFat: col.fat >= 0 ? parseMetaNumber(r[col.fat]) : 0,
+        metaCli: col.cli >= 0 ? parseMetaNumber(r[col.cli]) : 0,
+        metaPed: col.ped >= 0 ? parseMetaNumber(r[col.ped]) : 0,
+        metaFator: col.fator >= 0 ? parseMetaNumber(r[col.fator]) : 0
+      });
+    });
+    if(rows.length) {
+      const prev = months.findIndex(x => x.y === y && x.m === m);
+      if(prev >= 0) months.splice(prev, 1);
+      months.push({ y, m, rows });
+    }
+  });
+
+  if(!months.length) {
+    if(looksLikeCarteira) throw new Error('Essa é a planilha de carteira. Ela deve ser enviada em "Importar Planilha". Aqui vai somente a planilha de metas.');
+    throw new Error('Essa não é a planilha de metas. Não encontrei abas com o nome dos meses (Janeiro, Fevereiro…) contendo as colunas SUPERVISÃO, CONSULTOR, NIVEL e META FATURAMENTO.');
   }
+  months.sort((a, b) => (a.y * 100 + a.m) - (b.y * 100 + b.m));
+  return { fileName: fileName || 'Planilha de metas', months, levels };
+}
+
+function handleMetasFile(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if(!file) return;
+  if(!/\.(xlsx|xls)$/i.test(file.name)) {
+    showSaveToast('❌ Envie a planilha de metas em Excel (.xlsx ou .xls).', 'err', 6000);
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = async e => {
+    let plan;
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+      plan = parseMetasWorkbook(wb, file.name);
+    } catch(err) {
+      showSaveToast('❌ ' + (err.message || 'Não foi possível ler a planilha de metas.'), 'err', 0);
+      return;
+    }
+    plan.savedAt = new Date().toISOString();
+    METAS_PLAN = plan;
+    STATE.metasView.monthId = null;
+    renderCurrentPage();
+    showSaveToast('☁️ Salvando planilha de metas…', '', 0);
+    try {
+      await FirebaseStore.saveMetasPlan(plan);
+      const total = plan.months.reduce((a, x) => a + x.rows.length, 0);
+      showSaveToast(`✅ Planilha de metas salva.<br>${plan.months.length} meses (${planMonthLabel(plan.months[0])} a ${planMonthLabel(plan.months[plan.months.length - 1])}) · ${total} metas de consultores.`, 'ok', 7000);
+    } catch(err) {
+      showSaveToast('❌ As metas aparecem nesta tela, mas <b>não foram salvas</b> no banco.<br>' + dbErrorHint(err), 'err', 0);
+    }
+  };
+  reader.readAsArrayBuffer(file);
 }
 
 function updateMetasTableCalculations(el) {
@@ -4817,35 +5307,26 @@ function resetTeamMetasToDefault() {
 }
 
 function downloadMetasTemplateExcel() {
-  const rawSup = (STATE.supervisor || '').trim().toUpperCase();
-  const activeMetasSup = (rawSup === 'TODOS') ? (STATE.metasSupervisor || getPrimarySupervisor()) : STATE.supervisor;
-  const currentSup = activeMetasSup.trim().toUpperCase();
-
-  const supRows = RAW_DATA.filter(r => (r.sup || '').trim().toUpperCase() === currentSup);
-  const consSet = new Set();
-  supRows.forEach(r => { if(r.cons) consSet.add(r.cons.trim().toUpperCase()); });
-  const consList = Array.from(consSet).sort();
-
-  const data = consList.map(cName => {
-    const m = getConsultantMeta(cName);
-    const tkm = m.metaPed > 0 ? m.metaFat / m.metaPed : 0;
-    const fator = m.metaCli > 0 ? m.metaPed / m.metaCli : 0;
+  const sel = getMetasViewSelection();
+  if(!sel) { showSaveToast('Envie a planilha de metas primeiro.', 'err', 4000); return; }
+  const { pm, sup } = sel;
+  const cIdx = carteiraIdxForPlanMonth(pm);
+  const data = pm.rows.filter(x => sameSup(x.sup, sup)).map(x => {
+    const rows = rowsOfPlanMember(x);
+    let fat = 0, ped = 0, cli = 0;
+    if(cIdx >= 0) rows.forEach(r => { const f = (r.fat && r.fat[cIdx]) || 0, p = (r.ped && r.ped[cIdx]) || 0; fat += f; ped += p; if(f > 0 || p > 0) cli++; });
     return {
-      Consultor: cName,
-      Nivel: TIPOS_MAP[m.level]?.label || m.level,
-      Meta_Faturamento_R$: m.metaFat,
-      Meta_Pedidos: m.metaPed,
-      Meta_Clientes_Positivados: m.metaCli,
-      Ticket_Medio_Alvo: Math.round(tkm),
-      Fator_Recompra_Alvo: parseFloat(fator.toFixed(2)),
-      Pontos_Trainee: m.pts || 0
+      Equipe: teamNameOf(x.sup), Supervisao: x.sup, ID_Winthor: x.id, Consultor: x.name, Nivel: x.level,
+      Meta_Faturamento: x.metaFat, Realizado_Faturamento: cIdx >= 0 ? fat : '',
+      Meta_Pedidos: x.metaPed, Realizado_Pedidos: cIdx >= 0 ? ped : '',
+      Meta_Clientes: x.metaCli, Realizado_Clientes: cIdx >= 0 ? cli : '',
+      Meta_Fator: x.metaFator
     };
   });
-
   const ws = XLSX.utils.json_to_sheet(data);
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Metas_Equipe");
-  XLSX.writeFile(wb, `metas_farol_${activeMetasSup.replace(/\s+/g,'_')}.xlsx`);
+  XLSX.utils.book_append_sheet(wb, ws, 'Metas');
+  XLSX.writeFile(wb, `metas_${teamNameOf(sup)}_${PT_MONTH_LABEL[pm.m]}_${pm.y}.xlsx`.replace(/\s+/g, '_'));
 }
 
 // ─── PAINEL DE INDICADORES ESTRATÉGICOS & PROJEÇÕES MENSAIS ───────────────────
@@ -5009,20 +5490,17 @@ function updateNotifications() {
   const alerts = [];
 
   // 1. Alert Trainee / Novos Consultores
-  const consSet = new Set();
-  supRows.forEach(r => { if(r.cons) consSet.add(r.cons.trim().toUpperCase()); });
-  const consultants = Array.from(consSet);
-
-  consultants.forEach(cName => {
-    const meta = getConsultantMeta(cName);
+  getTeamRoster(currentSup, mIdx).members.forEach(mb => {
+    const cName = mb.name;
+    const meta = mb.meta;
     if(meta.level === 'trainee') {
-      const cRows = supRows.filter(r => (r.cons || '').trim().toUpperCase() === cName);
+      const cRows = mb.rows;
       let cFat = 0;
       cRows.forEach(r => { cFat += (r.fat && r.fat[mIdx]) || 0; });
       alerts.push({
         type: 'info',
         title: `🎓 Trainee: Acompanhamento de ${cName}`,
-        desc: `Consultor Trainee com ${fK(cFat)} faturados no mês. Meta de graduação: ${meta.pts || 50} pontos.`
+        desc: `Consultor Trainee com ${fK(cFat)} faturados no mês${meta.metaFat ? ' (meta: ' + fK(meta.metaFat) + ')' : ''}.`
       });
     }
   });
@@ -5156,6 +5634,11 @@ async function processImportedRows(rawRows, fileName, headerRow) {
   const headers = (headerRow && headerRow.length) ? headerRow : Object.keys(rawRows[0] || {});
   const months = detectMonthsFromHeaders(headers, rawRows);
   if(!months.length) {
+    const hn = headers.map(h => normTxt(h));
+    if(hn.some(h => h === 'NIVEL' || h.startsWith('META '))) {
+      alert('Essa é a planilha de metas. Envie-a em Metas & Equipe → "Enviar Planilha de Metas". Aqui vai a planilha de Carteiras Unificadas.');
+      return;
+    }
     alert('Não encontrei colunas de mês na planilha (ex.: VL_EQUIP_outubro2026 e QT_PEDIDO_outubro2026). Confira o cabeçalho e importe de novo.');
     return;
   }
@@ -5182,6 +5665,7 @@ async function processImportedRows(rawRows, fileName, headerRow) {
       cnpj: String(r.CNPJ || r.cnpj || ''),
       cat: String(r['NOME CATEGORIA'] || r.categoria || ''),
       cons: String(r.CONSULTOR || r.consultor || ''),
+      consId: normConsId(r.ID_CONSULTOR != null ? r.ID_CONSULTOR : r.id_consultor),
       sup: sup,
       last_buy: String(r.DT_ULTIMA_COMPRA || r.dt_ultima_compra || ''),
       fat: MONTH_COLS.map(c => parseVal(r[c.fat] || 0)),
