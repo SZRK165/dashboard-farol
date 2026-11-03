@@ -1101,7 +1101,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
       <div class="kpi-strip" id="kpi-strip-crm"></div>
 
       <!-- REATIVAÇÕES -->
-      <div class="chart-grid c2">
+      <div class="chart-grid c2" style="align-items:start">
         <div class="chart-card">
           <div class="chart-head">
             <div>
@@ -3889,6 +3889,22 @@ function renderClientesCRM() {
 // dentro dos meses da planilha. A carteira traz o total por mês, então a
 // contagem é por mês. O 1º mês possível é o 4º da planilha (precisa de histórico).
 const REATIV_MIN_GAP = 2;
+// Uma cor por mês do calendário (o mesmo mês tem sempre a mesma cor)
+const REATIV_MONTH_COLORS = ['#38bdf8', '#a855f7', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4',
+                             '#f97316', '#6366f1', '#84cc16', '#e11d48', '#14b8a6', '#eab308'];
+// Cor de cada equipe, ligada ao nome
+const TEAM_COLORS = { FAROL: '#f97316', GIRASSOL: '#eab308', CACTOS: '#22c55e', AURORA: '#a855f7', CLAREOU: '#38bdf8' };
+const CONS_COLORS = ['#38bdf8', '#a855f7', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4', '#6366f1',
+                     '#84cc16', '#14b8a6', '#e11d48', '#eab308', '#8b5cf6', '#10b981', '#f43f5e', '#0ea5e9', '#d946ef'];
+function colorForName(name, palette) {
+  let h = 0; const t = String(name || '');
+  for(let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0;
+  return palette[h % palette.length];
+}
+function monthColor(idx) {
+  const mi = MONTH_YEAR_MAP[idx];
+  return REATIV_MONTH_COLORS[(mi ? mi.m : idx) % REATIV_MONTH_COLORS.length];
+}
 const REATIV_PAGE = 50;
 let _reativCacheSrc = null, _reativCache = new WeakMap();
 let REATIV_LIST = [], REATIV_SHOWN = REATIV_PAGE;
@@ -3997,16 +4013,19 @@ function renderReativacoes() {
   const idxs = []; for(let i = START; i < n; i++) idxs.push(i);
   const partialIdx = isPartialMonth(n - 1) ? n - 1 : -1;
   const barColor = idxs.map(i => {
-    if(isMonth && i !== mSel) return cGreen + '55';
-    if(i === partialIdx) return cGreen + '70';
-    return cGreen + 'dd';
+    const c = monthColor(i);
+    if(isMonth && i !== mSel) return c + '40';   // mês escolhido em destaque, os outros apagados
+    if(i === partialIdx) return c + '80';        // mês em andamento mais claro
+    return c + 'e6';
   });
   renderChart('ch-reativ-mes', {
     type: 'bar',
     data: {
       labels: idxs.map(i => MONTH_SHORT[i] + (i === partialIdx ? '*' : '')),
       datasets: [{ label: 'Clientes reativados', data: idxs.map(i => cnt[i]), backgroundColor: barColor,
-        borderColor: idxs.map(i => (isMonth && i === mSel) ? cGreen : 'transparent'), borderWidth: 2, borderRadius: 4, _fmt: 'n' }]
+        borderColor: idxs.map(i => (isMonth && i === mSel) ? (light ? '#111318' : '#ffffff') : (i === partialIdx ? monthColor(i) : 'transparent')),
+        borderWidth: idxs.map(i => (isMonth && i === mSel) ? 2 : (i === partialIdx ? 1.5 : 0)),
+        borderRadius: 4, _fmt: 'n' }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
@@ -4048,6 +4067,8 @@ function renderReativacoes() {
     });
   });
   let list = Array.from(groups.values());
+  // Cor fixa por consultor: ordem alfabética dentro da equipe (sem repetir cor na mesma equipe)
+  const consOrder = Array.from(groups.keys()).sort((x, y) => x.localeCompare(y));
   if(hasCons && !isMonth) list = list.filter(g => g.key === consSel); // todo o período: só o consultor escolhido
   list.sort((a, b) => b.cnt - a.cnt || b.val - a.val || a.key.localeCompare(b.key));
   const focusIdx = hasCons ? list.findIndex(g => g.key === consSel) : -1;
@@ -4076,7 +4097,12 @@ function renderReativacoes() {
       data: {
         labels: list.map(g => byTeam ? teamNameOf(g.key) : shortName(g.key)),
         datasets: [{ label: 'Clientes reativados', data: list.map(g => g.cnt),
-          backgroundColor: list.map((g, i) => focusIdx >= 0 ? (i === focusIdx ? cFocus : cMuted) : cGreen + 'cc'),
+          backgroundColor: list.map((g, i) => {
+            if(focusIdx >= 0) return i === focusIdx ? cFocus : cMuted;
+            const c = byTeam ? (TEAM_COLORS[teamNameOf(g.key)] || colorForName(g.key, CONS_COLORS))
+                             : CONS_COLORS[Math.max(0, consOrder.indexOf(g.key)) % CONS_COLORS.length];
+            return c + 'e0';
+          }),
           borderRadius: 4, barThickness: 18, _fmt: 'n' }]
       },
       options: {
