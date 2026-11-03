@@ -1079,7 +1079,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
       <div class="page-header">
         <div>
           <div class="page-title">Saúde da Carteira &amp; <span>Integradores</span></div>
-          <div class="page-subtitle">Diagnóstico de clientes ativos, em risco, inativos e curva ABC de faturamento</div>
+          <div class="page-subtitle">Ativo = comprou nos últimos 60 dias · Inativo = mais de 60 dias sem comprar · dias contados a partir de <b id="crm-ref-date">—</b> (compra mais recente da planilha)</div>
         </div>
       </div>
 
@@ -1134,18 +1134,17 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
           </select>
           <select class="form-select" id="crm-filter-recencia" style="width:165px" onchange="filterCrmTable()">
             <option value="todos">⏳ Toda Recência</option>
-            <option value="hot">🟢 ≤ 30 dias (Quente)</option>
-            <option value="warn">🟡 31 - 60 dias (Atenção)</option>
-            <option value="crit">🟠 61 - 90 dias (Risco)</option>
-            <option value="inact">🔴 > 90 dias (Inativo)</option>
+            <option value="hot">🟢 Até 30 dias (Ativo)</option>
+            <option value="warn">🟡 31 a 60 dias (Ativo, atenção)</option>
+            <option value="crit">🟠 61 a 90 dias (Inativo recente)</option>
+            <option value="inact">🔴 Mais de 90 dias (Inativo)</option>
             <option value="nunca">⚪ Nunca Compraram</option>
           </select>
           <select class="form-select" id="crm-filter-status" style="width:160px" onchange="filterCrmTable()">
             <option value="todos">Todos os Status</option>
-            <option value="ativo">🟢 Ativos (compra recente)</option>
-            <option value="risco">🟡 Em Risco (90-180d)</option>
-            <option value="inativo">🔴 Inativos (+180d)</option>
-            <option value="nunca">⚪ Nunca Compraram</option>
+            <option value="ativo">🟢 Ativos (até 60 dias)</option>
+            <option value="inativo">🔴 Inativos (mais de 60 dias)</option>
+            <option value="never">⚪ Nunca Compraram</option>
           </select>
         </div>
 
@@ -3596,6 +3595,7 @@ function parsePurchaseDate(dateStr) {
   }
   const s = String(dateStr).trim();
   if(!s) return null;
+  if(/^\d+(\.\d+)?$/.test(s)) return parsePurchaseDate(parseFloat(s));
 
   const brMatch = s.match(/^(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{2,4})$/);
   if(brMatch) {
@@ -3620,9 +3620,46 @@ function parsePurchaseDate(dateStr) {
   return isNaN(parsed.getTime()) ? null : parsed;
 }
 
+// Data de referência da carteira: a compra mais recente registrada na planilha
+// (aproxima a data em que ela foi exportada), sem passar de hoje. Assim o status
+// não muda só porque o tempo passou sem uma planilha nova.
+let _refDateSrc = null, _refDate = null;
+function getCarteiraRefDate() {
+  if(_refDateSrc === RAW_DATA && _refDate) return _refDate;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  let max = null;
+  (RAW_DATA || []).forEach(r => {
+    const d = parsePurchaseDate(r.last_buy);
+    if(d && d <= today && (!max || d > max)) max = d;
+  });
+  _refDateSrc = RAW_DATA;
+  _refDate = max || today;
+  return _refDate;
+}
+
+// Dias sem comprar de um cliente. null = nunca comprou.
+// Usa DT_ULTIMA_COMPRA; se faltar, usa o último mês com compra na planilha.
+const INATIVO_DIAS = 60;
+function clientDaysSince(r) {
+  const ref = getCarteiraRefDate();
+  let last = parsePurchaseDate(r.last_buy);
+  if(!last) {
+    const fat = r.fat || [], ped = r.ped || [];
+    for(let i = Math.max(fat.length, ped.length) - 1; i >= 0; i--) {
+      if((fat[i] || 0) > 0 || (ped[i] || 0) > 0) {
+        const mi = MONTH_YEAR_MAP[i];
+        if(mi) last = new Date(mi.y, mi.m + 1, 0); // último dia do mês
+        break;
+      }
+    }
+  }
+  if(!last) return null;
+  return Math.max(0, Math.floor((ref.getTime() - last.getTime()) / 86400000));
+}
+
 function getDaysSinceDate(dateObj) {
   if(!dateObj) return Infinity;
-  const now = new Date();
+  const now = getCarteiraRefDate();
   const diffTime = now.getTime() - dateObj.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   return Math.max(0, diffDays);
@@ -3631,19 +3668,11 @@ function getDaysSinceDate(dateObj) {
 // ─── RENDER: SAÚDE DA CARTEIRA & CRM (PAGE 4) ─────────────────────────────────
 let crmFilteredList = [];
 
+// Mesma régua do CRM: ativo = comprou nos últimos 60 dias; inativo = mais de 60 dias
 function getClientStatus(r) {
-  const totFat = (r.fat || []).reduce((a, b) => a + b, 0);
-  if(totFat === 0) return { code: 'never', label: 'Nunca Comprou', cls: 'never' };
-
-  // Últimos 3 meses da planilha = ativo; 3 meses anteriores = em risco
-  const n = (r.fat || []).length;
-  const sumRange = (a, b) => { let t = 0; for(let i = Math.max(0, a); i < b; i++) t += (r.fat[i] || 0); return t; };
-  const recentFat = sumRange(n - 3, n);
-  if(recentFat > 0) return { code: 'ativo', label: 'Ativo Recente', cls: 'active' };
-
-  const midFat = sumRange(n - 6, n - 3);
-  if(midFat > 0) return { code: 'risco', label: 'Em Risco', cls: 'risk' };
-
+  const days = clientDaysSince(r);
+  if(days === null) return { code: 'never', label: 'Nunca Comprou', cls: 'never' };
+  if(days <= INATIVO_DIAS) return { code: 'ativo', label: 'Ativo', cls: 'active' };
   return { code: 'inativo', label: 'Inativo', cls: 'inactive' };
 }
 
@@ -3652,7 +3681,8 @@ function calcClientABCAndRecencia(rows) {
     const totFat = (r.fat || []).reduce((a, b) => a + b, 0);
     const totPed = (r.ped || []).reduce((a, b) => a + b, 0);
     const lastDate = parsePurchaseDate(r.last_buy);
-    const daysSince = getDaysSinceDate(lastDate);
+    const ds = clientDaysSince(r);
+    const daysSince = ds === null ? Infinity : ds;
     const status = getClientStatus(r);
 
     return {
@@ -3690,14 +3720,14 @@ function calcClientABCAndRecencia(rows) {
   });
 
   sorted.forEach(c => {
-    if(c.totFat === 0 || !c.last_buy) {
+    if(c.status.code === 'never') {
       c.recStatus = { code: 'nunca', label: 'Nunca', sub: 'Sem histórico', cls: 'never' };
     } else if(c.daysSince <= 30) {
-      c.recStatus = { code: 'hot', label: `${c.daysSince}d atrás`, sub: 'Ativo Quente', cls: 'rec-hot' };
-    } else if(c.daysSince <= 60) {
-      c.recStatus = { code: 'warn', label: `${c.daysSince}d atrás`, sub: 'Em Atenção', cls: 'rec-warn' };
+      c.recStatus = { code: 'hot', label: `${c.daysSince}d atrás`, sub: 'Ativo', cls: 'rec-hot' };
+    } else if(c.daysSince <= INATIVO_DIAS) {
+      c.recStatus = { code: 'warn', label: `${c.daysSince}d atrás`, sub: 'Ativo · Atenção', cls: 'rec-warn' };
     } else if(c.daysSince <= 90) {
-      c.recStatus = { code: 'crit', label: `${c.daysSince}d atrás`, sub: 'Risco Crítico', cls: 'rec-crit' };
+      c.recStatus = { code: 'crit', label: `${c.daysSince}d atrás`, sub: 'Inativo Recente', cls: 'rec-crit' };
     } else {
       c.recStatus = { code: 'inact', label: `${c.daysSince > 999 ? '>1a' : c.daysSince + 'd'} atrás`, sub: 'Inativo', cls: 'rec-inact' };
     }
@@ -3708,31 +3738,25 @@ function calcClientABCAndRecencia(rows) {
 
 function renderClientesCRM() {
   const rows = getFilteredRows();
-  let cAtivos = 0, cRisco = 0, cInativo = 0, cNunca = 0;
-  let fAtivos = 0, fRisco = 0, fInativo = 0;
+  let cAtivos = 0, cInativo = 0, cNunca = 0;
+  let fAtivos = 0, fInativo = 0;
 
   rows.forEach(r => {
     const st = getClientStatus(r);
     const f = (r.fat || []).reduce((a, b) => a + b, 0);
     if(st.code === 'ativo') { cAtivos++; fAtivos += f; }
-    else if(st.code === 'risco') { cRisco++; fRisco += f; }
     else if(st.code === 'inativo') { cInativo++; fInativo += f; }
     else { cNunca++; }
   });
 
   document.getElementById('kpi-strip-crm').innerHTML = `
     <div class="kpi-card k-pos">
-      <div class="kpi-label">🟢 Ativos Recentes</div>
+      <div class="kpi-label">🟢 Ativos (até 60 dias)</div>
       <div class="kpi-value">${fNum(cAtivos)}</div>
       <div class="kpi-sub">Faturamento: <b>${fK(fAtivos)}</b></div>
     </div>
-    <div class="kpi-card k-tkm">
-      <div class="kpi-label">🟡 Em Risco (90-180d)</div>
-      <div class="kpi-value">${fNum(cRisco)}</div>
-      <div class="kpi-sub">Faturamento: <b>${fK(fRisco)}</b></div>
-    </div>
     <div class="kpi-card k-fat">
-      <div class="kpi-label">🔴 Inativos (+180d)</div>
+      <div class="kpi-label">🔴 Inativos (mais de 60 dias)</div>
       <div class="kpi-value">${fNum(cInativo)}</div>
       <div class="kpi-sub">Faturamento: <b>${fK(fInativo)}</b></div>
     </div>
@@ -3742,6 +3766,8 @@ function renderClientesCRM() {
       <div class="kpi-sub">Base para prospecção</div>
     </div>
   `;
+  const refEl = document.getElementById('crm-ref-date');
+  if(refEl) refEl.textContent = getCarteiraRefDate().toLocaleDateString('pt-BR');
 
   // Top 20 Curva ABC
   const sortedClients = calcClientABCAndRecencia(rows);
@@ -4726,7 +4752,7 @@ function openConsultantRaioX(consName) {
 
   // Top 5 Clientes em Risco / Inativos de Maior Potencial (Resgate)
   const atRiskClients = processedClients
-    .filter(c => c.totFat > 0 && (c.daysSince > 30 || c.status.code === 'risco' || c.status.code === 'inativo'))
+    .filter(c => c.status.code !== 'never' && (c.daysSince > 30 || c.status.code === 'inativo'))
     .sort((a, b) => b.totFat - a.totFat)
     .slice(0, 5);
 
@@ -5527,13 +5553,13 @@ function updateNotifications() {
   let inactiveCount = 0;
   supRows.forEach(r => {
     const status = getClientStatus(r);
-    if(status.code === 'inativo' || status.code === 'risco') inactiveCount++;
+    if(status.code === 'inativo') inactiveCount++;
   });
   if(inactiveCount > 0) {
     alerts.push({
       type: 'warn',
       title: `👥 Recuperação de Carteira (${inactiveCount} clientes)`,
-      desc: `Identificados clientes em risco ou inativos. Verifique a aba Saúde da Carteira (CRM) para ações de reativação.`
+      desc: `Clientes com mais de 60 dias sem comprar. Verifique a aba Saúde da Carteira para ações de reativação.`
     });
   }
 
