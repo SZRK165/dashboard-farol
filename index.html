@@ -253,6 +253,11 @@ header {
 .pill-b{background:rgba(56,189,248,.12);color:var(--blue);border:1px solid rgba(56,189,248,.25)}
 .pill-p{background:rgba(168,85,247,.12);color:var(--purple);border:1px solid rgba(168,85,247,.25)}
 .cwrap{position:relative}
+.reativ-note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5}
+.reativ-empty{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:20px;font-size:12.5px;color:var(--muted);line-height:1.6}
+.reativ-table-wrap{overflow-x:auto}
+.reativ-table-wrap .data-table td.num{text-align:right;font-family:'DM Mono',monospace;white-space:nowrap}
+.reativ-table-wrap .data-table tr.is-focus td{background:rgba(255,122,0,.08)}
 .h130{height:130px}.h140{height:140px}.h160{height:160px}.h180{height:180px}.h280{height:280px}.h320{height:320px}.h340{height:340px}.h360{height:360px}.h400{height:400px}.h440{height:440px}
 
 /* UNIFIED GAUGES ROW */
@@ -1094,6 +1099,63 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
 
       <div class="filter-summary" id="fs-clientes"></div>
       <div class="kpi-strip" id="kpi-strip-crm"></div>
+
+      <!-- REATIVAÇÕES -->
+      <div class="chart-grid c2">
+        <div class="chart-card">
+          <div class="chart-head">
+            <div>
+              <div class="chart-title">🔄 Reativações mês a mês</div>
+              <div class="chart-subtitle" id="reativ-mes-sub">Clientes que voltaram a comprar depois de pelo menos 2 meses sem compra</div>
+            </div>
+            <span class="chart-pill pill-g" id="reativ-total-pill">—</span>
+          </div>
+          <div class="cwrap h320"><canvas id="ch-reativ-mes" aria-label="Reativações por mês"></canvas></div>
+          <div class="reativ-note" id="reativ-mes-note"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head">
+            <div>
+              <div class="chart-title" id="reativ-quem-title">Quem reativou</div>
+              <div class="chart-subtitle" id="reativ-quem-sub">—</div>
+            </div>
+          </div>
+          <div class="cwrap" id="reativ-quem-wrap" style="height:320px">
+            <canvas id="ch-reativ-quem" aria-label="Reativações por equipe ou consultor"></canvas>
+            <div class="reativ-empty" id="reativ-quem-empty"></div>
+          </div>
+          <div class="reativ-note">Clique numa barra para filtrar o painel por aquela equipe ou consultor.</div>
+        </div>
+      </div>
+      <div class="chart-card" style="margin-bottom:20px">
+        <div class="chart-head">
+          <div>
+            <div class="chart-title">Clientes reativados</div>
+            <div class="chart-subtitle" id="reativ-list-sub">—</div>
+          </div>
+          <span class="chart-pill pill-o" id="reativ-list-count">0</span>
+        </div>
+        <div class="data-table-wrap reativ-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Mês</th>
+                <th>Cliente</th>
+                <th>Consultor</th>
+                <th>Estado</th>
+                <th>Cidade</th>
+                <th style="text-align:right">Meses parado</th>
+                <th style="text-align:right">Pedidos</th>
+                <th style="text-align:right">Valor no mês</th>
+              </tr>
+            </thead>
+            <tbody id="reativ-list-body"></tbody>
+          </table>
+        </div>
+        <div style="text-align:center">
+          <button class="btn btn-ghost btn-pill" id="reativ-more-btn" onclick="showMoreReativ()" style="display:none;font-size:11px">Mostrar mais</button>
+        </div>
+      </div>
 
       <div class="chart-card" style="margin-bottom:20px">
         <div class="chart-head">
@@ -3816,8 +3878,275 @@ function renderClientesCRM() {
     </tr>
   `).join('');
 
+  renderReativacoes();
   filterCrmTable();
 }
+
+
+// ─── REATIVAÇÕES ──────────────────────────────────────────────────────────────
+// Reativação = o cliente compra num mês depois de pelo menos 2 meses cheios sem
+// comprar (mesma régua dos 60 dias do inativo) e já tinha comprado antes,
+// dentro dos meses da planilha. A carteira traz o total por mês, então a
+// contagem é por mês. O 1º mês possível é o 4º da planilha (precisa de histórico).
+const REATIV_MIN_GAP = 2;
+const REATIV_PAGE = 50;
+let _reativCacheSrc = null, _reativCache = new WeakMap();
+let REATIV_LIST = [], REATIV_SHOWN = REATIV_PAGE;
+
+function rowBoughtIn(r, i) {
+  return ((r.fat && r.fat[i]) || 0) > 0 || ((r.ped && r.ped[i]) || 0) > 0;
+}
+function reativEventsOf(r) {
+  if(_reativCacheSrc !== RAW_DATA) { _reativCacheSrc = RAW_DATA; _reativCache = new WeakMap(); }
+  if(_reativCache.has(r)) return _reativCache.get(r);
+  const ev = [];
+  let last = -1;
+  for(let i = 0; i < MONTH_KEYS.length; i++) {
+    if(!rowBoughtIn(r, i)) continue;
+    if(last >= 0 && i - last - 1 >= REATIV_MIN_GAP) {
+      ev.push({ m: i, gap: i - last - 1, val: (r.fat && r.fat[i]) || 0, ped: (r.ped && r.ped[i]) || 0 });
+    }
+    last = i;
+  }
+  _reativCache.set(r, ev);
+  return ev;
+}
+function shortName(name) {
+  const p = String(name || '').trim().split(/\s+/);
+  return p.length > 2 ? p[0] + ' ' + p[p.length - 1] : p.join(' ');
+}
+function isPartialMonth(idx) {
+  const mi = MONTH_YEAR_MAP[idx];
+  if(!mi || idx !== MONTH_KEYS.length - 1) return false;
+  const ref = getCarteiraRefDate();
+  const end = new Date(mi.y, mi.m + 1, 0);
+  return ref.getFullYear() === mi.y && ref.getMonth() === mi.m && ref < end;
+}
+
+// Brilho na barra destacada (consultor selecionado). Pulsa devagar; parado se o
+// sistema pedir menos movimento.
+const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const glowBarPlugin = {
+  id: 'glowBar',
+  afterDatasetsDraw(chart) {
+    const opt = chart.options.plugins && chart.options.plugins.glowBar;
+    if(!opt || opt.index == null || opt.index < 0) return;
+    const el = chart.getDatasetMeta(0).data[opt.index];
+    if(!el) return;
+    const t = reduceMotion ? 1 : (Math.sin(Date.now() / 420) + 1) / 2;
+    const { x, y, base, height } = el.getProps(['x', 'y', 'base', 'height'], true);
+    const ctx = chart.ctx;
+    ctx.save();
+    ctx.shadowColor = opt.color;
+    ctx.shadowBlur = 10 + 14 * t;
+    ctx.fillStyle = opt.color;
+    const left = Math.min(base, x), w = Math.max(2, Math.abs(x - base));
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(left, y - height / 2, w, height, 4); else ctx.rect(left, y - height / 2, w, height);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(255,255,255,' + (0.55 + 0.4 * t).toFixed(2) + ')';
+    ctx.stroke();
+    ctx.restore();
+  }
+};
+let _glowTimer = null;
+function startGlowLoop(chartId) {
+  if(_glowTimer) { clearInterval(_glowTimer); _glowTimer = null; }
+  if(reduceMotion) return;
+  _glowTimer = setInterval(() => {
+    const ch = charts[chartId];
+    if(!ch || !ch.canvas || !document.body.contains(ch.canvas) || STATE.page !== 'clientes') { clearInterval(_glowTimer); _glowTimer = null; return; }
+    ch.draw();
+  }, 60);
+}
+
+function renderReativacoes() {
+  if(!document.getElementById('ch-reativ-mes')) return;
+  const n = MONTH_KEYS.length;
+  const START = REATIV_MIN_GAP + 1;
+  const light = isLightMode();
+  const cGreen = light ? '#15803d' : '#3fd671';
+  const cFocus = light ? '#ea580c' : '#ff7a00';
+  const cMuted = light ? 'rgba(90,98,128,0.35)' : 'rgba(122,133,153,0.38)';
+
+  const isMonth = STATE.month && STATE.month !== 'todos';
+  const mSel = isMonth ? parseInt(STATE.month, 10) : null;
+  const hasCons = STATE.consultant && STATE.consultant !== 'todos';
+  const consSel = hasCons ? STATE.consultant.trim() : null;
+  const sup = (STATE.supervisor || '').trim().toUpperCase();
+  const isAllSup = !sup || sup === 'TODOS';
+  const st = STATE.state;
+
+  // Base sem o filtro de consultor (para comparar com os colegas)
+  let base = RAW_DATA.filter(r => {
+    if(!isAllSup && (r.sup || '').trim().toUpperCase() !== sup) return false;
+    if(st && st !== 'geral' && r.state !== st) return false;
+    return true;
+  });
+  const focusRows = hasCons ? base.filter(r => (r.cons || '').trim() === consSel) : base;
+  if(hasCons && isAllSup) {
+    const sups = new Set(focusRows.map(r => (r.sup || '').trim().toUpperCase()));
+    base = base.filter(r => sups.has((r.sup || '').trim().toUpperCase()));
+  }
+
+  // 1) Mês a mês
+  const cnt = Array(n).fill(0), val = Array(n).fill(0);
+  focusRows.forEach(r => reativEventsOf(r).forEach(e => { cnt[e.m]++; val[e.m] += e.val; }));
+  const idxs = []; for(let i = START; i < n; i++) idxs.push(i);
+  const partialIdx = isPartialMonth(n - 1) ? n - 1 : -1;
+  const barColor = idxs.map(i => {
+    if(isMonth && i !== mSel) return cGreen + '55';
+    if(i === partialIdx) return cGreen + '70';
+    return cGreen + 'dd';
+  });
+  renderChart('ch-reativ-mes', {
+    type: 'bar',
+    data: {
+      labels: idxs.map(i => MONTH_SHORT[i] + (i === partialIdx ? '*' : '')),
+      datasets: [{ label: 'Clientes reativados', data: idxs.map(i => cnt[i]), backgroundColor: barColor,
+        borderColor: idxs.map(i => (isMonth && i === mSel) ? cGreen : 'transparent'), borderWidth: 2, borderRadius: 4, _fmt: 'n' }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      layout: { padding: { top: 18 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: {
+          title: items => MONTH_NAMES[idxs[items[0].dataIndex]] + (idxs[items[0].dataIndex] === partialIdx ? ' (parcial)' : ''),
+          label: c => ` ${fNum(c.raw)} clientes reativados`,
+          afterLabel: c => ` Valor: ${fR0(val[idxs[c.dataIndex]])}`
+        } }
+      },
+      scales: {
+        x: { ticks: { color: getTextColor() }, grid: { display: false } },
+        y: { beginAtZero: true, ticks: { color: getTextColor(), precision: 0 }, grid: { color: getGridColor() } }
+      }
+    }
+  });
+
+  const whoTxt = hasCons ? consSel : (isAllSup ? 'todas as equipes' : 'equipe ' + teamNameOf(STATE.supervisor));
+  document.getElementById('reativ-mes-sub').textContent = `Clientes que voltaram a comprar depois de pelo menos 2 meses sem compra · ${whoTxt}`;
+  const scopeCnt = isMonth ? (mSel >= START ? cnt[mSel] : 0) : idxs.reduce((a, i) => a + cnt[i], 0);
+  const scopeVal = isMonth ? (mSel >= START ? val[mSel] : 0) : idxs.reduce((a, i) => a + val[i], 0);
+  document.getElementById('reativ-total-pill').textContent = `${fNum(scopeCnt)} clientes · ${fK(scopeVal)}`;
+  document.getElementById('reativ-mes-note').textContent =
+    `Começa em ${MONTH_NAMES[START] || '—'}: os ${START} primeiros meses da planilha servem de histórico.` +
+    (partialIdx >= 0 ? ` * ${MONTH_NAMES[partialIdx]} está em andamento (dados até ${getCarteiraRefDate().toLocaleDateString('pt-BR')}).` : '');
+
+  // 2) Quem reativou
+  const byTeam = isAllSup && !hasCons;
+  const groups = new Map();
+  base.forEach(r => {
+    const key = byTeam ? (r.sup || '').trim() : (r.cons || '').trim();
+    if(!key) return;
+    if(!groups.has(key)) groups.set(key, { key, cnt: 0, val: 0 });
+    const g = groups.get(key);
+    reativEventsOf(r).forEach(e => {
+      if(isMonth ? e.m === mSel : e.m >= START) { g.cnt++; g.val += e.val; }
+    });
+  });
+  let list = Array.from(groups.values());
+  if(hasCons && !isMonth) list = list.filter(g => g.key === consSel); // todo o período: só o consultor escolhido
+  list.sort((a, b) => b.cnt - a.cnt || b.val - a.val || a.key.localeCompare(b.key));
+  const focusIdx = hasCons ? list.findIndex(g => g.key === consSel) : -1;
+
+  const periodTxt = isMonth ? MONTH_NAMES[mSel] : 'todo o período';
+  document.getElementById('reativ-quem-title').textContent = byTeam ? 'Reativações por equipe' : 'Reativações por consultor';
+  document.getElementById('reativ-quem-sub').textContent = hasCons
+    ? (isMonth ? `${consSel} em destaque entre os colegas · ${periodTxt}` : `${consSel} · soma de todo o período`)
+    : `${byTeam ? 'Equipes' : 'Consultores da equipe ' + teamNameOf(STATE.supervisor)} · ${periodTxt}`;
+
+  const empty = document.getElementById('reativ-quem-empty');
+  const wrap = document.getElementById('reativ-quem-wrap');
+  const noHistory = isMonth && mSel < START;
+  if(noHistory || !list.length) {
+    if(charts['ch-reativ-quem']) { charts['ch-reativ-quem'].destroy(); delete charts['ch-reativ-quem']; }
+    empty.style.display = 'flex';
+    empty.textContent = noHistory
+      ? `${MONTH_NAMES[mSel]} é um dos primeiros meses da planilha e ainda não tem histórico suficiente para medir reativações.`
+      : 'Nenhuma reativação neste filtro.';
+    wrap.style.height = '220px';
+  } else {
+    empty.style.display = 'none';
+    wrap.style.height = Math.max(160, list.length * 30 + 50) + 'px';
+    renderChart('ch-reativ-quem', {
+      type: 'bar',
+      data: {
+        labels: list.map(g => byTeam ? teamNameOf(g.key) : shortName(g.key)),
+        datasets: [{ label: 'Clientes reativados', data: list.map(g => g.cnt),
+          backgroundColor: list.map((g, i) => focusIdx >= 0 ? (i === focusIdx ? cFocus : cMuted) : cGreen + 'cc'),
+          borderRadius: 4, barThickness: 18, _fmt: 'n' }]
+      },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        layout: { padding: { right: 34 } },
+        onClick: (evt, els) => {
+          if(!els.length) return;
+          const g = list[els[0].index];
+          // espera o gráfico terminar de tratar o clique antes de redesenhar a página
+          setTimeout(() => {
+            if(byTeam) { const sel = document.getElementById('sel-supervisor'); if(sel) sel.value = g.key; changeSupervisor(g.key); }
+            else setConsultantFilter(g.key);
+          }, 0);
+        },
+        onHover: (evt, els) => { evt.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
+        plugins: {
+          legend: { display: false },
+          glowBar: { index: focusIdx, color: cFocus },
+          tooltip: { callbacks: {
+            title: items => byTeam ? `Equipe ${teamNameOf(list[items[0].dataIndex].key)}` : list[items[0].dataIndex].key,
+            label: c => ` ${fNum(c.raw)} clientes reativados`,
+            afterLabel: c => ` Valor: ${fR0(list[c.dataIndex].val)}`
+          } }
+        },
+        scales: {
+          x: { beginAtZero: true, ticks: { color: getTextColor(), precision: 0 }, grid: { color: getGridColor() } },
+          y: { ticks: { color: (c) => (focusIdx >= 0 && c.index === focusIdx) ? cFocus : getTextColor(),
+                        font: (c) => (focusIdx >= 0 && c.index === focusIdx) ? { weight: 'bold', size: 12 } : { size: 11 } },
+               grid: { display: false } }
+        }
+      },
+      plugins: [glowBarPlugin]
+    });
+    if(focusIdx >= 0) startGlowLoop('ch-reativ-quem');
+  }
+
+  // 3) Lista de clientes reativados
+  REATIV_LIST = [];
+  focusRows.forEach(r => reativEventsOf(r).forEach(e => {
+    if(isMonth ? e.m === mSel : e.m >= START) REATIV_LIST.push({ r, e });
+  }));
+  REATIV_LIST.sort((a, b) => b.e.m - a.e.m || b.e.val - a.e.val);
+  REATIV_SHOWN = REATIV_PAGE;
+  document.getElementById('reativ-list-count').textContent = `${fNum(REATIV_LIST.length)} clientes`;
+  document.getElementById('reativ-list-sub').textContent = `${whoTxt} · ${periodTxt} · do mais recente para o mais antigo, maior valor primeiro`;
+  drawReativList();
+}
+
+function drawReativList() {
+  const body = document.getElementById('reativ-list-body');
+  if(!body) return;
+  const rows = REATIV_LIST.slice(0, REATIV_SHOWN);
+  body.innerHTML = rows.length ? rows.map(({ r, e }) => `
+    <tr>
+      <td style="white-space:nowrap">${MONTH_NAMES[e.m]}</td>
+      <td style="font-weight:600">${r.name}</td>
+      <td>${r.cons || '—'}</td>
+      <td>${r.state || '—'}</td>
+      <td>${r.city || '—'}</td>
+      <td class="num">${e.gap} ${e.gap === 1 ? 'mês' : 'meses'}</td>
+      <td class="num">${fNum(e.ped)}</td>
+      <td class="num" style="color:var(--green);font-weight:700">${fR0(e.val)}</td>
+    </tr>`).join('')
+    : '<tr><td colspan="8" style="text-align:center;padding:16px;color:var(--muted)">Nenhum cliente reativado neste filtro.</td></tr>';
+  const btn = document.getElementById('reativ-more-btn');
+  const left = REATIV_LIST.length - rows.length;
+  btn.style.display = left > 0 ? 'inline-flex' : 'none';
+  btn.textContent = `Mostrar mais (${fNum(left)} restantes)`;
+}
+function showMoreReativ() { REATIV_SHOWN += REATIV_PAGE; drawReativList(); }
 
 function filterCrmTable() {
   const rows = getFilteredRows();
