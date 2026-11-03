@@ -36,12 +36,21 @@
   --muted:  #7a8599;
   --accent: #FF3300;
   --glow:   rgba(255,60,0,.15);
+  color-scheme: dark;
 }
+body { color-scheme: dark; }
 body.light {
+  color-scheme: light;
   --bg:#f0f2f5; --bg2:#ffffff; --bg3:#e8ebf0; --card:#ffffff;
   --border:#d0d5e0; --text:#111318; --muted:#5a6280; --glow:rgba(255,60,0,.08);
-  --green:#16a34a; --gold:#d97706; --blue:#0284c7; --purple:#7c3aed; --cyan:#0891b2;
+  /* tons mais escuros para o texto continuar legível sobre fundo claro */
+  --green:#15803d; --gold:#b45309; --blue:#0369a1; --purple:#7c3aed; --cyan:#0e7490;
+  --orange:#c2410c; --red:#dc2626;
 }
+/* Opções das listas suspensas: o navegador desenha a lista à parte,
+   então fundo e letra precisam vir do tema (antes: letra branca em fundo branco) */
+select option, select optgroup { background-color: var(--bg2); color: var(--text); }
+select option:disabled { color: var(--muted); }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s}
@@ -1570,7 +1579,8 @@ const FOCUS_STATE_PALETTE = [
 
 function getStateColor(stateName) {
   const idx = FOCUS_STATES.indexOf(stateName);
-  return FOCUS_STATE_PALETTE[(idx >= 0 ? idx : 0) % FOCUS_STATE_PALETTE.length];
+  const c = FOCUS_STATE_PALETTE[(idx >= 0 ? idx : 0) % FOCUS_STATE_PALETTE.length];
+  return isLightMode() ? shadeHex(c, 0.42) : c;
 }
 
 function getStateTag(stateName) {
@@ -1625,10 +1635,25 @@ const fK = v => {
 const fNum = v => Number(v||0).toLocaleString('pt-BR');
 const fPct = v => (Number(v||0)).toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1}) + '%';
 
+function isLightMode() { return !!(document.body && document.body.classList.contains('light')); }
+
 function pctColor(p){
   p = Math.max(0, Math.min(Number(p)||0, 100));
   const hh = p <= 50 ? (p/50)*45 : 45 + ((p-50)/50)*95;
+  if(isLightMode()) {
+    // amarelos e verdes claros somem no fundo branco: escurece conforme o tom
+    const L = hh < 15 ? 44 : hh < 35 ? 37 : hh < 50 ? 30 : 26;
+    return `hsl(${hh.toFixed(0)},80%,${L}%)`;
+  }
   return `hsl(${hh.toFixed(0)},85%,50%)`;
+}
+
+// Escurece uma cor #rrggbb (f = 0 a 1), mantendo o formato #rrggbb
+function shadeHex(hex, f) {
+  const h = String(hex).replace('#', '');
+  if(!/^[0-9a-f]{6}$/i.test(h)) return hex;
+  const ch = i => Math.round(parseInt(h.substr(i, 2), 16) * (1 - f)).toString(16).padStart(2, '0');
+  return '#' + ch(0) + ch(2) + ch(4);
 }
 
 // ─── CHART.JS PLUGINS ─────────────────────────────────────────────────────────
@@ -5810,6 +5835,7 @@ function getGridColor() {
 function toggleMode() {
   const isLight = document.body.classList.toggle('light');
   document.getElementById('mode-btn').textContent = isLight ? '🌙' : '☀️';
+  if(typeof buildFocusStateButtons === 'function' && RAW_DATA && RAW_DATA.length) buildFocusStateButtons();
   renderCurrentPage();
 }
 
