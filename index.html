@@ -305,6 +305,21 @@ body:not(.cons-mode) .cons-only { display: none !important; }
 .pill-p{background:rgba(168,85,247,.12);color:var(--purple);border:1px solid rgba(168,85,247,.25)}
 .cwrap{position:relative}
 .reativ-note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5}
+.conc-stats{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:14px;margin:4px 0 16px}
+.conc-stat{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.conc-stat .lbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.conc-stat .val{font-size:26px;font-weight:800;margin-top:4px;line-height:1.1}
+.conc-stat .sub{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4}
+.conc-meter{height:8px;border-radius:6px;background:var(--border);margin-top:8px;overflow:hidden}
+.conc-meter>div{height:100%;border-radius:6px}
+.risk-baixo{color:var(--green)}.risk-medio{color:var(--gold)}.risk-alto{color:var(--red)}.risk-na{color:var(--muted)}
+.conc-table td.num{text-align:right;font-family:'DM Mono',monospace;white-space:nowrap}
+.conc-table tr.cooling td{background:rgba(245,166,35,.07)}
+.cool-tag{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.5px;padding:2px 6px;border-radius:5px;margin-left:6px;background:rgba(245,166,35,.15);color:var(--gold);border:1px solid rgba(245,166,35,.35);vertical-align:middle;white-space:nowrap}
+.cool-tag.red{background:rgba(255,0,0,.12);color:var(--red);border-color:rgba(255,0,0,.3)}
+.evo-summary{font-size:13px;margin-top:10px;line-height:1.5}
+.evo-summary b.up{color:var(--green)}.evo-summary b.down{color:var(--red)}
+@media(max-width:760px){.conc-stats{grid-template-columns:1fr}}
 .reativ-empty{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:20px;font-size:12.5px;color:var(--muted);line-height:1.6}
 .reativ-table-wrap{overflow-x:auto}
 .reativ-table-wrap .data-table td.num{text-align:right;font-family:'DM Mono',monospace;white-space:nowrap}
@@ -1228,6 +1243,52 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
         <div style="text-align:center">
           <button class="btn btn-ghost btn-pill" id="reativ-more-btn" onclick="showMoreReativ()" style="display:none;font-size:11px">Mostrar mais</button>
         </div>
+      </div>
+
+      <!-- EVOLUÇÃO DA CARTEIRA -->
+      <div class="chart-card" style="margin-bottom:20px">
+        <div class="chart-head">
+          <div>
+            <div class="chart-title">📈 Evolução da carteira: ativos e inativos mês a mês</div>
+            <div class="chart-subtitle" id="evo-sub">Situação dos clientes no fim de cada mês</div>
+          </div>
+          <span class="chart-pill pill-g" id="evo-pill">—</span>
+        </div>
+        <div class="cwrap h320"><canvas id="ch-evo-carteira" aria-label="Ativos e inativos por mês"></canvas></div>
+        <div class="evo-summary" id="evo-summary"></div>
+        <div class="reativ-note" id="evo-note"></div>
+      </div>
+
+      <!-- CONCENTRAÇÃO DA CARTEIRA -->
+      <div class="chart-card" style="margin-bottom:20px">
+        <div class="chart-head">
+          <div>
+            <div class="chart-title">🎯 Dependência dos 10 maiores clientes</div>
+            <div class="chart-subtitle" id="conc-sub">Quanto do faturamento do período vem dos 10 maiores clientes</div>
+          </div>
+          <span class="chart-pill pill-o" id="conc-pill">—</span>
+        </div>
+        <div class="conc-stats" id="conc-stats"></div>
+        <div class="data-table-wrap">
+          <table class="data-table conc-table">
+            <thead>
+              <tr>
+                <th style="width:30px">#</th>
+                <th>Cliente</th>
+                <th class="conc-col-cons">Consultor</th>
+                <th>Estado</th>
+                <th>Cidade</th>
+                <th style="text-align:right">Faturamento</th>
+                <th style="text-align:right">% do total</th>
+                <th style="text-align:right">% acumulado</th>
+                <th style="text-align:right">Sem comprar</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="conc-body"></tbody>
+          </table>
+        </div>
+        <div class="reativ-note">⚠ Esfriando = cliente do top 10 entre 46 e 60 dias sem comprar (fica inativo aos 60): é o primeiro para ligar. Risco: baixo até 40%, médio de 40% a 60%, alto acima de 60%.</div>
       </div>
 
       <div class="chart-card" style="margin-bottom:20px">
@@ -3708,6 +3769,34 @@ function renderVisaoGeral() {
         <div class="exec-desc">Potencial de expansão em ${oppStateName}</div>
       </div>
     </div>
+    ${(() => {
+      const cc = concentrationOf(rows);
+      const rk = concRisk(cc.pct, cc.buyers);
+      const cool = cc.top.filter(x => { const d = clientDaysSince(x.r); return d !== null && d > CONC_COOL_DIAS; }).length;
+      return `<div class="exec-card" style="cursor:pointer" onclick="setPage('clientes')" title="Ver em Saúde da Carteira">
+      <div class="exec-icon gold">🎯</div>
+      <div>
+        <div class="exec-title">Dependência Top 10 ${isMonthFiltered ? '(' + mName + ')' : ''}</div>
+        <div class="exec-main" style="color:${rk.color}">${cc.total > 0 ? fPct(cc.pct) + ' do faturamento' : '—'}</div>
+        <div class="exec-desc">${rk.code === 'na' ? 'Poucos clientes compraram no período' : rk.label} · ${cool ? cool + ' do top 10 sem comprar há +45 dias ⚠' : 'top 10 comprando'}</div>
+      </div>
+    </div>`;
+    })()}
+    ${(() => {
+      const ev = evoDeltaFor(rows);
+      if(!ev) return '';
+      const up = ev.pCur - ev.pPrev;
+      const arrow = up > 0.5 ? '↑' : up < -0.5 ? '↓' : '→';
+      const col = up > 0.5 ? 'var(--green)' : up < -0.5 ? 'var(--red)' : 'var(--text)';
+      return `<div class="exec-card" style="cursor:pointer" onclick="setPage('clientes')" title="Ver em Saúde da Carteira">
+      <div class="exec-icon ${up < -0.5 ? 'red' : 'green'}">📈</div>
+      <div>
+        <div class="exec-title">Carteira ativa vs ${ev.prevName}</div>
+        <div class="exec-main" style="color:${col}">${arrow} ${fPct(ev.pCur)} ativos</div>
+        <div class="exec-desc">Era ${fPct(ev.pPrev)} · ${ev.dA >= 0 ? '+' : '−'}${fNum(Math.abs(ev.dA))} clientes ativos</div>
+      </div>
+    </div>`;
+    })()}
   `;
 
   // Update Timeline Titles
@@ -4626,9 +4715,202 @@ function renderClientesCRM() {
   `).join('');
 
   renderReativacoes();
+  renderEvolucaoCarteira();
+  renderConcentracao();
   filterCrmTable();
 }
 
+
+// ─── CONCENTRAÇÃO DA CARTEIRA ─────────────────────────────────────────────────
+// Quanto do faturamento do período (segue o filtro de período) vem dos 10 maiores
+// clientes. Esfriando = top 10 com mais de 45 dias sem comprar.
+const CONC_TOP = 10, CONC_COOL_DIAS = 45;
+function periodFatOf(r) {
+  const isMonth = STATE.month && STATE.month !== 'todos';
+  if(isMonth) return (r.fat && r.fat[parseInt(STATE.month, 10)]) || 0;
+  return (r.fat || []).reduce((a, b) => a + (b || 0), 0);
+}
+function concRisk(pct, buyers) {
+  if(buyers <= CONC_TOP) return { code: 'na', label: 'sem comparação', color: 'var(--muted)' };
+  if(pct > 60) return { code: 'alto', label: 'Risco alto', color: 'var(--red)' };
+  if(pct >= 40) return { code: 'medio', label: 'Risco médio', color: 'var(--gold)' };
+  return { code: 'baixo', label: 'Risco baixo', color: 'var(--green)' };
+}
+function concentrationOf(rows) {
+  const list = [];
+  let total = 0;
+  rows.forEach(r => { const f = periodFatOf(r); if(f > 0) { list.push({ r, f }); total += f; } });
+  list.sort((a, b) => b.f - a.f);
+  const top = list.slice(0, CONC_TOP);
+  const topSum = top.reduce((a, x) => a + x.f, 0);
+  let acc = 0, n80 = 0;
+  for(const x of list) { acc += x.f; n80++; if(total > 0 && acc / total >= 0.8) break; }
+  return { list, top, total, topSum, pct: total > 0 ? topSum / total * 100 : 0, buyers: list.length, n80 };
+}
+function renderConcentracao() {
+  const body = document.getElementById('conc-body');
+  if(!body) return;
+  const rows = getFilteredRows();
+  const isMonth = STATE.month && STATE.month !== 'todos';
+  const mSel = isMonth ? parseInt(STATE.month, 10) : null;
+  const periodTxt = isMonth ? MONTH_NAMES[mSel] : 'todo o período (' + periodLabel() + ')';
+  const hasCons = STATE.consultant && STATE.consultant !== 'todos';
+  const isAllSup = !STATE.supervisor || STATE.supervisor === 'TODOS';
+  const whoTxt = isConsMode() ? 'sua carteira' : (hasCons ? STATE.consultant : (isAllSup ? 'todas as equipes' : 'equipe ' + teamNameOf(STATE.supervisor)));
+  const c = concentrationOf(rows);
+  const risk = concRisk(c.pct, c.buyers);
+  const cooling = c.top.filter(x => { const d = clientDaysSince(x.r); return d !== null && d > CONC_COOL_DIAS; });
+  const coolOnly = cooling.filter(x => clientDaysSince(x.r) <= INATIVO_DIAS).length;
+
+  document.getElementById('conc-sub').textContent = `Quanto do faturamento vem dos 10 maiores clientes · ${whoTxt} · ${periodTxt}`;
+  const pill = document.getElementById('conc-pill');
+  pill.textContent = cooling.length ? `${cooling.length} do top 10 sem comprar` : 'top 10 comprando';
+  pill.className = 'chart-pill ' + (cooling.length ? 'pill-o' : 'pill-g');
+
+  const meterW = Math.min(100, c.pct).toFixed(1);
+  const youTxt = isConsMode() ? 'Seus' : 'Os';
+  document.getElementById('conc-stats').innerHTML = c.total > 0 ? `
+    <div class="conc-stat">
+      <div class="lbl">${youTxt} 10 maiores clientes</div>
+      <div class="val" style="color:${risk.color}">${fPct(c.pct)} <span style="font-size:13px;font-weight:700">do faturamento</span></div>
+      <div class="conc-meter"><div style="width:${meterW}%;background:${risk.color}"></div></div>
+      <div class="sub"><b class="risk-${risk.code}">${risk.label}</b> · ${fK(c.topSum)} de ${fK(c.total)}${c.buyers <= CONC_TOP ? ` · só ${fNum(c.buyers)} ${c.buyers === 1 ? 'cliente comprou' : 'clientes compraram'} no período, então os 10 maiores são todo o faturamento` : ''}</div>
+    </div>
+    <div class="conc-stat">
+      <div class="lbl">80% do faturamento</div>
+      <div class="val">${fNum(c.n80)} <span style="font-size:13px;font-weight:700">de ${fNum(c.buyers)}</span></div>
+      <div class="sub">clientes que compraram no período fazem 80% do faturamento</div>
+    </div>
+    <div class="conc-stat">
+      <div class="lbl">⚠ Grandes sem comprar</div>
+      <div class="val" style="color:${cooling.length ? 'var(--gold)' : 'var(--green)'}">${fNum(cooling.length)} <span style="font-size:13px;font-weight:700">do top 10</span></div>
+      <div class="sub">${cooling.length ? `há mais de ${CONC_COOL_DIAS} dias: <b style="color:var(--gold)">${fNum(coolOnly)} esfriando</b> (46 a 60 dias) · <b style="color:var(--red)">${fNum(cooling.length - coolOnly)} já inativos</b> · ${fK(cooling.reduce((a, x) => a + x.f, 0))} no período` : 'todos do top 10 compraram nos últimos ' + CONC_COOL_DIAS + ' dias'}</div>
+    </div>` : `<div class="conc-stat" style="grid-column:1/-1"><div class="sub">Nenhum faturamento em ${periodTxt} neste filtro.</div></div>`;
+
+  const showCons = !isConsMode() && !hasCons;
+  document.querySelectorAll('.conc-col-cons').forEach(th => th.style.display = showCons ? '' : 'none');
+  let acc = 0;
+  body.innerHTML = c.top.length ? c.top.map((x, i) => {
+    acc += x.f;
+    const d = clientDaysSince(x.r);
+    const st = getClientStatus(x.r);
+    const cool = d !== null && d > CONC_COOL_DIAS;
+    const tag = (cool && st.code === 'ativo') ? '<span class="cool-tag">⚠ ESFRIANDO</span>' : '';
+    return `<tr class="${cool ? 'cooling' : ''}">
+      <td style="font-weight:700;color:var(--orange)">${i + 1}</td>
+      <td style="font-weight:600">${escHtml(x.r.name)}${tag}</td>
+      ${showCons ? `<td>${escHtml(x.r.cons || '—')}</td>` : ''}
+      <td>${escHtml(x.r.state || '—')}</td>
+      <td>${escHtml(x.r.city || '—')}</td>
+      <td class="num" style="color:var(--green);font-weight:700">${fR0(x.f)}</td>
+      <td class="num">${fPct(c.total ? x.f / c.total * 100 : 0)}</td>
+      <td class="num" style="color:var(--muted)">${fPct(c.total ? acc / c.total * 100 : 0)}</td>
+      <td class="num" style="${cool ? 'color:var(--gold);font-weight:700' : ''}">${d === null ? '—' : fNum(d) + ' dias'}</td>
+      <td><span class="status-pill ${st.cls}">${st.label}</span></td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="10" style="text-align:center;padding:16px;color:var(--muted)">Nenhum cliente com faturamento em ${periodTxt}.</td></tr>`;
+
+}
+
+// ─── EVOLUÇÃO DA CARTEIRA (ativos × inativos no fim de cada mês) ──────────────
+// Reconstruída das compras mês a mês da carteira atual, com a régua dos 60 dias:
+// ativo = comprou no mês ou no anterior; inativo = já tinha comprado antes, mas
+// não nesses 2 meses; nunca comprou = sem compra até ali. O último mês usa a
+// situação exata na data da planilha (a mesma dos cartões acima).
+const EVO_START = 2;
+function evoSeries(rows) {
+  const n = MONTH_KEYS.length;
+  const at = Array(n).fill(0), in_ = Array(n).fill(0), nv = Array(n).fill(0);
+  const first = MONTH_YEAR_MAP[0] ? new Date(MONTH_YEAR_MAP[0].y, MONTH_YEAR_MAP[0].m, 1) : null;
+  rows.forEach(r => {
+    const lb = parsePurchaseDate(r.last_buy);
+    const boughtBefore = !!(lb && first && lb < first);
+    let firstBuy = -1;
+    for(let i = 0; i < n; i++) if(rowBoughtIn(r, i)) { firstBuy = i; break; }
+    for(let i = EVO_START; i < n; i++) {
+      if(i === n - 1) {
+        const st = getClientStatus(r).code;
+        if(st === 'ativo') at[i]++; else if(st === 'inativo') in_[i]++; else nv[i]++;
+        continue;
+      }
+      if(rowBoughtIn(r, i) || rowBoughtIn(r, i - 1)) at[i]++;
+      else if(boughtBefore || (firstBuy >= 0 && firstBuy < i - 1)) in_[i]++;
+      else nv[i]++;
+    }
+  });
+  return { at, in_, nv, n };
+}
+function renderEvolucaoCarteira() {
+  if(!document.getElementById('ch-evo-carteira')) return;
+  const rows = getFilteredRows();
+  const { at, in_, nv, n } = evoSeries(rows);
+  const light = isLightMode();
+  const cA = light ? '#15803d' : '#3fd671', cI = light ? '#dc2626' : '#ff3b3b', cN = light ? '#94a3b8' : '#4b5567', cL = light ? '#0369a1' : '#38bdf8';
+  const isMonth = STATE.month && STATE.month !== 'todos';
+  const mSel = isMonth ? parseInt(STATE.month, 10) : null;
+  const idxs = []; for(let i = EVO_START; i < n; i++) idxs.push(i);
+  const partialIdx = isPartialMonth(n - 1) ? n - 1 : -1;
+  const fade = (col, i) => (isMonth && i !== mSel) ? col + '40' : col + 'd9';
+  const pct = i => { const t = at[i] + in_[i] + nv[i]; return t ? at[i] / t * 100 : 0; };
+  renderChart('ch-evo-carteira', {
+    data: {
+      labels: idxs.map(i => MONTH_SHORT[i] + (i === n - 1 ? (partialIdx >= 0 ? '*' : '') : '')),
+      datasets: [
+        { type: 'line', label: '% ativos', data: idxs.map(i => +pct(i).toFixed(1)), yAxisID: 'y1', borderColor: cL, backgroundColor: cL,
+          pointRadius: idxs.map(i => (isMonth && i === mSel) ? 6 : 3), tension: .3, order: 0 },
+        { type: 'bar', label: 'Ativos', data: idxs.map(i => at[i]), backgroundColor: idxs.map(i => fade(cA, i)), stack: 's', order: 1 },
+        { type: 'bar', label: 'Inativos', data: idxs.map(i => in_[i]), backgroundColor: idxs.map(i => fade(cI, i)), stack: 's', order: 1 },
+        { type: 'bar', label: 'Nunca compraram', data: idxs.map(i => nv[i]), backgroundColor: idxs.map(i => fade(cN, i)), stack: 's', order: 1 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: getTextColor(), boxWidth: 12 } },
+        tooltip: { callbacks: {
+          title: items => { const i = idxs[items[0].dataIndex]; return MONTH_NAMES[i] + (i === n - 1 ? ` (situação em ${getCarteiraRefDate().toLocaleDateString('pt-BR')})` : ' (fim do mês)'); },
+          label: c => c.dataset.yAxisID === 'y1' ? ` ${fPct(c.raw)} da carteira ativa` : ` ${c.dataset.label}: ${fNum(c.raw)}`
+        } }
+      },
+      scales: {
+        x: { stacked: true, ticks: { color: getTextColor() }, grid: { display: false } },
+        y: { stacked: true, beginAtZero: true, ticks: { color: getTextColor(), precision: 0 }, grid: { color: getGridColor() } },
+        y1: { position: 'right', beginAtZero: true, max: 100, ticks: { color: cL, callback: v => v + '%' }, grid: { display: false } }
+      }
+    }
+  });
+
+  const hasCons = STATE.consultant && STATE.consultant !== 'todos';
+  const isAllSup = !STATE.supervisor || STATE.supervisor === 'TODOS';
+  const whoTxt = isConsMode() ? 'sua carteira' : (hasCons ? STATE.consultant : (isAllSup ? 'todas as equipes' : 'equipe ' + teamNameOf(STATE.supervisor)));
+  document.getElementById('evo-sub').textContent = `Situação dos clientes no fim de cada mês · ${whoTxt}`;
+  const cur = (isMonth && mSel >= EVO_START) ? mSel : n - 1;
+  document.getElementById('evo-pill').textContent = `${MONTH_SHORT[cur]}: ${fNum(at[cur])} ativos · ${fPct(pct(cur))}`;
+  const sumEl = document.getElementById('evo-summary');
+  const prev = cur - 3;
+  if(isMonth && mSel < EVO_START) {
+    sumEl.innerHTML = `${MONTH_NAMES[mSel]} é um dos 2 primeiros meses da planilha e serve de histórico; o gráfico começa em ${MONTH_NAMES[EVO_START]}.`;
+  } else if(prev >= EVO_START) {
+    const dA = at[cur] - at[prev], dI = in_[cur] - in_[prev], dP = pct(cur) - pct(prev);
+    const sign = v => (v > 0 ? '+' : v < 0 ? '−' : '') + fNum(Math.abs(v));
+    const better = dP > 0.5 ? '<b class="up">↑ melhorando</b>' : dP < -0.5 ? '<b class="down">↓ piorando</b>' : '<b>→ estável</b>';
+    sumEl.innerHTML = `De ${MONTH_NAMES[prev]} para ${MONTH_NAMES[cur]}: <b>${sign(dA)}</b> ativos, <b>${sign(dI)}</b> inativos, % de ativos de ${fPct(pct(prev))} para ${fPct(pct(cur))} · ${better}`;
+  } else {
+    sumEl.innerHTML = `Comparação com 3 meses antes disponível a partir de ${MONTH_NAMES[EVO_START + 3] || '—'}.`;
+  }
+  document.getElementById('evo-note').textContent =
+    `Começa em ${MONTH_NAMES[EVO_START] || '—'} (os 2 primeiros meses servem de histórico). Ativo = comprou no mês ou no anterior; inativo = já tinha comprado, mas não nesses 2 meses. ` +
+    `O último mês mostra a situação exata em ${getCarteiraRefDate().toLocaleDateString('pt-BR')}. Montado com a carteira atual: cliente que mudou de consultor aparece com o dono de hoje em todos os meses.`;
+}
+
+// Resumo para os cartões da Visão Geral
+function evoDeltaFor(rows) {
+  const { at, in_, nv, n } = evoSeries(rows);
+  const cur = n - 1, prev = cur - 3;
+  if(prev < EVO_START) return null;
+  const pct = i => { const t = at[i] + in_[i] + nv[i]; return t ? at[i] / t * 100 : 0; };
+  return { dA: at[cur] - at[prev], pCur: pct(cur), pPrev: pct(prev), prevName: MONTH_NAMES[prev] };
+}
 
 // ─── REATIVAÇÕES ──────────────────────────────────────────────────────────────
 // Reativação = o cliente compra num mês depois de pelo menos 2 meses cheios sem
