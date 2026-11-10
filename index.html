@@ -101,6 +101,57 @@ header {
 /* ÍCONE DO SOL (logo) */
 .sun-icon{width:62%;height:62%;display:block}
 
+/* ÁREA DO CONSULTOR: esconde o que é só da supervisão */
+body.cons-mode .admin-only { display: none !important; }
+body:not(.cons-mode) .cons-only { display: none !important; }
+
+/* LOGIN COM GOOGLE */
+.login-google{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:13.5px;font-weight:700;cursor:pointer;transition:border-color .15s,background .15s}
+.login-google:hover{border-color:var(--orange)}
+.login-google:disabled{opacity:.6;cursor:wait}
+.login-google svg{width:18px;height:18px;flex:0 0 auto}
+.login-hint{font-size:11.5px;color:var(--muted);text-align:center;margin:8px 0 2px;line-height:1.5}
+.login-sep{display:flex;align-items:center;gap:10px;margin:18px 0 14px;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.login-sep::before,.login-sep::after{content:'';flex:1;height:1px;background:var(--border)}
+.login-admin-toggle{display:block;margin:0 auto;background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.login-admin-toggle:hover{color:var(--text)}
+.login-admin-box{display:none;margin-top:14px}
+.login-admin-box.open{display:block}
+.access-body{font-size:13px;line-height:1.6;color:var(--text)}
+.access-body p{margin-bottom:10px}
+.access-body .muted{color:var(--muted);font-size:12px}
+.access-email{display:inline-block;font-family:'DM Mono',monospace;font-size:12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:2px 8px;margin:2px 0 10px}
+.access-icon{font-size:30px;text-align:center;margin-bottom:6px}
+.access-center{text-align:center}
+
+/* PÁGINA ACESSOS */
+.acc-grid{display:grid;grid-template-columns:1fr;gap:20px;margin-bottom:20px}
+.acc-table{width:100%;border-collapse:collapse;font-size:12px}
+.acc-table th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:8px;border-bottom:1px solid var(--border);white-space:nowrap}
+.acc-table td{padding:8px;border-bottom:1px solid var(--border);vertical-align:middle}
+.acc-table .form-select,.acc-table .form-input{padding:6px 8px;font-size:12px;min-width:200px}
+.acc-actions{display:flex;gap:6px;flex-wrap:wrap}
+.acc-actions .btn{font-size:11px;padding:5px 10px}
+.acc-pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.acc-pill.on{background:rgba(63,214,113,.15);color:var(--green)}
+.acc-pill.off{background:rgba(255,60,60,.12);color:var(--red)}
+.acc-empty{padding:18px;text-align:center;color:var(--muted);font-size:12.5px}
+.acc-form{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.acc-form .form-input{flex:1 1 240px;min-width:200px}
+.acc-form .form-select{flex:1 1 240px;min-width:200px}
+.acc-status{font-size:12.5px;line-height:1.6;color:var(--muted)}
+.acc-status b{color:var(--text)}
+.acc-status.err{color:var(--red)}
+.acc-scroll{overflow-x:auto}
+.nav-badge{display:none;margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:800;border-radius:999px;padding:1px 7px}
+.nav-badge.show{display:inline-block}
+
+/* RANKING: destaque do próprio consultor */
+.rank-row.is-me{background:rgba(255,122,0,.10);border-radius:8px;box-shadow:inset 3px 0 0 #ff7a00}
+.rank-row.is-me .rank-name{color:#ff7a00;font-weight:800}
+.ccons.is-me{border-color:#ff7a00;box-shadow:0 0 0 1px #ff7a00,0 0 22px rgba(255,122,0,.25)}
+.me-tag{display:inline-block;font-size:9.5px;font-weight:800;color:#fff;background:#ff7a00;border-radius:999px;padding:1px 7px;margin-left:6px;vertical-align:middle}
+
 /* TELA DE LOGIN */
 .login-screen{position:fixed;inset:0;background:var(--bg);z-index:9000;display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
 .login-screen.show{display:flex}
@@ -644,7 +695,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
   <div class="hbadge desktop-only" id="hdr-cons-badge">Consultor: <b id="hdr-cons">Todos</b></div>
   <div class="hbadge desktop-only" id="hdr-month-badge">Período: <b id="hdr-month">Todo o período</b></div>
   <div class="hbadge file desktop-only" id="hdr-source-badge" title="Origem dos dados em exibição">📁 <b>Aguardando Planilha</b></div>
-  <button class="btn btn-ghost btn-pill desktop-only" id="btn-switch-file" onclick="setPage('importar')" style="display:none;font-size:10px">📁 Trocar Planilha</button>
+  <button class="btn btn-ghost btn-pill desktop-only admin-only" id="btn-switch-file" onclick="setPage('importar')" style="display:none;font-size:10px">📁 Trocar Planilha</button>
   <div class="notif-wrap" id="notif-wrap">
     <div class="notif-bell" onclick="toggleNotifPanel()" id="notif-bell" title="Alertas Comerciais">🔔</div>
     <div class="notif-dot" id="notif-dot"></div>
@@ -668,9 +719,14 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
     <div class="login-head">
       <div class="empty-logo"><svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.3" fill="#fff" stroke="none"/><path d="M12 2.6v2.3M12 19.1v2.3M2.6 12h2.3M19.1 12h2.3M5.35 5.35l1.62 1.62M17.03 17.03l1.62 1.62M5.35 18.65l1.62-1.62M17.03 6.97l1.62-1.62"/></svg></div>
       <div class="empty-title" id="login-title"><span>ANALYTICS</span></div>
-      <p>Entre com o acesso da equipe para ver o painel.</p>
+      <p>Entre para ver o seu painel.</p>
     </div>
     <div class="login-msg" id="login-msg" role="alert"></div>
+    <button type="button" class="login-google" id="login-google-btn" onclick="doGoogleLogin()"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Entrar com Google</button>
+    <div class="login-hint">Consultores: use o seu e-mail <b>@souenergy.com.br</b></div>
+    <div class="login-sep">ou</div>
+    <button type="button" class="login-admin-toggle" id="login-admin-toggle" onclick="toggleAdminLogin()">Acesso da supervisão (e-mail e senha)</button>
+    <div class="login-admin-box" id="login-admin-box">
     <div class="login-field">
       <label for="login-email">E-mail</label>
       <input class="form-input" type="email" id="login-email" autocomplete="username" required>
@@ -684,7 +740,21 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
     </div>
     <button type="submit" class="btn btn-primary login-submit" id="login-submit">Entrar</button>
     <button type="button" class="login-forgot" onclick="doPasswordReset()">Esqueci a senha</button>
+    </div>
   </form>
+</div>
+
+<!-- TELA DE ACESSO DO CONSULTOR (pedido, aguardando, bloqueado) -->
+<div class="login-screen" id="access-screen" role="dialog" aria-labelledby="access-title">
+  <div class="login-card">
+    <div class="login-head">
+      <div class="empty-logo"><svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.3" fill="#fff" stroke="none"/><path d="M12 2.6v2.3M12 19.1v2.3M2.6 12h2.3M19.1 12h2.3M5.35 5.35l1.62 1.62M17.03 17.03l1.62 1.62M5.35 18.65l1.62-1.62M17.03 6.97l1.62-1.62"/></svg></div>
+      <div class="empty-title" id="access-title"><span>ANALYTICS</span></div>
+    </div>
+    <div class="login-msg" id="access-msg" role="alert"></div>
+    <div class="access-body" id="access-body"></div>
+    <button type="button" class="login-forgot" onclick="signOutAndReload()">Sair e usar outra conta</button>
+  </div>
 </div>
 
 <div class="loading-screen" id="loading-screen">
@@ -751,15 +821,18 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
       <div class="nav-tab" onclick="setPage('mensal',this)">
         <span class="tab-icon">📅</span>Evolução Mensal
       </div>
-      <div class="nav-tab" onclick="setPage('importar',this)">
+      <div class="nav-tab admin-only" onclick="setPage('importar',this)">
         <span class="tab-icon">📁</span>Importar Planilha
+      </div>
+      <div class="nav-tab admin-only" onclick="setPage('acessos',this)">
+        <span class="tab-icon">🔐</span>Acessos<span class="nav-badge" id="nav-acessos-badge"></span>
       </div>
     </div>
 
     <div class="sidebar-divider"></div>
 
     <!-- SELETOR DE SUPERVISOR -->
-    <div class="sidebar-section">
+    <div class="sidebar-section admin-only">
       <div class="filter-label">Equipe</div>
       <select class="form-select" id="sel-supervisor" onchange="changeSupervisor(this.value)"></select>
     </div>
@@ -787,7 +860,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
     </div>
 
     <!-- FILTRO DE CONSULTORES -->
-    <div class="sidebar-section">
+    <div class="sidebar-section admin-only">
       <div class="filter-label" style="display:flex;justify-content:space-between">
         <span>Consultores</span>
         <span style="font-size:9px;color:var(--orange);cursor:pointer" onclick="setConsultantFilter('todos')">Limpar</span>
@@ -810,7 +883,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
           <div class="page-subtitle">Desempenho comercial consolidado e evolução das carteiras no período da planilha</div>
         </div>
         <div class="page-actions">
-          <button class="btn btn-ghost" onclick="setPage('importar')">📥 Trocar Planilha</button>
+          <button class="btn btn-ghost admin-only" onclick="setPage('importar')">📥 Trocar Planilha</button>
           <button class="btn btn-primary" onclick="exportSummaryData()">📊 Exportar Resumo</button>
         </div>
       </div>
@@ -909,7 +982,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
           </div>
           <div class="cwrap h320"><canvas id="ch-geral-state-pie"></canvas></div>
         </div>
-        <div class="chart-card">
+        <div class="chart-card admin-only">
           <div class="chart-head">
             <div>
               <div class="chart-title" id="title-geral-top-cons">Top Consultores em Faturamento</div>
@@ -1019,7 +1092,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
           <div class="page-subtitle">As metas vêm da planilha de metas (uma aba por mês). Escolha o mês e a equipe para ver quem estava no time, a meta de cada um e o realizado.</div>
         </div>
         <div class="page-actions">
-          <button class="btn btn-primary" onclick="document.getElementById('metas-file-input').click()">📤 Enviar Planilha de Metas</button>
+          <button class="btn btn-primary admin-only" onclick="document.getElementById('metas-file-input').click()">📤 Enviar Planilha de Metas</button>
           <input type="file" id="metas-file-input" accept=".xlsx,.xls" style="display:none" onchange="handleMetasFile(this)">
         </div>
       </div>
@@ -1032,11 +1105,11 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
           <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700">📅 Mês
             <select class="form-select" id="sel-metas-month" style="padding:5px 10px;font-size:12px;font-weight:700;width:auto;min-width:150px" onchange="changeMetasMonth(this.value)"></select>
           </label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700">👥 Equipe
+          <label class="admin-only" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700">👥 Equipe
             <select class="form-select" id="sel-metas-supervisor" style="padding:5px 10px;font-size:12px;font-weight:700;width:auto;min-width:150px" onchange="changeMetasSupervisor(this.value)"></select>
           </label>
         </div>
-        <button class="btn btn-ghost btn-pill" onclick="downloadMetasTemplateExcel()" style="font-size:11px">⬇️ Baixar Excel desta equipe</button>
+        <button class="btn btn-ghost btn-pill admin-only" onclick="downloadMetasTemplateExcel()" style="font-size:11px">⬇️ Baixar Excel desta equipe</button>
       </div>
 
       <div class="chart-card" style="margin-bottom:20px">
@@ -1075,7 +1148,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
           </div>
           <div id="metas-levels-box" style="font-size:12px;color:var(--muted);line-height:1.7"></div>
         </div>
-        <div class="chart-card">
+        <div class="chart-card admin-only">
           <div class="chart-head">
             <div class="chart-title">📄 Como atualizar as metas</div>
           </div>
@@ -1373,6 +1446,69 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
           </div>
           <div class="cwrap h340"><canvas id="ch-comp-cli"></canvas></div>
           <div class="chart-legend" id="leg-comp-cli"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: ACESSOS DOS CONSULTORES (só supervisão) -->
+    <div id="page-acessos" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Acessos dos <span>Consultores</span></div>
+          <div class="page-subtitle">Cada consultor entra com o Google (e-mail @souenergy.com.br) e vê só a própria carteira e os próprios números. Aqui vocês aprovam os pedidos, cadastram e bloqueiam acessos.</div>
+        </div>
+      </div>
+
+      <div class="acc-grid">
+        <div class="chart-card">
+          <div class="chart-head">
+            <div>
+              <div class="chart-title">🔄 Área dos consultores</div>
+              <div class="chart-subtitle">Ao abrir o painel ou enviar uma planilha, a carteira é separada por consultor automaticamente</div>
+            </div>
+            <button class="btn btn-ghost btn-pill" onclick="publishConsultorArea(true)" style="font-size:11px">Atualizar agora</button>
+          </div>
+          <div class="acc-status" id="acc-pub-status">—</div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-head">
+            <div>
+              <div class="chart-title">📥 Pedidos aguardando aprovação</div>
+              <div class="chart-subtitle">Escolha qual consultor é a pessoa do pedido e clique em Aprovar. O painel dela abre sozinho.</div>
+            </div>
+            <span class="chart-pill pill-o" id="acc-ped-count">0</span>
+          </div>
+          <div class="acc-scroll" id="acc-pedidos"></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-head">
+            <div>
+              <div class="chart-title">➕ Cadastrar acesso direto</div>
+              <div class="chart-subtitle">Libera o e-mail sem esperar o pedido. Só e-mails @souenergy.com.br.</div>
+            </div>
+          </div>
+          <div class="acc-form">
+            <input class="form-input" type="email" id="acc-new-email" placeholder="nome@souenergy.com.br" autocomplete="off">
+            <select class="form-select" id="acc-new-cons"></select>
+            <button class="btn btn-primary" onclick="addAccessManual()">Liberar acesso</button>
+          </div>
+          <div class="acc-status" id="acc-new-msg" style="margin-top:8px"></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-head">
+            <div>
+              <div class="chart-title">👥 Acessos cadastrados</div>
+              <div class="chart-subtitle">Bloquear tira o acesso na hora. Para trocar o consultor de um e-mail, escolha outro na lista.</div>
+            </div>
+            <span class="chart-pill pill-g" id="acc-list-count">0</span>
+          </div>
+          <div class="acc-form" style="margin-bottom:10px">
+            <input class="form-input" type="search" id="acc-search" placeholder="Buscar por e-mail, consultor ou equipe" oninput="renderAcessosList()">
+          </div>
+          <div class="acc-scroll" id="acc-lista"></div>
         </div>
       </div>
     </div>
@@ -2019,7 +2155,7 @@ function getConsultantMeta(consName, idx) {
 function getTeamRoster(sup, idx) {
   const pm = planMonthForIdx(idx);
   if(pm) {
-    const members = pm.rows.filter(x => sameSup(x.sup, sup)).map(x => {
+    const members = pm.rows.filter(x => isConsMode() ? x.id === CONS_MODE.consId : sameSup(x.sup, sup)).map(x => {
       const rows = rowsOfPlanMember(x);
       return { name: rows[0] ? String(rows[0].cons).trim() : x.name, planName: x.name, id: x.id, rows, meta: metaFromPlanRow(x) };
     });
@@ -2365,7 +2501,10 @@ async function doPasswordReset() {
 }
 
 async function doLogout() {
-  if(!confirm('Sair do painel? Será preciso entrar de novo com o e-mail e a senha.')) return;
+  if(!confirm('Sair do painel? Será preciso entrar de novo.')) return;
+  await signOutAndReload();
+}
+async function signOutAndReload() {
   try { await FirebaseStore.auth.signOut(); } catch(e) {}
   location.reload(); // limpa da memória os dados que estavam na tela
 }
@@ -2402,6 +2541,581 @@ async function loadAppData() {
   updateAppDisplayState();
 }
 
+
+// ═════════════════════════════════════════════════════════════════════════════
+// PERFIS DE ACESSO
+// Supervisão (administrador): e-mail e senha do login compartilhado. Vê tudo.
+// Consultor: Google com e-mail @souenergy.com.br, liberado na página Acessos.
+//   Lê só farol_cons/<ID do consultor> (a própria carteira) e farol_equipe/<equipe>
+//   (totais dos colegas para o ranking). As regras do banco garantem isso.
+// ═════════════════════════════════════════════════════════════════════════════
+const ADMIN_EMAILS = ['analisesupervisaosou@gmail.com'];
+const CONS_DOMAIN = 'souenergy.com.br';
+const PUB_FORMAT = 1;
+let USER_ROLE = null;       // 'admin' | 'consultor'
+let CONS_MODE = null;       // { email, consId, cons, sup, teamKey }
+let TEAM_SUMMARY = null;    // resumo da equipe do consultor
+let ACC_LIST = [];          // acessos cadastrados (supervisão)
+let PEDIDOS = [];           // pedidos de acesso (supervisão)
+let PUB_STATUS = null;      // última atualização da área dos consultores
+let _accessUnsub = null;
+
+function isConsMode() { return !!CONS_MODE; }
+function emailKey(e) { return String(e || '').trim().toLowerCase(); }
+function teamKeyOf(sup) { return normTxt(sup).replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'SEM_EQUIPE'; }
+function isCompanyEmail(e) { return emailKey(e).endsWith('@' + CONS_DOMAIN); }
+function escHtml(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function safeDomId(t) { return String(t).replace(/[^a-z0-9]/gi, '_'); }
+
+function toggleAdminLogin() {
+  const box = document.getElementById('login-admin-box');
+  box.classList.toggle('open');
+  if(box.classList.contains('open')) setTimeout(() => document.getElementById('login-email').focus(), 30);
+}
+
+function googleErrorText(e) {
+  const code = (e && e.code) || '';
+  if(/admin-restricted-operation/.test(code)) return 'O Firebase está bloqueando contas novas. Peça à supervisão para marcar "Ativar criação (inscrição)" em Authentication → Configurações → Ações do usuário.';
+  if(/operation-not-allowed/.test(code)) return 'O login com Google ainda não foi ativado no Firebase (Authentication → Método de login → Google).';
+  if(/unauthorized-domain/.test(code)) return 'Este endereço do site não está autorizado no Firebase (Authentication → Configurações → Domínios autorizados).';
+  if(/network-request-failed/.test(code)) return 'Sem conexão com a internet. Verifique a rede e tente de novo.';
+  if(/account-exists-with-different-credential/.test(code)) return 'Este e-mail já está cadastrado com outro tipo de login.';
+  return 'Não foi possível entrar com o Google: ' + ((e && e.message) || code);
+}
+
+async function doGoogleLogin() {
+  if(!FirebaseStore.auth) { showLoginMsg('Não foi possível conectar ao Firebase. Verifique a internet e recarregue a página.'); return; }
+  const btn = document.getElementById('login-google-btn');
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ hd: CONS_DOMAIN, prompt: 'select_account' });
+  btn.disabled = true;
+  showLoginMsg('');
+  try {
+    await FirebaseStore.auth.signInWithPopup(provider);
+  } catch(e) {
+    const code = (e && e.code) || '';
+    if(/popup-blocked|operation-not-supported-in-this-environment/.test(code)) {
+      try { await FirebaseStore.auth.signInWithRedirect(provider); return; } catch(e2) { showLoginMsg(googleErrorText(e2)); }
+    } else if(!/popup-closed-by-user|cancelled-popup-request/.test(code)) {
+      showLoginMsg(googleErrorText(e));
+    }
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function routeSignedInUser(user) {
+  const email = emailKey(user.email);
+  if(ADMIN_EMAILS.includes(email)) {
+    USER_ROLE = 'admin';
+    document.body.classList.remove('cons-mode');
+    document.getElementById('logout-btn').style.display = '';
+    await loadAppData();
+    startAdminWatchers();
+    setTimeout(() => publishConsultorArea(false), 1500);
+    return;
+  }
+  const domainOk = isCompanyEmail(email);
+  if(!domainOk || !user.emailVerified) {
+    try { await FirebaseStore.auth.signOut(); } catch(e) {}
+    showLoginScreen();
+    showLoginMsg(domainOk
+      ? 'O Google ainda não confirmou este e-mail. Tente novamente em alguns minutos.'
+      : `O painel aceita só e-mails @${CONS_DOMAIN}. O e-mail ${email} não tem acesso.`);
+    return;
+  }
+  USER_ROLE = 'consultor';
+  document.body.classList.add('cons-mode');
+  watchMyAccess(email);
+}
+
+// ─── Tela de acesso do consultor ─────────────────────────────────────────────
+function hideAccessScreen() { const el = document.getElementById('access-screen'); if(el) el.classList.remove('show'); }
+function showAccessScreen(kind, ctx) {
+  ctx = ctx || {};
+  const scr = document.getElementById('access-screen');
+  const body = document.getElementById('access-body');
+  const msg = document.getElementById('access-msg');
+  msg.className = 'login-msg'; msg.textContent = '';
+  const loading = document.getElementById('loading-screen');
+  if(loading) loading.style.display = 'none';
+  const app = document.getElementById('app-container');
+  if(app) app.style.display = 'none';
+  const email = ctx.email || emailKey(FirebaseStore.auth && FirebaseStore.auth.currentUser && FirebaseStore.auth.currentUser.email);
+  const user = FirebaseStore.auth && FirebaseStore.auth.currentUser;
+  const nomeGoogle = (user && user.displayName) || '';
+  let html = '';
+  if(kind === 'loading') {
+    html = `<div class="access-center"><div class="loading-spinner" style="margin:6px auto 14px"></div><p class="muted">Verificando o seu acesso…</p></div>`;
+  } else if(kind === 'request') {
+    html = `<div class="access-icon">👋</div>
+      <p class="access-center"><b>Seu acesso ainda não foi liberado.</b></p>
+      <p class="access-center muted">Você entrou como<br><span class="access-email">${escHtml(email)}</span></p>
+      <div class="login-field">
+        <label for="access-nome">Seu nome completo</label>
+        <input class="form-input" type="text" id="access-nome" maxlength="80" value="${escHtml(nomeGoogle)}" autocomplete="name">
+      </div>
+      <button type="button" class="btn btn-primary login-submit" id="access-req-btn" onclick="requestAccess()">Pedir acesso</button>
+      <p class="muted access-center" style="margin-top:10px">A supervisão recebe o pedido e libera a sua área.</p>`;
+  } else if(kind === 'pending') {
+    const quando = ctx.pedido && ctx.pedido.criadoEm ? formatSavedAt(ctx.pedido.criadoEm) : '';
+    html = `<div class="access-icon">⏳</div>
+      <p class="access-center"><b>Pedido enviado${quando ? ' em ' + quando : ''}.</b></p>
+      <p class="access-center muted">Assim que a supervisão aprovar, o seu painel abre sozinho nesta tela. Pode deixá-la aberta.</p>
+      <p class="access-center muted"><span class="access-email">${escHtml(email)}</span></p>`;
+  } else if(kind === 'blocked') {
+    html = `<div class="access-icon">🔒</div>
+      <p class="access-center"><b>Seu acesso está bloqueado.</b></p>
+      <p class="access-center muted">Fale com a sua supervisão se achar que isso é um engano.</p>`;
+  } else if(kind === 'nocarteira') {
+    html = `<div class="access-icon">📭</div>
+      <p class="access-center"><b>Sua carteira ainda não está disponível no painel.</b></p>
+      <p class="access-center muted">A supervisão precisa abrir o painel para atualizar a área dos consultores. Avise a sua supervisão.</p>`;
+  } else {
+    html = `<div class="access-icon">⚠️</div>
+      <p class="access-center"><b>Não foi possível abrir o seu painel.</b></p>
+      <p class="access-center muted">${escHtml(ctx.error || 'Tente recarregar a página.')}</p>`;
+  }
+  body.innerHTML = html;
+  scr.classList.add('show');
+}
+
+function watchMyAccess(email) {
+  showAccessScreen('loading', { email });
+  if(_accessUnsub) { try { _accessUnsub(); } catch(e) {} }
+  _accessUnsub = FirebaseStore.db.doc(`farol_acessos/${email}`).onSnapshot(async snap => {
+    const acc = snap.exists ? snap.data() : null;
+    if(acc && acc.ativo) {
+      if(CONS_MODE) {
+        if(acc.consId !== CONS_MODE.consId || acc.teamKey !== CONS_MODE.teamKey) location.reload();
+        return;
+      }
+      await loadConsultantData(email, acc);
+      return;
+    }
+    if(CONS_MODE) { location.reload(); return; } // bloqueado ou removido durante o uso
+    if(acc && !acc.ativo) { showAccessScreen('blocked', { email }); return; }
+    let pedido = null;
+    try { const p = await FirebaseStore.db.doc(`farol_pedidos/${email}`).get(); pedido = p.exists ? p.data() : null; } catch(e) {}
+    showAccessScreen(pedido ? 'pending' : 'request', { email, pedido });
+  }, err => {
+    console.error('❌ Erro ao verificar acesso:', err);
+    showAccessScreen('error', { email, error: dbErrorHint(err) });
+  });
+}
+
+async function requestAccess() {
+  const inp = document.getElementById('access-nome');
+  const nome = (inp.value || '').trim().replace(/\s+/g, ' ');
+  const msg = document.getElementById('access-msg');
+  if(nome.length < 3) { msg.className = 'login-msg err'; msg.textContent = 'Digite o seu nome completo.'; inp.focus(); return; }
+  const email = emailKey(FirebaseStore.auth.currentUser.email);
+  const btn = document.getElementById('access-req-btn');
+  btn.disabled = true; btn.textContent = 'Enviando…';
+  try {
+    const pedido = { email, nome: nome.slice(0, 80), criadoEm: new Date().toISOString() };
+    await FirebaseStore.db.doc(`farol_pedidos/${email}`).set(pedido);
+    showAccessScreen('pending', { email, pedido });
+  } catch(e) {
+    msg.className = 'login-msg err'; msg.textContent = 'Não foi possível enviar o pedido. ' + dbErrorHint(e);
+    btn.disabled = false; btn.textContent = 'Pedir acesso';
+  }
+}
+
+// ─── Carrega a área do consultor ─────────────────────────────────────────────
+async function loadConsultantData(email, acc) {
+  showAccessScreen('loading', { email });
+  try {
+    const metaSnap = await FirebaseStore.db.doc(`farol_cons/${acc.consId}`).get();
+    if(!metaSnap.exists) { showAccessScreen('nocarteira', { email }); return; }
+    const meta = metaSnap.data();
+    const parts = await Promise.all(Array.from({ length: meta.parts || 0 }, (_, i) =>
+      FirebaseStore.db.doc(`farol_cons/${acc.consId}/partes/${meta.version}_${i}`).get()));
+    const rows = [];
+    parts.forEach(p => { if(p.exists) rows.push(...(p.data().rows || [])); });
+    let team = null;
+    try { const t = await FirebaseStore.db.doc(`farol_equipe/${acc.teamKey}`).get(); team = t.exists ? t.data() : null; } catch(e) { console.warn('Resumo da equipe indisponível:', e); }
+
+    CONS_MODE = { email, consId: acc.consId, cons: meta.name || acc.cons, sup: meta.sup || acc.sup, teamKey: acc.teamKey };
+    TEAM_SUMMARY = team;
+    RAW_DATA = rows;
+    FILE_META = { name: 'Sua carteira', months: meta.months || [], savedAt: meta.savedAt || null, rows: rows.length };
+    if(FILE_META.months.length) applyMonths(FILE_META.months);
+    CARTEIRA_REF_OVERRIDE = meta.refDate || null;
+    METAS_PLAN = (meta.metas && meta.metas.length)
+      ? { fileName: meta.metasFile || 'Planilha de metas', savedAt: meta.metasSavedAt || null, levels: meta.levels || [],
+          months: meta.metas.map(x => ({ y: x.y, m: x.m, rows: [x.row] })).sort((a, b) => (a.y * 100 + a.m) - (b.y * 100 + b.m)) }
+      : null;
+    STATE.supervisor = CONS_MODE.sup;
+    STATE.consultant = 'todos';
+    STATE.state = 'geral';
+    STATE.month = 'todos';
+    APP_DATA_LOADED = true;
+    hideAccessScreen();
+    document.getElementById('logout-btn').style.display = '';
+    updateAppDisplayState();
+    if(STATE.page === 'importar' || STATE.page === 'acessos') setPage('geral');
+  } catch(e) {
+    console.error('❌ Erro ao carregar a área do consultor:', e);
+    showAccessScreen('error', { email, error: dbErrorHint(e) });
+  }
+}
+
+// Meta de um colega (vinda do resumo da equipe) num mês da carteira
+function summaryMetaFor(c, idx) {
+  const mi = MONTH_YEAR_MAP[idx];
+  const hit = mi && (c.metas || []).find(x => x.y === mi.y && x.m === mi.m);
+  if(hit) return metaFromPlanRow(hit.row || hit);
+  const planMonths = (TEAM_SUMMARY && TEAM_SUMMARY.planMonths) || [];
+  if(mi && planMonths.some(x => x.y === mi.y && x.m === mi.m)) return { level: null, levelLabel: 'Sem meta', metaFat: 0, metaPed: 0, metaCli: 0, metaFator: 0, pts: 0, noMeta: true };
+  return { level: null, levelLabel: '—', metaFat: 0, metaPed: 0, metaCli: 0, metaFator: 0, pts: 0, noMeta: true };
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// PUBLICAÇÃO DA ÁREA DOS CONSULTORES (feita pela supervisão)
+// Separa a carteira em uma parte por consultor e um resumo por equipe.
+// Só regrava quando a carteira ou a planilha de metas mudou.
+// ═════════════════════════════════════════════════════════════════════════════
+let _publishing = false, _publishAgain = false;
+
+async function runPool(tasks, limit) {
+  let i = 0;
+  const workers = Array.from({ length: Math.min(limit || 6, tasks.length) }, async () => {
+    while(i < tasks.length) { const t = tasks[i++]; await t(); }
+  });
+  await Promise.all(workers);
+}
+
+function consultantOptions() {
+  const map = new Map();
+  (RAW_DATA || []).forEach(r => {
+    if(!r.consId || !r.cons) return;
+    if(!map.has(r.consId)) map.set(r.consId, { id: r.consId, name: String(r.cons).trim(), sup: String(r.sup || '').trim(), clients: 0 });
+    map.get(r.consId).clients++;
+  });
+  return Array.from(map.values()).sort((a, b) => teamNameOf(a.sup).localeCompare(teamNameOf(b.sup)) || a.name.localeCompare(b.name));
+}
+function consultantOptionsHtml(selectedId, placeholder) {
+  const opts = consultantOptions();
+  const groups = new Map();
+  opts.forEach(o => { const t = teamNameOf(o.sup); if(!groups.has(t)) groups.set(t, []); groups.get(t).push(o); });
+  let html = `<option value="">${escHtml(placeholder || 'Escolha o consultor…')}</option>`;
+  groups.forEach((list, t) => {
+    html += `<optgroup label="${escHtml(t)}">` + list.map(o =>
+      `<option value="${escHtml(o.id)}" ${o.id === selectedId ? 'selected' : ''}>${escHtml(o.name)}</option>`).join('') + '</optgroup>';
+  });
+  return html;
+}
+
+async function publishConsultorArea(force) {
+  if(USER_ROLE !== 'admin' || !FirebaseStore.db) return;
+  if(!RAW_DATA || !RAW_DATA.length || !FILE_META.savedAt) { PUB_STATUS = { erro: 'Envie a carteira para liberar a área dos consultores.' }; renderAcessosStatus(); return; }
+  if(_publishing) { _publishAgain = true; return; }
+  _publishing = true;
+  const db = FirebaseStore.db;
+  try {
+    const sig = `${PUB_FORMAT}|${FILE_META.savedAt}|${(METAS_PLAN && METAS_PLAN.savedAt) || ''}`;
+    const prevSnap = await db.doc('farol_data/publicacao').get();
+    const prev = prevSnap.exists ? prevSnap.data() : null;
+    if(!force && prev && prev.sig === sig) { PUB_STATUS = prev; renderAcessosStatus(); return; }
+    if(!RAW_DATA.some(r => r.consId)) {
+      PUB_STATUS = { erro: 'A carteira salva não tem o ID dos consultores (ID_CONSULTOR). Envie a carteira de novo para liberar a área dos consultores.' };
+      renderAcessosStatus(); return;
+    }
+    showSaveToast('🔄 Atualizando a área dos consultores…', '', 0);
+    PUB_STATUS = Object.assign({}, prev || {}, { andamento: true }); renderAcessosStatus();
+
+    const version = String(Date.now());
+    const n = MONTH_KEYS.length;
+    const ref = getCarteiraRefDate();
+    const refISO = `${ref.getFullYear()}-${String(ref.getMonth() + 1).padStart(2, '0')}-${String(ref.getDate()).padStart(2, '0')}T12:00:00`;
+    const months = FILE_META.months || [];
+
+    // Metas de cada consultor, mês a mês (pelo ID WINTHOR)
+    const planByCons = new Map();
+    if(METAS_PLAN && METAS_PLAN.months) METAS_PLAN.months.forEach(pm => pm.rows.forEach(x => {
+      if(!x.id) return;
+      if(!planByCons.has(x.id)) planByCons.set(x.id, []);
+      planByCons.get(x.id).push({ y: pm.y, m: pm.m, row: x });
+    }));
+    const planMonths = METAS_PLAN && METAS_PLAN.months ? METAS_PLAN.months.map(pm => ({ y: pm.y, m: pm.m })) : [];
+
+    // Carteira por consultor e resumo por equipe
+    const byCons = new Map();
+    const teams = new Map();
+    RAW_DATA.forEach(r => {
+      const sup = String(r.sup || '').trim();
+      const cons = String(r.cons || '').trim();
+      if(r.consId) {
+        if(!byCons.has(r.consId)) byCons.set(r.consId, { id: r.consId, name: cons, sup, rows: [] });
+        byCons.get(r.consId).rows.push(r);
+      }
+      if(!sup || !cons) return;
+      const tk = teamKeyOf(sup);
+      if(!teams.has(tk)) teams.set(tk, { key: tk, sup, members: new Map() });
+      const mk = r.consId || ('N:' + normTxt(cons));
+      const tm = teams.get(tk).members;
+      if(!tm.has(mk)) tm.set(mk, { consId: r.consId || '', name: cons, byState: {} });
+      const mb = tm.get(mk);
+      const st = r.state || 'Sem estado';
+      if(!mb.byState[st]) mb.byState[st] = { fat: Array(n).fill(0), ped: Array(n).fill(0), act: Array(n).fill(0), actAll: 0, clients: 0 };
+      const d = mb.byState[st];
+      d.clients++;
+      let any = false;
+      for(let i = 0; i < n; i++) {
+        const f = (r.fat && r.fat[i]) || 0, p = (r.ped && r.ped[i]) || 0;
+        d.fat[i] += f; d.ped[i] += p;
+        if(f > 0 || p > 0) { d.act[i]++; any = true; }
+      }
+      if(any) d.actAll++;
+    });
+
+    const tasks = [];
+    const consRecord = {};
+    byCons.forEach(c => {
+      const tk = teamKeyOf(c.sup);
+      const chunks = FirebaseStore.splitIntoChunks(c.rows);
+      consRecord[c.id] = { version, parts: chunks.length };
+      tasks.push(async () => {
+        for(let i = 0; i < chunks.length; i++) {
+          await db.doc(`farol_cons/${c.id}/partes/${version}_${i}`).set({ version, idx: i, rows: chunks[i] });
+        }
+        await db.doc(`farol_cons/${c.id}`).set({
+          version, parts: chunks.length, name: c.name, sup: c.sup, teamKey: tk, team: teamNameOf(c.sup),
+          months, savedAt: FILE_META.savedAt, refDate: refISO, rows: c.rows.length,
+          metas: planByCons.get(c.id) || [], levels: (METAS_PLAN && METAS_PLAN.levels) || [],
+          metasFile: (METAS_PLAN && METAS_PLAN.fileName) || '', metasSavedAt: (METAS_PLAN && METAS_PLAN.savedAt) || '',
+          publishedAt: new Date().toISOString()
+        });
+      });
+    });
+    teams.forEach(t => {
+      tasks.push(async () => {
+        await db.doc(`farol_equipe/${t.key}`).set({
+          version, sup: t.sup, team: teamNameOf(t.sup), months, planMonths,
+          members: Array.from(t.members.values()).map(mb => Object.assign({}, mb, { metas: mb.consId ? (planByCons.get(mb.consId) || []) : [] })),
+          publishedAt: new Date().toISOString()
+        });
+      });
+    });
+    await runPool(tasks, 6);
+
+    // Limpa versões antigas e consultores/equipes que saíram da carteira
+    const cleanup = [];
+    const prevCons = (prev && prev.cons) || {};
+    Object.keys(prevCons).forEach(id => {
+      const old = prevCons[id];
+      for(let i = 0; i < (old.parts || 0); i++) {
+        if(old.version === version) continue;
+        cleanup.push(() => db.doc(`farol_cons/${id}/partes/${old.version}_${i}`).delete().catch(() => {}));
+      }
+      if(!byCons.has(id)) cleanup.push(() => db.doc(`farol_cons/${id}`).delete().catch(() => {}));
+    });
+    ((prev && prev.teams) || []).forEach(tk => { if(!teams.has(tk)) cleanup.push(() => db.doc(`farol_equipe/${tk}`).delete().catch(() => {})); });
+    await runPool(cleanup, 6);
+
+    // Mantém os acessos com a equipe e o nome atuais da carteira
+    let synced = 0;
+    try {
+      const accSnap = await db.collection('farol_acessos').get();
+      const upd = [];
+      accSnap.forEach(doc => {
+        const a = doc.data(); const c = byCons.get(a.consId);
+        if(!c) return;
+        const tk = teamKeyOf(c.sup);
+        if(a.cons !== c.name || a.sup !== c.sup || a.teamKey !== tk) {
+          upd.push(() => db.doc(`farol_acessos/${doc.id}`).set(Object.assign({}, a, { cons: c.name, sup: c.sup, teamKey: tk, atualizadoEm: new Date().toISOString() })));
+          synced++;
+        }
+      });
+      await runPool(upd, 4);
+    } catch(e) { console.warn('Não foi possível sincronizar os acessos:', e); }
+
+    const record = { sig, version, at: new Date().toISOString(), consultores: byCons.size, equipes: teams.size, cons: consRecord, teams: Array.from(teams.keys()) };
+    await db.doc('farol_data/publicacao').set(record);
+    PUB_STATUS = record;
+    renderAcessosStatus();
+    showSaveToast(`✅ Área dos consultores atualizada: ${byCons.size} consultores em ${teams.size} equipes.${synced ? `<br>${synced} acesso(s) com equipe ou nome atualizado.` : ''}`, 'ok', 6000);
+  } catch(e) {
+    console.error('❌ Erro ao atualizar a área dos consultores:', e);
+    PUB_STATUS = { erro: 'Não foi possível atualizar a área dos consultores. ' + dbErrorHint(e) };
+    renderAcessosStatus();
+    showSaveToast('❌ Não foi possível atualizar a área dos consultores.<br>' + dbErrorHint(e), 'err', 0);
+  } finally {
+    _publishing = false;
+    if(_publishAgain) { _publishAgain = false; publishConsultorArea(true); }
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// PÁGINA ACESSOS (supervisão)
+// ═════════════════════════════════════════════════════════════════════════════
+let _adminWatchersOn = false;
+function startAdminWatchers() {
+  if(_adminWatchersOn || !FirebaseStore.db) return;
+  _adminWatchersOn = true;
+  FirebaseStore.db.collection('farol_pedidos').onSnapshot(snap => {
+    PEDIDOS = [];
+    snap.forEach(d => PEDIDOS.push(Object.assign({ email: d.id }, d.data())));
+    PEDIDOS.sort((a, b) => String(a.criadoEm || '').localeCompare(String(b.criadoEm || '')));
+    const badge = document.getElementById('nav-acessos-badge');
+    if(badge) { badge.textContent = PEDIDOS.length; badge.classList.toggle('show', PEDIDOS.length > 0); }
+    if(STATE.page === 'acessos') renderAcessosPedidos();
+  }, err => console.warn('Pedidos de acesso indisponíveis:', err));
+  FirebaseStore.db.collection('farol_acessos').onSnapshot(snap => {
+    ACC_LIST = [];
+    snap.forEach(d => ACC_LIST.push(Object.assign({ email: d.id }, d.data())));
+    ACC_LIST.sort((a, b) => teamNameOf(a.sup).localeCompare(teamNameOf(b.sup)) || String(a.cons).localeCompare(String(b.cons)));
+    if(STATE.page === 'acessos') renderAcessosList();
+  }, err => console.warn('Lista de acessos indisponível:', err));
+}
+
+function renderAcessosPage() {
+  renderAcessosStatus();
+  renderAcessosPedidos();
+  const sel = document.getElementById('acc-new-cons');
+  if(sel) sel.innerHTML = consultantOptionsHtml('', 'Escolha o consultor…');
+  renderAcessosList();
+}
+
+function renderAcessosStatus() {
+  const el = document.getElementById('acc-pub-status');
+  if(!el) return;
+  const p = PUB_STATUS;
+  if(!p) { el.className = 'acc-status'; el.innerHTML = 'Verificando…'; return; }
+  if(p.erro) { el.className = 'acc-status err'; el.innerHTML = '⚠️ ' + escHtml(p.erro); return; }
+  el.className = 'acc-status';
+  el.innerHTML = (p.andamento ? '🔄 <b>Atualizando agora…</b><br>' : '') +
+    (p.at ? `Atualizada em <b>${formatSavedAt(p.at)}</b> · <b>${fNum(p.consultores || 0)}</b> consultores em <b>${fNum(p.equipes || 0)}</b> equipes.` : 'Ainda não foi publicada.') +
+    `<br>Carteira em uso: <b>${escHtml(FILE_META.name || '—')}</b>${FILE_META.savedAt ? ' · enviada em ' + formatSavedAt(FILE_META.savedAt) : ''}.`;
+}
+
+function guessConsultant(nome) {
+  const toks = normTxt(nome).split(' ').filter(t => t.length > 2);
+  if(!toks.length) return '';
+  let best = '', bestScore = 0;
+  consultantOptions().forEach(o => {
+    const ct = normTxt(o.name).split(' ');
+    let sc = 0;
+    toks.forEach((t, i) => { if(ct.includes(t)) sc += (i === 0 && ct[0] === t) ? 3 : 1; });
+    if(sc > bestScore) { bestScore = sc; best = o.id; }
+  });
+  return bestScore >= 2 ? best : '';
+}
+
+function renderAcessosPedidos() {
+  const box = document.getElementById('acc-pedidos');
+  const cnt = document.getElementById('acc-ped-count');
+  if(!box) return;
+  if(cnt) cnt.textContent = `${PEDIDOS.length} ${PEDIDOS.length === 1 ? 'pedido' : 'pedidos'}`;
+  if(!PEDIDOS.length) { box.innerHTML = '<div class="acc-empty">Nenhum pedido aguardando.</div>'; return; }
+  box.innerHTML = `<table class="acc-table"><thead><tr><th>Nome digitado</th><th>E-mail</th><th>Pedido em</th><th>Qual consultor é?</th><th></th></tr></thead><tbody>` +
+    PEDIDOS.map(p => {
+      const sid = safeDomId(p.email);
+      const ja = ACC_LIST.find(a => a.email === p.email);
+      return `<tr>
+        <td><b>${escHtml(p.nome)}</b></td>
+        <td>${escHtml(p.email)}</td>
+        <td style="white-space:nowrap">${p.criadoEm ? formatSavedAt(p.criadoEm) : '—'}</td>
+        <td><select class="form-select" id="ped-sel-${sid}">${consultantOptionsHtml(ja ? ja.consId : guessConsultant(p.nome))}</select></td>
+        <td><div class="acc-actions">
+          <button class="btn btn-primary" onclick="approvePedido('${escHtml(p.email)}')">Aprovar</button>
+          <button class="btn btn-ghost" onclick="rejectPedido('${escHtml(p.email)}')">Recusar</button>
+        </div></td>
+      </tr>`;
+    }).join('') + '</tbody></table>';
+}
+
+function renderAcessosList() {
+  const box = document.getElementById('acc-lista');
+  const cnt = document.getElementById('acc-list-count');
+  if(!box) return;
+  const q = normTxt((document.getElementById('acc-search') || {}).value || '');
+  const list = ACC_LIST.filter(a => !q || normTxt(`${a.email} ${a.cons} ${teamNameOf(a.sup)}`).includes(q));
+  if(cnt) cnt.textContent = `${ACC_LIST.length} ${ACC_LIST.length === 1 ? 'acesso' : 'acessos'}`;
+  if(!list.length) { box.innerHTML = `<div class="acc-empty">${ACC_LIST.length ? 'Nenhum acesso encontrado na busca.' : 'Nenhum acesso cadastrado ainda.'}</div>`; return; }
+  box.innerHTML = `<table class="acc-table"><thead><tr><th>E-mail</th><th>Consultor</th><th>Equipe</th><th>Situação</th><th></th></tr></thead><tbody>` +
+    list.map(a => `<tr>
+      <td>${escHtml(a.email)}</td>
+      <td><select class="form-select" onchange="changeAccessCons('${escHtml(a.email)}', this.value)">${consultantOptionsHtml(a.consId)}</select></td>
+      <td>${escHtml(teamNameOf(a.sup))}</td>
+      <td>${a.ativo ? '<span class="acc-pill on">Liberado</span>' : '<span class="acc-pill off">Bloqueado</span>'}</td>
+      <td><div class="acc-actions">
+        <button class="btn btn-ghost" onclick="toggleAccess('${escHtml(a.email)}')">${a.ativo ? 'Bloquear' : 'Liberar'}</button>
+        <button class="btn btn-ghost" onclick="removeAccess('${escHtml(a.email)}')">Remover</button>
+      </div></td>
+    </tr>`).join('') + '</tbody></table>';
+}
+
+function consById(id) { return consultantOptions().find(o => o.id === id) || null; }
+
+async function saveAccess(email, c, ativo) {
+  const prev = ACC_LIST.find(a => a.email === email);
+  const now = new Date().toISOString();
+  await FirebaseStore.db.doc(`farol_acessos/${email}`).set({
+    email, consId: c.id, cons: c.name, sup: c.sup, teamKey: teamKeyOf(c.sup), ativo: !!ativo,
+    criadoEm: (prev && prev.criadoEm) || now, atualizadoEm: now
+  });
+}
+function confirmDuplicate(email, consId) {
+  const other = ACC_LIST.find(a => a.consId === consId && a.email !== email);
+  return !other || confirm(`${other.cons} já tem acesso pelo e-mail ${other.email}. Liberar também para ${email}?`);
+}
+
+async function approvePedido(email) {
+  const sel = document.getElementById('ped-sel-' + safeDomId(email));
+  const c = sel && consById(sel.value);
+  if(!c) { showSaveToast('Escolha qual consultor é a pessoa do pedido antes de aprovar.', 'err', 5000); return; }
+  if(!confirmDuplicate(email, c.id)) return;
+  try {
+    await saveAccess(email, c, true);
+    await FirebaseStore.db.doc(`farol_pedidos/${email}`).delete();
+    showSaveToast(`✅ Acesso liberado: <b>${escHtml(c.name)}</b> (${escHtml(email)}).`, 'ok', 5000);
+  } catch(e) { showSaveToast('❌ Não foi possível aprovar.<br>' + dbErrorHint(e), 'err', 0); }
+}
+async function rejectPedido(email) {
+  if(!confirm(`Recusar o pedido de ${email}? A pessoa poderá pedir de novo.`)) return;
+  try { await FirebaseStore.db.doc(`farol_pedidos/${email}`).delete(); showSaveToast('Pedido recusado.', 'ok', 3000); }
+  catch(e) { showSaveToast('❌ Não foi possível recusar.<br>' + dbErrorHint(e), 'err', 0); }
+}
+async function addAccessManual() {
+  const inp = document.getElementById('acc-new-email');
+  const msg = document.getElementById('acc-new-msg');
+  const email = emailKey(inp.value);
+  const c = consById(document.getElementById('acc-new-cons').value);
+  msg.className = 'acc-status err';
+  if(!isCompanyEmail(email) || !/^[^@\s]+@[^@\s]+$/.test(email)) { msg.textContent = `Use um e-mail @${CONS_DOMAIN}.`; inp.focus(); return; }
+  if(!c) { msg.textContent = 'Escolha o consultor.'; return; }
+  if(!confirmDuplicate(email, c.id)) return;
+  try {
+    await saveAccess(email, c, true);
+    try { await FirebaseStore.db.doc(`farol_pedidos/${email}`).delete(); } catch(e) {}
+    msg.className = 'acc-status'; msg.innerHTML = `✅ Acesso liberado para <b>${escHtml(email)}</b> (${escHtml(c.name)}).`;
+    inp.value = '';
+  } catch(e) { msg.textContent = 'Não foi possível salvar. ' + dbErrorHint(e); }
+}
+async function toggleAccess(email) {
+  const a = ACC_LIST.find(x => x.email === email);
+  if(!a) return;
+  if(a.ativo && !confirm(`Bloquear o acesso de ${a.cons} (${email})? O painel dele fecha na hora.`)) return;
+  try { await FirebaseStore.db.doc(`farol_acessos/${email}`).set(Object.assign({}, a, { ativo: !a.ativo, atualizadoEm: new Date().toISOString() })); }
+  catch(e) { showSaveToast('❌ Não foi possível alterar.<br>' + dbErrorHint(e), 'err', 0); }
+}
+async function removeAccess(email) {
+  const a = ACC_LIST.find(x => x.email === email);
+  if(!confirm(`Remover o acesso de ${a ? a.cons : ''} (${email})? Se a pessoa entrar de novo, vai precisar pedir acesso.`)) return;
+  try { await FirebaseStore.db.doc(`farol_acessos/${email}`).delete(); }
+  catch(e) { showSaveToast('❌ Não foi possível remover.<br>' + dbErrorHint(e), 'err', 0); }
+}
+async function changeAccessCons(email, consId) {
+  const a = ACC_LIST.find(x => x.email === email);
+  const c = consById(consId);
+  if(!a || !c) { renderAcessosList(); return; }
+  if(!confirm(`Ligar ${email} ao consultor ${c.name}?`) || !confirmDuplicate(email, c.id)) { renderAcessosList(); return; }
+  try { await saveAccess(email, c, a.ativo); showSaveToast(`✅ ${escHtml(email)} agora é ${escHtml(c.name)}.`, 'ok', 4000); }
+  catch(e) { showSaveToast('❌ Não foi possível alterar.<br>' + dbErrorHint(e), 'err', 0); renderAcessosList(); }
+}
+
 // ─── INITIALIZATION ───────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
   setupDragAndDrop();
@@ -2416,10 +3130,10 @@ window.addEventListener('DOMContentLoaded', async () => {
   FirebaseStore.auth.onAuthStateChanged(user => {
     if(user) {
       document.getElementById('login-screen').classList.remove('show');
-      document.getElementById('logout-btn').style.display = '';
-      loadAppData();
+      routeSignedInUser(user);
     } else {
-      if(APP_DATA_LOADED) { location.reload(); return; } // sessão encerrada: limpa a tela
+      if(APP_DATA_LOADED || CONS_MODE) { location.reload(); return; } // sessão encerrada: limpa a tela
+      hideAccessScreen();
       showLoginScreen();
     }
   });
@@ -2431,6 +3145,12 @@ function updateAppDisplayState() {
   const btnSwitch = document.getElementById('btn-switch-file');
   const srcBadge = document.getElementById('hdr-source-badge');
 
+  if(isConsMode() && (!RAW_DATA || RAW_DATA.length === 0)) {
+    appContainer.style.display = 'none';
+    emptyScreen.style.display = 'none';
+    showAccessScreen('nocarteira');
+    return;
+  }
   if(!RAW_DATA || RAW_DATA.length === 0) {
     emptyScreen.style.display = 'flex';
     appContainer.style.display = 'none';
@@ -2550,7 +3270,7 @@ function updateSupervisorUIHeaders() {
   if(hdrSup) hdrSup.textContent = supLabel;
   
   const titleSup = document.getElementById('view-sup-title');
-  if(titleSup) titleSup.textContent = isAll ? 'Consolidado Geral (Todas as Equipes)' : `Equipe ${teamNameOf(STATE.supervisor)}`;
+  if(titleSup) titleSup.textContent = isConsMode() ? CONS_MODE.cons : (isAll ? 'Consolidado Geral (Todas as Equipes)' : `Equipe ${teamNameOf(STATE.supervisor)}`);
 }
 
 function populateStatesDropdown() {
@@ -2687,7 +3407,7 @@ function changeSupervisor(sup) {
 
 function setStateFilter(st, el) {
   STATE.state = st;
-  STATE.consultant = 'todos';
+  STATE.consultant = 'todos'; // no modo consultor a carteira já é só dele
   document.getElementById('hdr-state').textContent = st === 'geral' ? 'Consolidado' : st;
   document.getElementById('hdr-cons').textContent = 'Todos';
 
@@ -2751,6 +3471,7 @@ function closeMobileSidebar() {
 }
 
 function setPage(pageId, el) {
+  if(isConsMode() && (pageId === 'importar' || pageId === 'acessos')) pageId = 'geral';
   STATE.page = pageId;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -2772,7 +3493,9 @@ function setPage(pageId, el) {
 }
 
 function renderCurrentPage() {
+  if(STATE.page === 'acessos' && !isConsMode()) { renderAcessosPage(); return; }
   if(!RAW_DATA || !RAW_DATA.length) return;
+  if(isConsMode()) { const hc = document.getElementById('hdr-cons'); if(hc) hc.textContent = CONS_MODE.cons; }
   updateFilterSummaries();
   if(STATE.page === 'geral') renderVisaoGeral();
   else if(STATE.page === 'estados') renderEstadosFoco();
@@ -2785,7 +3508,7 @@ function renderCurrentPage() {
 function updateFilterSummaries() {
   const ids = ['fs-geral', 'fs-estados', 'fs-ranking', 'fs-metas', 'fs-clientes', 'fs-mensal'];
   const stLbl = STATE.state === 'geral' ? 'Consolidado (Todos os Estados)' : STATE.state;
-  const consLbl = STATE.consultant === 'todos' ? 'Toda a Equipe' : STATE.consultant;
+  const consLbl = isConsMode() ? CONS_MODE.cons : (STATE.consultant === 'todos' ? 'Toda a Equipe' : STATE.consultant);
   const isMonthFiltered = STATE.month && STATE.month !== 'todos';
   const mIdx = isMonthFiltered ? parseInt(STATE.month, 10) : null;
   const monthLbl = isMonthFiltered ? `${MONTH_NAMES[mIdx]} (Mensal)` : `Todo o período (${periodLabel()})`;
@@ -2953,7 +3676,7 @@ function renderVisaoGeral() {
   const oppInactives = Math.max(0, oppState.clients - oppState.active);
 
   document.getElementById('exec-strip-geral').innerHTML = `
-    <div class="exec-card">
+    <div class="exec-card${isConsMode()?' admin-only':''}">
       <div class="exec-icon gold">👑</div>
       <div>
         <div class="exec-title">Líder de Vendas ${isMonthFiltered ? '(' + mName + ')' : ''}</div>
@@ -3521,7 +4244,26 @@ function renderRanking() {
 
   const consMap = new Map();
 
-  rows.forEach(r => {
+  if(isConsMode() && TEAM_SUMMARY && Array.isArray(TEAM_SUMMARY.members)) {
+    // Área do consultor: os colegas vêm do resumo da equipe (só totais, sem clientes)
+    TEAM_SUMMARY.members.forEach(mb => {
+      const o = { name: mb.name, fat: 0, ped: 0, clients: 0, active: 0, states: new Set(), curFat: 0,
+                  consId: mb.consId || '', metas: mb.metas || [], isMe: !!mb.consId && mb.consId === CONS_MODE.consId };
+      Object.keys(mb.byState || {}).forEach(st => {
+        if(STATE.state && STATE.state !== 'geral' && st !== STATE.state) return;
+        const d = mb.byState[st];
+        o.clients += d.clients || 0;
+        o.states.add(st);
+        if(isMonthFiltered) {
+          o.fat += (d.fat && d.fat[m]) || 0; o.ped += (d.ped && d.ped[m]) || 0; o.active += (d.act && d.act[m]) || 0;
+        } else {
+          o.fat += (d.fat || []).reduce((a, b) => a + b, 0); o.ped += (d.ped || []).reduce((a, b) => a + b, 0); o.active += d.actAll || 0;
+        }
+        o.curFat += (d.fat && d.fat[CURRENT_METAS_MONTH_IDX]) || 0;
+      });
+      if(o.clients > 0) consMap.set(mb.consId || mb.name, o);
+    });
+  } else rows.forEach(r => {
     let f = 0, p = 0;
     if(isMonthFiltered) {
       f = (r.fat && r.fat[m]) || 0;
@@ -3555,9 +4297,9 @@ function renderRanking() {
     const w = maxFat > 0 ? (c.fat / maxFat * 100) : 0;
     const share = totFat > 0 ? (c.fat / totFat * 100) : 0;
     return `
-      <div class="rank-row">
+      <div class="rank-row${c.isMe ? ' is-me' : ''}">
         <div class="rank-medal">${medal(i)}</div>
-        <div class="rank-name" title="${c.name}">${c.name}</div>
+        <div class="rank-name" title="${c.name}">${c.name}${c.isMe ? '<span class="me-tag">você</span>' : ''}</div>
         <div class="rank-bar-wrap">
           <div class="rank-track"><div class="rank-fill" style="width:${w.toFixed(1)}%;background:${pctColor(w)}"></div></div>
           <div class="rank-pct">${fPct(share)}</div>
@@ -3574,9 +4316,9 @@ function renderRanking() {
     const w = maxPed > 0 ? (c.ped / maxPed * 100) : 0;
     const share = totPed > 0 ? (c.ped / totPed * 100) : 0;
     return `
-      <div class="rank-row">
+      <div class="rank-row${c.isMe ? ' is-me' : ''}">
         <div class="rank-medal">${medal(i)}</div>
-        <div class="rank-name" title="${c.name}">${c.name}</div>
+        <div class="rank-name" title="${c.name}">${c.name}${c.isMe ? '<span class="me-tag">você</span>' : ''}</div>
         <div class="rank-bar-wrap">
           <div class="rank-track"><div class="rank-fill" style="width:${w.toFixed(1)}%;background:var(--blue)"></div></div>
           <div class="rank-pct">${fPct(share)}</div>
@@ -3595,9 +4337,9 @@ function renderRanking() {
   const posHtml = byPos.map((c, i) => {
     const tx = c.clients > 0 ? (c.active / c.clients * 100) : 0;
     return `
-      <div class="rank-row">
+      <div class="rank-row${c.isMe ? ' is-me' : ''}">
         <div class="rank-medal">${medal(i)}</div>
-        <div class="rank-name" title="${c.name}">${c.name}</div>
+        <div class="rank-name" title="${c.name}">${c.name}${c.isMe ? '<span class="me-tag">você</span>' : ''}</div>
         <div class="rank-bar-wrap">
           <div class="rank-track"><div class="rank-fill" style="width:${tx.toFixed(1)}%;background:${pctColor(tx)}"></div></div>
           <div class="rank-pct">${c.active}/${c.clients} ativ.</div>
@@ -3631,7 +4373,7 @@ function renderRanking() {
     const tkm = c.ped > 0 ? c.fat / c.ped : 0;
     const statesArr = Array.from(c.states).slice(0, 4);
     const metaIdx = isMonthFiltered ? m : CURRENT_METAS_MONTH_IDX;
-    const meta = getConsultantMeta(c.name, metaIdx);
+    const meta = isConsMode() && c.metas ? summaryMetaFor(c, metaIdx) : getConsultantMeta(c.name, metaIdx);
     const lvlInfo = lvlInfoOf(meta);
     const targetMeta = meta.metaFat || 0;
     const realForMeta = isMonthFiltered ? c.fat : c.curFat;
@@ -3640,12 +4382,12 @@ function renderRanking() {
       ? `Sem meta em ${MONTH_NAMES[metaIdx]} (não estava na equipe)`
       : `Meta ${MONTH_NAMES[metaIdx]}: <b>${fK(targetMeta)}</b> (${pctMeta.toFixed(0)}%${isMonthFiltered ? '' : ' no mês'})`;
     return `
-      <div class="ccons">
+      <div class="ccons${c.isMe ? ' is-me' : ''}">
         <div style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
           <span class="lvl lvl-${lvlInfo.grp}">${lvlInfo.label}</span>
           <span style="font-size:10px;font-weight:700;color:var(--muted)">${c.clients} integradores</span>
         </div>
-        <div class="ccons-name">${c.name}</div>
+        <div class="ccons-name">${c.name}${c.isMe ? '<span class="me-tag">você</span>' : ''}</div>
         <div class="ccons-fat">${fK(c.fat)}</div>
         <div style="font-size:10.5px;color:var(--muted);margin-bottom:8px">${metaLine}</div>
         <div class="ccons-states-tag">
@@ -3666,7 +4408,7 @@ function renderRanking() {
             <span class="ccons-meta-val" style="color:var(--gold)">${fK(tkm)}</span>
           </div>
         </div>
-        <button class="btn btn-ghost btn-pill" style="width:100%;margin-top:10px;font-size:11px;font-weight:700" onclick="openConsultantRaioX('${c.name}')">🔍 Raio-X 1-on-1</button>
+        ${(!isConsMode() || c.isMe) ? `<button class="btn btn-ghost btn-pill" style="width:100%;margin-top:10px;font-size:11px;font-weight:700" onclick="openConsultantRaioX('${c.name}')">🔍 Raio-X 1-on-1</button>` : ''}
       </div>
     `;
   }).join('');
@@ -3711,7 +4453,12 @@ function parsePurchaseDate(dateStr) {
 // (aproxima a data em que ela foi exportada), sem passar de hoje. Assim o status
 // não muda só porque o tempo passou sem uma planilha nova.
 let _refDateSrc = null, _refDate = null;
+let CARTEIRA_REF_OVERRIDE = null; // área do consultor: usa a data da carteira inteira, não só a dele
 function getCarteiraRefDate() {
+  if(CARTEIRA_REF_OVERRIDE) {
+    const d = new Date(CARTEIRA_REF_OVERRIDE);
+    if(!isNaN(d.getTime())) { d.setHours(0, 0, 0, 0); return d; }
+  }
   if(_refDateSrc === RAW_DATA && _refDate) return _refDate;
   const today = new Date(); today.setHours(0, 0, 0, 0);
   let max = null;
@@ -5385,10 +6132,12 @@ function renderMetasPage() {
     tbody.innerHTML = '<tr><td colspan="9"><div class="metas-empty">Envie a planilha de metas para ver os consultores de cada equipe mês a mês.</div></td></tr>';
     return;
   }
-  const { pm, sups, sup, missing } = sel;
+  const { pm, sups, sup } = sel;
+  let { missing } = sel;
 
   const savedTxt = METAS_PLAN.savedAt ? ` · enviada em ${formatSavedAt(METAS_PLAN.savedAt)}` : '';
   const first = METAS_PLAN.months[0], last = METAS_PLAN.months[METAS_PLAN.months.length - 1];
+  if(isConsMode()) missing = null; // o consultor pode ter mudado de equipe: não é um aviso para ele
   statusEl.className = 'metas-plan-status' + (missing ? ' warn' : '');
   statusEl.innerHTML = `📄 <b>${METAS_PLAN.fileName || 'Planilha de metas'}</b> · ${METAS_PLAN.months.length} meses (${planMonthLabel(first)} a ${planMonthLabel(last)})${savedTxt}` +
     (missing ? `<br>A equipe <b>${teamNameOf(missing)}</b> não aparece na planilha em ${planMonthLabel(pm)}. Mostrando a equipe ${teamNameOf(sup)}.` : '');
@@ -5399,7 +6148,7 @@ function renderMetasPage() {
 
   const cIdx = carteiraIdxForPlanMonth(pm);
   const hasReal = cIdx >= 0;
-  const members = pm.rows.filter(x => sameSup(x.sup, sup)).map(x => {
+  const members = pm.rows.filter(x => isConsMode() ? x.id === CONS_MODE.consId : sameSup(x.sup, sup)).map(x => {
     const rows = rowsOfPlanMember(x);
     let fat = 0, ped = 0, cli = 0;
     if(hasReal) rows.forEach(r => {
@@ -5418,7 +6167,7 @@ function renderMetasPage() {
   const teamLbl = teamNameOf(sup);
   const monthLbl = planMonthLabel(pm);
   if(countBadge) countBadge.textContent = `${members.length} Consultores`;
-  document.getElementById('metas-table-title').textContent = `Equipe ${teamLbl} · ${monthLbl}`;
+  document.getElementById('metas-table-title').textContent = isConsMode() ? `Suas metas · ${monthLbl}` : `Equipe ${teamLbl} · ${monthLbl}`;
   document.getElementById('metas-table-sub').textContent = hasReal
     ? 'Só aparecem os consultores que estavam na equipe neste mês.'
     : `Só aparecem os consultores que estavam na equipe neste mês. A carteira atual não tem dados de ${monthLbl}, então não há realizado.`;
@@ -5595,6 +6344,7 @@ function handleMetasFile(input) {
       await FirebaseStore.saveMetasPlan(plan);
       const total = plan.months.reduce((a, x) => a + x.rows.length, 0);
       showSaveToast(`✅ Planilha de metas salva.<br>${plan.months.length} meses (${planMonthLabel(plan.months[0])} a ${planMonthLabel(plan.months[plan.months.length - 1])}) · ${total} metas de consultores.`, 'ok', 7000);
+      setTimeout(() => publishConsultorArea(true), 2500);
     } catch(err) {
       showSaveToast('❌ As metas aparecem nesta tela, mas <b>não foram salvas</b> no banco.<br>' + dbErrorHint(err), 'err', 0);
     }
@@ -6096,6 +6846,7 @@ async function processImportedRows(rawRows, fileName, headerRow) {
     FILE_META.savedAt = new Date().toISOString();
     updateAppDisplayState();
     showSaveToast(`✅ <b>${fileName}</b> salva no banco de dados.<br>${parsed.length.toLocaleString('pt-BR')} linhas · Meses: ${periodLabel()}.<br>Ela passa a abrir automaticamente no painel.`, 'ok', 7000);
+    setTimeout(() => publishConsultorArea(true), 2500);
   } else {
     showSaveToast(`❌ A planilha foi carregada nesta tela, mas <b>não foi salva</b> no banco de dados.<br>${res.error}`, 'err', 0);
   }
