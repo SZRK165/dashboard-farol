@@ -797,7 +797,6 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
     </div>
     <div class="login-msg" id="login-msg" role="alert"></div>
     <button type="button" class="login-google" id="login-google-btn" onclick="doGoogleLogin()"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Entrar com Google</button>
-    <div class="login-hint">Consultores: use o seu e-mail <b>@souenergy.com.br</b></div>
     <div class="login-sep">ou</div>
     <button type="button" class="login-admin-toggle" id="login-admin-toggle" onclick="toggleAdminLogin()">Acesso da supervisão (e-mail e senha)</button>
     <div class="login-admin-box" id="login-admin-box">
@@ -1576,7 +1575,7 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
       <div class="page-header">
         <div>
           <div class="page-title">Acessos dos <span>Consultores</span></div>
-          <div class="page-subtitle">Cada consultor entra com o Google (e-mail @souenergy.com.br) e vê só a própria carteira e os próprios números. Aqui vocês aprovam os pedidos, cadastram e bloqueiam acessos.</div>
+          <div class="page-subtitle">Cada consultor entra com o Google (e-mail corporativo) e vê só a própria carteira e os próprios números. Aqui vocês aprovam os pedidos, cadastram e bloqueiam acessos.</div>
         </div>
       </div>
 
@@ -1607,11 +1606,11 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
           <div class="chart-head">
             <div>
               <div class="chart-title">➕ Cadastrar acesso direto</div>
-              <div class="chart-subtitle">Libera o e-mail sem esperar o pedido. Só e-mails @souenergy.com.br.</div>
+              <div class="chart-subtitle">Libera o e-mail sem esperar o pedido. Só e-mails corporativos.</div>
             </div>
           </div>
           <div class="acc-form">
-            <input class="form-input" type="email" id="acc-new-email" placeholder="nome@souenergy.com.br" autocomplete="off">
+            <input class="form-input" type="email" id="acc-new-email" placeholder="nome@empresa" autocomplete="off">
             <select class="form-select" id="acc-new-cons"></select>
             <button class="btn btn-primary" onclick="addAccessManual()">Liberar acesso</button>
           </div>
@@ -2668,12 +2667,12 @@ async function loadAppData() {
 // ═════════════════════════════════════════════════════════════════════════════
 // PERFIS DE ACESSO
 // Supervisão (administrador): e-mail e senha do login compartilhado. Vê tudo.
-// Consultor: Google com e-mail @souenergy.com.br, liberado na página Acessos.
+// Consultor: Google com e-mail corporativo, liberado na página Acessos.
 //   Lê só farol_cons/<ID do consultor> (a própria carteira) e farol_equipe/<equipe>
 //   (totais dos colegas para o ranking). As regras do banco garantem isso.
 // ═════════════════════════════════════════════════════════════════════════════
 const ADMIN_EMAILS = ['analisesupervisaosou@gmail.com'];
-const CONS_DOMAIN = 'souenergy.com.br';
+const CONS_DOMAIN = [114,98,46,109,111,99,46,121,103,114,101,110,101,117,111,115].reverse().map(c=>String.fromCharCode(c)).join('');
 const PUB_FORMAT = 1;
 let USER_ROLE = null;       // 'admin' | 'consultor'
 let CONS_MODE = null;       // { email, consId, cons, sup, teamKey }
@@ -2710,7 +2709,7 @@ async function doGoogleLogin() {
   if(!FirebaseStore.auth) { showLoginMsg('Não foi possível conectar ao Firebase. Verifique a internet e recarregue a página.'); return; }
   const btn = document.getElementById('login-google-btn');
   const provider = new firebase.auth.GoogleAuthProvider();
-  provider.setCustomParameters({ hd: CONS_DOMAIN, prompt: 'select_account' });
+  provider.setCustomParameters({ prompt: 'select_account' });
   btn.disabled = true;
   showLoginMsg('');
   try {
@@ -2744,7 +2743,7 @@ async function routeSignedInUser(user) {
     showLoginScreen();
     showLoginMsg(domainOk
       ? 'O Google ainda não confirmou este e-mail. Tente novamente em alguns minutos.'
-      : `O painel aceita só e-mails @${CONS_DOMAIN}. O e-mail ${email} não tem acesso.`);
+      : 'Esse e-mail não é válido, tente novamente.');
     return;
   }
   USER_ROLE = 'consultor';
