@@ -441,6 +441,52 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
 .notif-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px}
 .notif-desc{font-size:11px;color:var(--muted);line-height:1.4}
 .notif-tag{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:10px;margin-top:4px;text-transform:uppercase}
+/* Notificações clicáveis */
+.notif-dot.count{width:auto;min-width:18px;height:18px;padding:0 5px;top:-5px;right:-6px;border-radius:9px;font-size:10px;font-weight:800;color:#fff;line-height:18px;text-align:center;box-shadow:0 0 0 2px var(--bg)}
+.notif-panel{width:420px;max-width:calc(100vw - 24px)}
+.notif-header{gap:10px;text-transform:none;letter-spacing:0}
+.notif-head-title{font-size:13px;font-weight:800}
+.notif-head-sub{font-size:10.5px;color:var(--muted);font-weight:600;margin-top:2px}
+.notif-markall{background:none;border:1px solid var(--border);color:var(--text);font-size:10.5px;font-weight:700;border-radius:8px;padding:4px 8px;cursor:pointer;white-space:nowrap}
+.notif-markall:hover{border-color:var(--orange);color:var(--orange)}
+.notif-markall:disabled{opacity:.45;cursor:default;border-color:var(--border);color:var(--muted)}
+.notif-x{cursor:pointer;color:var(--muted);font-size:14px;padding:2px 4px}
+.notif-tabs{display:flex;gap:6px;padding:10px 12px 0;flex-wrap:wrap}
+.notif-tab{background:var(--bg3);border:1px solid var(--border);color:var(--muted);font-size:10.5px;font-weight:700;border-radius:14px;padding:4px 10px;cursor:pointer}
+.notif-tab.active{color:var(--text);border-color:var(--orange);background:rgba(255,77,0,.1)}
+.notif-teamsel{padding:8px 12px 0}
+.notif-teamsel select{width:100%;font-size:11.5px;padding:6px 8px}
+.notif-list{max-height:min(460px,60vh);margin-top:8px;border-top:1px solid var(--border)}
+.notif-item{cursor:pointer;position:relative;transition:background .15s;border-left:3px solid transparent}
+.notif-item:hover{background:var(--bg3)}
+.notif-item.sev-crit{border-left-color:var(--red)}.notif-item.sev-warn{border-left-color:var(--gold)}
+.notif-item.sev-ok{border-left-color:var(--green)}.notif-item.sev-info{border-left-color:var(--blue)}
+.notif-item.read .notif-title{font-weight:600;color:var(--muted)}
+.notif-item.read .notif-icon{opacity:.6}
+.notif-unread{position:absolute;top:14px;right:12px;width:8px;height:8px;border-radius:50%;background:var(--orange);box-shadow:0 0 6px var(--orange)}
+.notif-title{padding-right:16px;line-height:1.35}
+.notif-chip{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.4px;padding:1px 6px;border-radius:5px;margin-left:5px;vertical-align:1px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);text-transform:uppercase}
+.notif-chip.trainee{color:var(--blue);border-color:rgba(56,189,248,.4)}
+.notif-actions{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:7px;flex-wrap:wrap}
+.notif-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:10.5px;font-weight:700;border-radius:8px;padding:3px 9px;cursor:pointer}
+.notif-btn:hover{border-color:var(--orange)}
+.notif-btn.go{color:var(--orange);border-color:rgba(255,77,0,.35)}
+.notif-btn.dis{color:var(--muted);background:none}
+.notif-empty{padding:22px 16px;text-align:center;color:var(--muted);font-size:12px;line-height:1.5}
+.notif-filterbar{position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:900;display:none;align-items:center;gap:10px;background:var(--card);border:1px solid var(--orange);border-radius:12px;padding:8px 10px 8px 14px;box-shadow:0 10px 30px rgba(0,0,0,.45);font-size:12px;max-width:calc(100vw - 24px)}
+.notif-filterbar.show{display:flex}
+.notif-filterbar b{color:var(--orange)}
+.notif-filterbar .nf-txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@keyframes notifFlash{0%,100%{box-shadow:0 0 0 0 rgba(255,77,0,0)}50%{box-shadow:0 0 0 4px rgba(255,77,0,.85)}}
+.notif-flash{animation:notifFlash .7s ease-in-out 3;border-radius:8px;position:relative;z-index:1}
+tr.notif-flash td{background:rgba(255,77,0,.14) !important}
+@media(prefers-reduced-motion:reduce){.notif-flash{animation:none;box-shadow:0 0 0 3px rgba(255,77,0,.85)}}
+@media(max-width:640px){
+  .notif-panel{position:fixed;left:0;right:0;bottom:0;top:auto;width:100%;max-width:100%;border-radius:16px 16px 0 0;max-height:85vh;display:none;flex-direction:column;z-index:3000;box-shadow:0 -12px 40px rgba(0,0,0,.6)}
+  .notif-panel.open{display:flex}
+  .notif-list{max-height:none;flex:1;overflow-y:auto}
+  .notif-filterbar{top:auto;bottom:78px}
+}
 .tag-alert{background:rgba(255,0,0,.15);color:var(--red);border:1px solid rgba(255,0,0,.3)}
 .tag-warn{background:rgba(243,118,0,.15);color:var(--orange);border:1px solid rgba(243,118,0,.3)}
 .tag-info{background:rgba(56,189,248,.15);color:var(--blue);border:1px solid rgba(56,189,248,.3)}
@@ -713,12 +759,20 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
   <button class="btn btn-ghost btn-pill desktop-only admin-only" id="btn-switch-file" onclick="setPage('importar')" style="display:none;font-size:10px">📁 Trocar Planilha</button>
   <div class="notif-wrap" id="notif-wrap">
     <div class="notif-bell" onclick="toggleNotifPanel()" id="notif-bell" title="Alertas Comerciais">🔔</div>
-    <div class="notif-dot" id="notif-dot"></div>
-    <div class="notif-panel" id="notif-panel">
+    <div class="notif-dot count" id="notif-dot"></div>
+    <div class="notif-panel" id="notif-panel" role="dialog" aria-label="Alertas">
       <div class="notif-header">
-        <span>📋 Alertas &amp; Oportunidades</span>
-        <span style="cursor:pointer;color:var(--muted)" onclick="toggleNotifPanel()">✕</span>
+        <div style="min-width:0">
+          <div class="notif-head-title" id="notif-head-title">🔔 Alertas</div>
+          <div class="notif-head-sub" id="notif-head-sub"></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+          <button class="notif-markall" id="notif-markall" onclick="notifMarkAll()">Marcar todos como lidos</button>
+          <span class="notif-x" onclick="toggleNotifPanel()" aria-label="Fechar">✕</span>
+        </div>
       </div>
+      <div class="notif-tabs" id="notif-tabs"></div>
+      <div class="notif-teamsel" id="notif-teamsel"></div>
       <div class="notif-list" id="notif-list"></div>
     </div>
   </div>
@@ -729,6 +783,11 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
 <!-- ========================================================================= -->
 <!-- EMPTY STATE OVERLAY (EXIBIDO QUANDO NÃO HÁ PLANILHA CARREGADA) -->
 <!-- ========================================================================= -->
+<div class="notif-filterbar" id="notif-filterbar" role="status">
+  <span class="nf-txt" id="notif-filterbar-txt"></span>
+  <button class="notif-btn go" onclick="notifClearNav()">Limpar filtro</button>
+  <span class="notif-x" onclick="document.getElementById('notif-filterbar').classList.remove('show')" aria-label="Fechar">✕</span>
+</div>
 <div class="login-screen" id="login-screen" role="dialog" aria-labelledby="login-title">
   <form class="login-card" id="login-form" onsubmit="event.preventDefault(); doLogin();" novalidate>
     <div class="login-head">
@@ -1344,6 +1403,7 @@ body.light .notif-item{border-bottom-color:rgba(0,0,0,.06)}
             <option value="crit">🟠 61 a 90 dias (Inativo recente)</option>
             <option value="inact">🔴 Mais de 90 dias (Inativo)</option>
             <option value="nunca">⚪ Nunca Compraram</option>
+            <option value="soon">⏰ Ficam inativos em até 7 dias (53 a 60 dias)</option>
           </select>
           <select class="form-select" id="crm-filter-status" style="width:160px" onchange="filterCrmTable()">
             <option value="todos">Todos os Status</option>
@@ -2386,7 +2446,9 @@ const FirebaseStore = {
     }
     if(onProgress) onProgress(chunks.length, chunks.length);
 
-    await pointerRef.set({ meta: meta, version: version, chunks: chunks.length, savedAt: new Date().toISOString() });
+    const savedAt = new Date().toISOString();
+    await pointerRef.set({ meta: meta, version: version, chunks: chunks.length, savedAt });
+    this.lastSavedAt = savedAt;
 
     // Remove as partes da versão anterior
     if(prev && prev.version && prev.chunks) {
@@ -2459,7 +2521,7 @@ async function saveStoredData(data, meta) {
     await FirebaseStore.saveDashboardData(data, meta, (done, total) => {
       showSaveToast(`☁️ Salvando planilha no banco de dados… <b>${Math.round(done / total * 100)}%</b>`, '', 0);
     });
-    return { ok: true };
+    return { ok: true, savedAt: FirebaseStore.lastSavedAt || null };
   } catch(e) {
     console.error('❌ Erro ao salvar planilha:', e);
     return { ok: false, error: dbErrorHint(e) };
@@ -3022,7 +3084,9 @@ function startAdminWatchers() {
     const badge = document.getElementById('nav-acessos-badge');
     if(badge) { badge.textContent = PEDIDOS.length; badge.classList.toggle('show', PEDIDOS.length > 0); }
     if(STATE.page === 'acessos') renderAcessosPedidos();
+    refreshNotifications();
   }, err => console.warn('Pedidos de acesso indisponíveis:', err));
+  startNotifReadWatch();
   FirebaseStore.db.collection('farol_acessos').onSnapshot(snap => {
     ACC_LIST = [];
     snap.forEach(d => ACC_LIST.push(Object.assign({ email: d.id }, d.data())));
@@ -3564,6 +3628,7 @@ function renderCurrentPage() {
   else if(STATE.page === 'metas') renderMetasPage();
   else if(STATE.page === 'clientes') renderClientesCRM();
   else if(STATE.page === 'mensal') renderMensal();
+  refreshNotifications();
 }
 
 function updateFilterSummaries() {
@@ -3984,7 +4049,6 @@ function renderVisaoGeral() {
 
   renderGaugesAndProjections();
   renderCorridaMetasWidget();
-  updateNotifications();
 }
 
 // ─── RENDER: ESTADOS DE FOCO (PAGE 2) ─────────────────────────────────────────
@@ -4736,10 +4800,11 @@ function concRisk(pct, buyers) {
   if(pct >= 40) return { code: 'medio', label: 'Risco médio', color: 'var(--gold)' };
   return { code: 'baixo', label: 'Risco baixo', color: 'var(--green)' };
 }
-function concentrationOf(rows) {
+function concentrationOf(rows, fatFn) {
+  const fn = fatFn || periodFatOf;
   const list = [];
   let total = 0;
-  rows.forEach(r => { const f = periodFatOf(r); if(f > 0) { list.push({ r, f }); total += f; } });
+  rows.forEach(r => { const f = fn(r); if(f > 0) { list.push({ r, f }); total += f; } });
   list.sort((a, b) => b.f - a.f);
   const top = list.slice(0, CONC_TOP);
   const topSum = top.reduce((a, x) => a + x.f, 0);
@@ -5214,7 +5279,8 @@ function filterCrmTable() {
 
   crmFilteredList = processed.filter(r => {
     if(curvaFilter !== 'todos' && r.curva !== curvaFilter) return false;
-    if(recFilter !== 'todos' && r.recStatus.code !== recFilter) return false;
+    if(recFilter === 'soon') { if(!(r.daysSince >= INATIVO_DIAS - 7 && r.daysSince <= INATIVO_DIAS)) return false; }
+    else if(recFilter !== 'todos' && r.recStatus.code !== recFilter) return false;
     if(statusFilter !== 'todos' && r.status.code !== statusFilter) return false;
     if(txt) {
       const matchName = r.name.toLowerCase().includes(txt);
@@ -6913,100 +6979,534 @@ function renderMensalProjTable() {
   `).join('');
 }
 
-// ─── ALERTAS & OPORTUNIDADES (NOTIFICATION BELL) ──────────────────────────────
-function updateNotifications() {
-  const notifList = document.getElementById('notif-list');
-  const notifDot = document.getElementById('notif-dot');
-  if(!notifList) return;
+// ─── NOTIFICAÇÕES CLICÁVEIS ───────────────────────────────────────────────────
+// Supervisão: avisos da equipe escolhida no menu (ou de todas, em "Todas as
+// Equipes"). Consultor: só os avisos dele. Clicar leva ao indicador certo.
+// "Lido" fica no Firebase: na supervisão é separado por visão (cada equipe e
+// "Todas as Equipes" têm o seu); pedidos de acesso e planilha desatualizada
+// são lidos uma vez para todas. O consultor tem o próprio registro.
+const NOTIF_SEV = {
+  crit: { ord: 0, icon: '🔴', tab: 'Críticos' },
+  warn: { ord: 1, icon: '🟡', tab: 'Atenção' },
+  ok:   { ord: 2, icon: '🟢', tab: 'Positivos' },
+  info: { ord: 3, icon: '🔵', tab: 'Avisos' }
+};
+const NOTIF_LIM = { ritmoBaixo: 70, ritmoAlto: 115, esfriaMin: 46, dependencia: 60, piora: 3, planilhaDias: 7,
+  sumiuTop: 3, sumiuPct: 30, inativaEmDias: 7 };
+const NOTIF = {
+  list: [], key: '', tab: 'todos', team: 'todas',
+  adminRead: { scopes: {} },          // farol_data/notif_lidas
+  consRead: { lidos: [], dispensados: [] }, // farol_notif/{email}
+  watching: false, prevNav: null
+};
 
-  const mIdx = CURRENT_METAS_MONTH_IDX;
-  const mName = MONTH_NAMES[mIdx];
-  const rawSup = (STATE.supervisor || '').trim().toUpperCase();
-  const currentSup = (rawSup === 'TODOS') ? (STATE.metasSupervisor || getPrimarySupervisor()).trim().toUpperCase() : rawSup;
-  const supRows = RAW_DATA.filter(r => (r.sup || '').trim().toUpperCase() === currentSup);
+function notifDataVer() {
+  return String(FILE_META.savedAt || FILE_META.name || '') + '~' + String((METAS_PLAN && METAS_PLAN.savedAt) || '');
+}
+function notifScopeKey() {
+  if(isConsMode()) return 'EU';
+  const s = STATE.supervisor;
+  return (!s || s === 'TODOS') ? 'TODOS' : teamKeyOf(s);
+}
+function notifScopeLabel() {
+  if(isConsMode()) return CONS_MODE.cons || 'Sua carteira';
+  const s = STATE.supervisor;
+  return (!s || s === 'TODOS') ? 'Todas as Equipes' : teamNameOf(s);
+}
+function notifBiz(mIdx) {
+  const mi = MONTH_YEAR_MAP[mIdx] || { y: new Date().getFullYear(), m: new Date().getMonth() };
+  const total = bizDaysInMonth(mi.y, mi.m);
+  let el = bizDaysElapsed(mi.y, mi.m);
+  if(el <= 0) el = 1;
+  if(el > total) el = total;
+  return { total, el, remain: Math.max(0, total - el) };
+}
+function notifPace(mb, mIdx, B) {
+  let real = 0;
+  mb.rows.forEach(r => { real += (r.fat && r.fat[mIdx]) || 0; });
+  const meta = (mb.meta && mb.meta.metaFat) || 0;
+  const proj = real / B.el * B.total;
+  const gap = Math.max(0, meta - real);
+  return { real, meta, proj, pct: meta > 0 ? proj / meta * 100 : 0, gap, perDay: B.remain > 0 ? gap / B.remain : gap };
+}
+const totFatOf = r => (r.fat || []).reduce((a, b) => a + (b || 0), 0);
+function notifCooling(rows) {
+  const c = concentrationOf(rows, totFatOf);
+  const cool = c.top.map(x => ({ ...x, d: clientDaysSince(x.r) }))
+    .filter(x => x.d !== null && x.d >= NOTIF_LIM.esfriaMin && x.d <= INATIVO_DIAS);
+  return { c, cool };
+}
+function groupByCons(rows) {
+  const m = new Map();
+  rows.forEach(r => { const k = (r.cons || '').trim(); if(!k) return; if(!m.has(k)) m.set(k, []); m.get(k).push(r); });
+  return m;
+}
+function halfMonthReached(mIdx) {
+  const mi = MONTH_YEAR_MAP[mIdx];
+  if(!mi) return false;
+  const ref = getCarteiraRefDate();
+  const end = new Date(mi.y, mi.m + 1, 0);
+  if(ref > end) return true;
+  if(ref.getFullYear() !== mi.y || ref.getMonth() !== mi.m) return false;
+  return ref.getDate() >= Math.ceil(end.getDate() / 2);
+}
+const pct0 = v => Math.round(v) + '%';
 
-  const alerts = [];
+// ── Avisos da supervisão ──
+function buildSupAlerts() {
+  const out = [];
+  const mIdx = CURRENT_METAS_MONTH_IDX, mName = MONTH_NAMES[mIdx];
+  const B = notifBiz(mIdx);
+  const sc = STATE.supervisor;
+  const teams = (!sc || sc === 'TODOS') ? getSupervisorsList() : [sc];
+  const pm = planMonthForIdx(mIdx);
 
-  // 1. Alert Trainee / Novos Consultores
-  getTeamRoster(currentSup, mIdx).members.forEach(mb => {
-    const cName = mb.name;
-    const meta = mb.meta;
-    if(meta.level === 'trainee') {
-      const cRows = mb.rows;
-      let cFat = 0;
-      cRows.forEach(r => { cFat += (r.fat && r.fat[mIdx]) || 0; });
-      alerts.push({
-        type: 'info',
-        title: `🎓 Trainee: Acompanhamento de ${cName}`,
-        desc: `Consultor Trainee com ${fK(cFat)} faturados no mês${meta.metaFat ? ' (meta: ' + fK(meta.metaFat) + ')' : ''}.`
+  teams.forEach(sup => {
+    const team = teamNameOf(sup);
+    const teamRows = RAW_DATA.filter(r => sameSup(r.sup, sup));
+    if(!teamRows.length) return;
+
+    // Ritmo da meta (abaixo de 70% / 115% ou mais)
+    getTeamRoster(sup, mIdx).members.forEach(mb => {
+      const p = notifPace(mb, mIdx, B);
+      if(!(p.meta > 0)) return;
+      const trainee = mb.meta && mb.meta.level === 'trainee';
+      if(p.pct < NOTIF_LIM.ritmoBaixo) {
+        out.push({ id: `ritmo|${sup}|${mb.name}`, sev: 'crit', sup, team, cons: mb.name, chips: trainee ? ['Trainee'] : [],
+          title: `Ritmo abaixo: ${mb.name}`,
+          desc: `Projeção de ${pct0(p.pct)} da meta em ${mName} (${fK(p.real)} de ${fK(p.meta)}). Faltam ${fK(p.gap)}${B.remain ? `: ${fK(p.perDay)} por dia útil` : ''}.`,
+          go: { page: 'metas', sup, cons: mb.name, find: { sel: '#tbl-metas-body tr', text: mb.name } }, goLabel: 'Ver na meta →', raiox: mb.name });
+      } else if(p.pct >= NOTIF_LIM.ritmoAlto) {
+        out.push({ id: `destaque|${sup}|${mb.name}`, sev: 'ok', sup, team, cons: mb.name, chips: trainee ? ['Trainee'] : [],
+          title: `Destaque de vendas: ${mb.name}`,
+          desc: `Projetando ${pct0(p.pct)} da meta de ${mName} (${fK(p.proj)} de ${fK(p.meta)}).`,
+          go: { page: 'ranking', sup, find: { sel: '.ccons, .rank-row', text: mb.name } }, goLabel: 'Ver no ranking →' });
+      }
+    });
+
+    // Carteira de cada consultor: grande cliente esfriando e dependência alta
+    groupByCons(teamRows).forEach((rows, cons) => {
+      const { c, cool } = notifCooling(rows);
+      if(cool.length) {
+        const x = cool[0];
+        out.push({ id: `esfria|${sup}|${cons}|${cool.map(y => y.r.id || y.r.name).join(',')}`, sev: 'crit', sup, team, cons,
+          title: `Grande cliente esfriando: ${cons}`,
+          desc: `${x.r.name} está há ${x.d} dias sem comprar (${fK(x.f)} na planilha)${cool.length > 1 ? ` e mais ${cool.length - 1} do top 10` : ''}. Fica inativo aos ${INATIVO_DIAS} dias.`,
+          go: { page: 'clientes', sup, cons, month: 'todos', find: { sel: '#conc-body tr', text: x.r.name } }, goLabel: 'Ver na carteira →' });
+      }
+      if(c.buyers > CONC_TOP && c.pct > NOTIF_LIM.dependencia) {
+        out.push({ id: `depend|${sup}|${cons}`, sev: 'warn', sup, team, cons,
+          title: `Dependência alta: ${cons}`,
+          desc: `Os 10 maiores clientes são ${fPct(c.pct)} do faturamento (${fK(c.topSum)} de ${fK(c.total)}).`,
+          go: { page: 'clientes', sup, cons, month: 'todos', find: { sel: '#conc-stats', card: true } }, goLabel: 'Ver na carteira →' });
+      }
+    });
+
+    // Equipe: carteira piorando e inativos
+    const ev = evoDeltaFor(teamRows);
+    if(ev && ev.pCur - ev.pPrev < -NOTIF_LIM.piora) {
+      out.push({ id: `piora|${sup}`, sev: 'warn', sup, team,
+        title: `Carteira piorando: ${team}`,
+        desc: `Clientes ativos caíram de ${fPct(ev.pPrev)} para ${fPct(ev.pCur)} da carteira desde ${ev.prevName} (${ev.dA >= 0 ? '+' : '−'}${fNum(Math.abs(ev.dA))} ativos).`,
+        go: { page: 'clientes', sup, month: 'todos', find: { sel: '#ch-evo-carteira', card: true } }, goLabel: 'Ver a evolução →' });
+    }
+    const inat = teamRows.filter(r => getClientStatus(r).code === 'inativo').length;
+    if(inat) {
+      out.push({ id: `inativos|${sup}|${inat}`, sev: 'warn', sup, team,
+        title: `Inativos da equipe: ${team}`,
+        desc: `${fNum(inat)} clientes com mais de ${INATIVO_DIAS} dias sem comprar (${fPct(inat / teamRows.length * 100)} da carteira).`,
+        go: { page: 'clientes', sup, month: 'todos', crm: { status: 'inativo' }, find: { sel: '#crm-full-table-body', card: true } }, goLabel: 'Ver os clientes →' });
+    }
+
+    // Consultor com carteira, mas sem meta no mês
+    if(pm) {
+      const planIds = new Set(pm.rows.map(x => x.id).filter(Boolean));
+      const planNames = new Set(pm.rows.map(x => normTxt(x.name)));
+      const sem = [];
+      groupByCons(teamRows).forEach((rows, cons) => {
+        const id = rows[0].consId;
+        if(!(id && planIds.has(id)) && !planNames.has(normTxt(cons))) sem.push(cons);
       });
+      if(sem.length) {
+        out.push({ id: `semmeta|${sup}|${sem.join(',')}`, sev: 'info', sup, team,
+          title: `${sem.length === 1 ? 'Consultor' : sem.length + ' consultores'} sem meta em ${mName}: ${team}`,
+          desc: `${sem.slice(0, 3).join(', ')}${sem.length > 3 ? ` e mais ${sem.length - 3}` : ''} ${sem.length === 1 ? 'tem' : 'têm'} carteira, mas não ${sem.length === 1 ? 'está' : 'estão'} na planilha de metas do mês.`,
+          go: { page: 'metas', sup, find: { sel: '#metas-plan-status', card: false } }, goLabel: 'Ver as metas →' });
+      }
     }
   });
 
-  // 2. Alert Pacing de Meta da Equipe
-  const projData = calcProjections('fat');
-  projData.consultants.forEach(c => {
-    if(c.pctProj < 70 && c.meta > 0) {
-      alerts.push({
-        type: 'warn',
-        title: `⚠️ Atenção ao Ritmo: ${c.name}`,
-        desc: `Ritmo projetado em ${c.pctProj.toFixed(0)}% da meta (${fK(c.proj)} de ${fK(c.meta)}). Recomendado intensificar contato com carteira.`
-      });
-    } else if(c.pctProj >= 115 && c.meta > 0) {
-      alerts.push({
-        type: 'success',
-        title: `🌟 Destaque de Vendas: ${c.name}`,
-        desc: `Projetando ${c.pctProj.toFixed(0)}% da meta de ${mName} (${fK(c.proj)}). Superação esperada!`
-      });
+  // Avisos gerais (lidos uma vez para todas as visões)
+  (PEDIDOS || []).forEach(pd => {
+    out.push({ id: `pedido|${pd.email}`, global: true, sev: 'info',
+      title: `Pedido de acesso: ${pd.nome || pd.email}`,
+      desc: `${pd.email} pediu acesso ao painel${pd.criadoEm ? ' em ' + formatSavedAt(pd.criadoEm) : ''}.`,
+      go: { page: 'acessos', find: { sel: '#acc-pedidos tbody tr', text: pd.email } }, goLabel: 'Ver o pedido →' });
+  });
+  if(FILE_META.savedAt) {
+    const dias = Math.floor((Date.now() - new Date(FILE_META.savedAt).getTime()) / 86400000);
+    if(dias > NOTIF_LIM.planilhaDias) {
+      out.push({ id: `planilha|${FILE_META.savedAt}`, global: true, sev: 'info',
+        title: 'Planilha desatualizada',
+        desc: `A carteira em uso foi enviada em ${formatSavedAt(FILE_META.savedAt)} (há ${dias} dias). Envie a mais recente.`,
+        go: { page: 'importar' }, goLabel: 'Enviar planilha →' });
     }
-  });
+  }
+  return out;
+}
 
-  // 3. Alert Clientes Inativos / Churn
-  let inactiveCount = 0;
-  supRows.forEach(r => {
-    const status = getClientStatus(r);
-    if(status.code === 'inativo') inactiveCount++;
-  });
-  if(inactiveCount > 0) {
-    alerts.push({
-      type: 'warn',
-      title: `👥 Recuperação de Carteira (${inactiveCount} clientes)`,
-      desc: `Clientes com mais de 60 dias sem comprar. Verifique a aba Saúde da Carteira para ações de reativação.`
+// ── Avisos do consultor (só a carteira dele) ──
+function buildConsAlerts() {
+  const out = [];
+  const rows = RAW_DATA || [];
+  const mIdx = CURRENT_METAS_MONTH_IDX, mName = MONTH_NAMES[mIdx];
+  const B = notifBiz(mIdx);
+
+  // Seu maior comprador sumiu: top 3 dos 3 meses fechados, abaixo de 30% da média
+  if(mIdx >= 3 && halfMonthReached(mIdx)) {
+    const cand = rows.map(r => {
+      let s3 = 0; for(let i = mIdx - 3; i < mIdx; i++) s3 += (r.fat && r.fat[i]) || 0;
+      return { r, avg: s3 / 3, cur: (r.fat && r.fat[mIdx]) || 0 };
+    }).filter(x => x.avg > 0).sort((a, b) => b.avg - a.avg).slice(0, NOTIF_LIM.sumiuTop);
+    cand.forEach((x, k) => {
+      if(x.cur < x.avg * NOTIF_LIM.sumiuPct / 100) {
+        out.push({ id: `sumiu|${x.r.id || x.r.name}|${mIdx}`, sev: 'crit',
+          title: `${k === 0 ? 'Seu maior comprador' : `Seu ${k + 1}º maior comprador`} sumiu: ${x.r.name}`,
+          desc: `Costuma comprar ${fK(x.avg)} por mês (média de ${MONTH_SHORT[mIdx - 3]} a ${MONTH_SHORT[mIdx - 1]}) e em ${mName} está em ${fK(x.cur)}${x.cur > 0 ? ` (${pct0(x.cur / x.avg * 100)} da média)` : ''}.`,
+          go: { page: 'clientes', month: 'todos', crm: { search: x.r.name }, find: { sel: '#crm-full-table-body tr', text: x.r.name } }, goLabel: 'Ver o cliente →' });
+      }
     });
   }
 
-  // Renderizar Alertas
-  if(alerts.length === 0) {
-    notifList.innerHTML = `
-      <div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">
-        ✅ Nenhum alerta pendente no momento. Equipe operando com regularidade!
+  // Grande cliente esfriando (um aviso por cliente)
+  const { c, cool } = notifCooling(rows);
+  cool.forEach(x => {
+    out.push({ id: `esfria|${x.r.id || x.r.name}`, sev: 'crit',
+      title: `Grande cliente esfriando: ${x.r.name}`,
+      desc: `Um dos seus 10 maiores clientes (${fK(x.f)} na planilha) está há ${x.d} dias sem comprar. Fica inativo aos ${INATIVO_DIAS} dias.`,
+      go: { page: 'clientes', month: 'todos', find: { sel: '#conc-body tr', text: x.r.name } }, goLabel: 'Ver no top 10 →' });
+  });
+
+  // Clientes que ficam inativos nos próximos 7 dias
+  const soon = rows.map(r => ({ r, d: clientDaysSince(r) }))
+    .filter(x => x.d !== null && x.d >= INATIVO_DIAS - NOTIF_LIM.inativaEmDias && x.d <= INATIVO_DIAS)
+    .sort((a, b) => b.d - a.d);
+  if(soon.length) {
+    out.push({ id: `breve|${soon.map(x => x.r.id || x.r.name).join(',')}`, sev: 'warn',
+      title: `${soon.length === 1 ? '1 cliente fica inativo' : soon.length + ' clientes ficam inativos'} nos próximos 7 dias`,
+      desc: `${soon.slice(0, 3).map(x => `${x.r.name} (${x.d} dias)`).join(', ')}${soon.length > 3 ? ` e mais ${soon.length - 3}` : ''}.`,
+      go: { page: 'clientes', month: 'todos', crm: { rec: 'soon' }, find: { sel: '#crm-full-table-body', card: true } }, goLabel: 'Ver os clientes →' });
+  }
+
+  // Ritmo da meta
+  getTeamRoster(CONS_MODE.sup, mIdx).members.forEach(mb => {
+    const p = notifPace(mb, mIdx, B);
+    if(!(p.meta > 0)) return;
+    if(p.pct < NOTIF_LIM.ritmoBaixo) {
+      out.push({ id: `ritmo|${mIdx}`, sev: 'crit',
+        title: 'Seu ritmo está abaixo da meta',
+        desc: `Projeção de ${pct0(p.pct)} da meta de ${mName} (${fK(p.real)} de ${fK(p.meta)}). Faltam ${fK(p.gap)}${B.remain ? `: ${fK(p.perDay)} por dia útil nos ${B.remain} dias úteis que restam` : ''}.`,
+        go: { page: 'metas', find: { sel: '#tbl-metas-body tr', text: mb.name } }, goLabel: 'Ver suas metas →' });
+    } else if(p.pct >= NOTIF_LIM.ritmoAlto) {
+      out.push({ id: `destaque|${mIdx}`, sev: 'ok',
+        title: 'Você está acima da meta 🎉',
+        desc: `Projetando ${pct0(p.pct)} da meta de ${mName} (${fK(p.proj)} de ${fK(p.meta)}).`,
+        go: { page: 'metas', find: { sel: '#tbl-metas-body tr', text: mb.name } }, goLabel: 'Ver suas metas →' });
+    }
+  });
+
+  // Dependência alta
+  if(c.buyers > CONC_TOP && c.pct > NOTIF_LIM.dependencia) {
+    out.push({ id: 'depend', sev: 'warn',
+      title: 'Sua carteira depende muito dos 10 maiores',
+      desc: `Os seus 10 maiores clientes são ${fPct(c.pct)} do seu faturamento. Perder um deles pesa muito.`,
+      go: { page: 'clientes', month: 'todos', find: { sel: '#conc-stats', card: true } }, goLabel: 'Ver no quadro →' });
+  }
+
+  // Carteira piorando
+  const ev = evoDeltaFor(rows);
+  if(ev && ev.pCur - ev.pPrev < -NOTIF_LIM.piora) {
+    out.push({ id: 'piora', sev: 'warn',
+      title: 'Sua carteira está piorando',
+      desc: `Seus clientes ativos caíram de ${fPct(ev.pPrev)} para ${fPct(ev.pCur)} da carteira desde ${ev.prevName}.`,
+      go: { page: 'clientes', month: 'todos', find: { sel: '#ch-evo-carteira', card: true } }, goLabel: 'Ver a evolução →' });
+  }
+
+  // Reativações do mês
+  const reat = rows.filter(r => reativEventsOf(r).some(e => e.m === mIdx)).length;
+  if(reat > 0 && mIdx >= REATIV_MIN_GAP + 1) {
+    out.push({ id: `reativ|${mIdx}|${reat}`, sev: 'ok',
+      title: `Você reativou ${reat === 1 ? '1 cliente' : reat + ' clientes'} em ${mName} 👏`,
+      desc: `${reat === 1 ? 'Cliente que estava' : 'Clientes que estavam'} 2 meses ou mais sem comprar e ${reat === 1 ? 'voltou' : 'voltaram'} a comprar com você.`,
+      go: { page: 'clientes', month: String(mIdx), find: { sel: '#reativ-list-body', card: true } }, goLabel: 'Ver a lista →' });
+  }
+  return out;
+}
+
+// ── Lido / dispensado ──
+function notifSig(a) { return a.global ? a.id : a.id + '|' + notifDataVer(); }
+function notifReadKey(a) { return a.global ? 'GERAL' : notifScopeKey(); }
+function notifStore(key) {
+  if(isConsMode()) return NOTIF.consRead;
+  const sc = NOTIF.adminRead.scopes || (NOTIF.adminRead.scopes = {});
+  return sc[key] || (sc[key] = { lidos: [], dispensados: [] });
+}
+function notifIsRead(a) { return (notifStore(notifReadKey(a)).lidos || []).includes(a.sig); }
+function notifIsDismissed(a) { return (notifStore(notifReadKey(a)).dispensados || []).includes(a.sig); }
+
+function notifSave(changed) {
+  // Guarda só o que ainda existe (o registro não cresce sem fim)
+  const valid = new Set(NOTIF.list.map(a => a.sig));
+  const clean = st => ({ lidos: (st.lidos || []).filter(x => valid.has(x)).slice(-300), dispensados: (st.dispensados || []).filter(x => valid.has(x)).slice(-300) });
+  if(!FirebaseStore.db) return;
+  if(isConsMode()) {
+    NOTIF.consRead = clean(NOTIF.consRead);
+    FirebaseStore.db.collection('farol_notif').doc(CONS_MODE.email)
+      .set({ lidos: NOTIF.consRead.lidos, dispensados: NOTIF.consRead.dispensados, atualizadoEm: new Date().toISOString() })
+      .catch(e => console.warn('Não foi possível salvar as notificações lidas:', e));
+    return;
+  }
+  const upd = {};
+  changed.forEach(k => { const st = clean(notifStore(k)); NOTIF.adminRead.scopes[k] = st; upd[k] = st; });
+  FirebaseStore.db.collection('farol_data').doc('notif_lidas')
+    .set({ scopes: upd, atualizadoEm: new Date().toISOString() }, { merge: true })
+    .catch(e => console.warn('Não foi possível salvar as notificações lidas:', e));
+}
+function notifMark(alerts, field) {
+  const changed = new Set();
+  alerts.forEach(a => {
+    const k = notifReadKey(a), st = notifStore(k);
+    st[field] = st[field] || [];
+    if(!st[field].includes(a.sig)) { st[field].push(a.sig); changed.add(k); }
+    if(field === 'dispensados' && !(st.lidos || []).includes(a.sig)) { (st.lidos = st.lidos || []).push(a.sig); changed.add(k); }
+  });
+  if(changed.size) notifSave(changed);
+  renderNotifPanel();
+}
+function startNotifReadWatch() {
+  if(NOTIF.watching || !FirebaseStore.db) return;
+  NOTIF.watching = true;
+  const ref = isConsMode()
+    ? FirebaseStore.db.collection('farol_notif').doc(CONS_MODE.email)
+    : FirebaseStore.db.collection('farol_data').doc('notif_lidas');
+  ref.onSnapshot(snap => {
+    const d = snap.exists ? snap.data() : {};
+    if(isConsMode()) NOTIF.consRead = { lidos: d.lidos || [], dispensados: d.dispensados || [] };
+    else NOTIF.adminRead = { scopes: d.scopes || {} };
+    renderNotifPanel();
+  }, err => { NOTIF.watching = false; console.warn('Notificações lidas indisponíveis:', err); });
+}
+
+// ── Montagem e desenho do painel ──
+function refreshNotifications() {
+  if(!RAW_DATA || !RAW_DATA.length) return;
+  const key = [notifScopeKey(), STATE.supervisor, notifDataVer(), RAW_DATA.length, (PEDIDOS || []).map(p => p.email).join(','), CURRENT_METAS_MONTH_IDX].join('#');
+  if(key !== NOTIF.key) {
+    let list = [];
+    try { list = isConsMode() ? buildConsAlerts() : buildSupAlerts(); }
+    catch(e) { console.error('Erro ao montar os alertas:', e); }
+    list.forEach(a => { a.sig = notifSig(a); });
+    list.sort((a, b) => NOTIF_SEV[a.sev].ord - NOTIF_SEV[b.sev].ord);
+    NOTIF.list = list;
+    if(NOTIF.lastScope !== notifScopeKey()) { NOTIF.team = 'todas'; NOTIF.lastScope = notifScopeKey(); }
+    NOTIF.key = key;
+  }
+  if(FirebaseStore.db && (isConsMode() ? CONS_MODE && CONS_MODE.email : true)) startNotifReadWatch();
+  renderNotifPanel();
+}
+function updateNotifications() { refreshNotifications(); }
+
+function notifVisible() {
+  return NOTIF.list.filter(a => !notifIsDismissed(a) && (NOTIF.team === 'todas' || a.global || a.team === NOTIF.team));
+}
+function renderNotifPanel() {
+  const listEl = document.getElementById('notif-list');
+  const dot = document.getElementById('notif-dot');
+  if(!listEl) return;
+  const all = NOTIF.list.filter(a => !notifIsDismissed(a));
+  const unreadAll = all.filter(a => !notifIsRead(a)).length;
+  if(dot) {
+    dot.textContent = unreadAll > 99 ? '99+' : String(unreadAll);
+    dot.style.display = unreadAll ? 'block' : 'none';
+  }
+  const bell = document.getElementById('notif-bell');
+  if(bell) bell.title = unreadAll ? `${unreadAll} alerta${unreadAll > 1 ? 's' : ''} novo${unreadAll > 1 ? 's' : ''}` : 'Alertas';
+
+  const vis = notifVisible();
+  const unreadVis = vis.filter(a => !notifIsRead(a)).length;
+  document.getElementById('notif-head-title').textContent = `🔔 Alertas · ${notifScopeLabel()}`;
+  document.getElementById('notif-head-sub').textContent = unreadVis ? `${unreadVis} novo${unreadVis > 1 ? 's' : ''} de ${vis.length}` : (vis.length ? `Tudo lido · ${vis.length} alerta${vis.length > 1 ? 's' : ''}` : 'Nenhum alerta');
+  const mk = document.getElementById('notif-markall');
+  if(mk) mk.disabled = !unreadVis;
+
+  // Abas por gravidade
+  const cnt = sev => vis.filter(a => a.sev === sev).length;
+  const tabs = [['todos', 'Todos', vis.length]].concat(['crit', 'warn', 'ok', 'info'].filter(k => cnt(k)).map(k => [k, NOTIF_SEV[k].icon + ' ' + NOTIF_SEV[k].tab, cnt(k)]));
+  if(!tabs.some(t => t[0] === NOTIF.tab)) NOTIF.tab = 'todos';
+  document.getElementById('notif-tabs').innerHTML = tabs.map(t =>
+    `<button class="notif-tab${NOTIF.tab === t[0] ? ' active' : ''}" onclick="event.stopPropagation();NOTIF.tab='${t[0]}';renderNotifPanel()">${t[1]} ${t[2]}</button>`).join('');
+
+  // Filtro de equipe (só em "Todas as Equipes")
+  const tsel = document.getElementById('notif-teamsel');
+  if(!isConsMode() && notifScopeKey() === 'TODOS') {
+    const teams = [...new Set(NOTIF.list.filter(a => a.team).map(a => a.team))].sort();
+    tsel.style.display = '';
+    tsel.innerHTML = `<select class="form-select" onclick="event.stopPropagation()" onchange="NOTIF.team=this.value;renderNotifPanel()">
+      <option value="todas">Equipe: todas</option>${teams.map(t => `<option value="${escHtml(t)}"${NOTIF.team === t ? ' selected' : ''}>Equipe: ${escHtml(t)}</option>`).join('')}</select>`;
+  } else { tsel.style.display = 'none'; tsel.innerHTML = ''; }
+
+  const shown = vis.filter(a => NOTIF.tab === 'todos' || a.sev === NOTIF.tab)
+    .sort((a, b) => NOTIF_SEV[a.sev].ord - NOTIF_SEV[b.sev].ord || (notifIsRead(a) - notifIsRead(b)));
+  if(!shown.length) {
+    listEl.innerHTML = `<div class="notif-empty">✅ Nenhum alerta ${NOTIF.list.length ? 'nesta seleção' : 'no momento'}.<br>${isConsMode() ? 'Sua carteira está em dia.' : 'Equipe operando com regularidade.'}</div>`;
+    return;
+  }
+  listEl.innerHTML = shown.map(a => {
+    const i = NOTIF.list.indexOf(a);
+    const read = notifIsRead(a);
+    const chips = (a.team && notifScopeKey() === 'TODOS' ? `<span class="notif-chip">${escHtml(a.team)}</span>` : '') +
+      (a.chips || []).map(c => `<span class="notif-chip ${c === 'Trainee' ? 'trainee' : ''}">${escHtml(c)}</span>`).join('');
+    return `<div class="notif-item sev-${a.sev}${read ? ' read' : ''}" role="button" tabindex="0" onclick="notifOpen(${i})" onkeydown="if(event.key==='Enter')notifOpen(${i})">
+      <div class="notif-icon">${NOTIF_SEV[a.sev].icon}</div>
+      <div class="notif-body">
+        <div class="notif-title">${escHtml(a.title)}${chips}</div>
+        <div class="notif-desc">${escHtml(a.desc)}</div>
+        <div class="notif-actions">
+          <button class="notif-btn dis" onclick="event.stopPropagation();notifDismiss(${i})" title="Esconder até a próxima planilha">Dispensar</button>
+          ${a.raiox ? `<button class="notif-btn" onclick="event.stopPropagation();notifRaioX(${i})">🔍 Raio-X</button>` : ''}
+          <button class="notif-btn go" onclick="event.stopPropagation();notifOpen(${i})">${escHtml(a.goLabel || 'Ver →')}</button>
+        </div>
       </div>
-    `;
-    if(notifDot) notifDot.style.display = 'none';
-  } else {
-    notifList.innerHTML = alerts.map(a => `
-      <div class="notif-item ${a.type}">
-        <div class="notif-item-title">${a.title}</div>
-        <div class="notif-item-desc">${a.desc}</div>
-      </div>
-    `).join('');
-    if(notifDot) {
-      notifDot.style.display = 'block';
+      ${read ? '' : '<span class="notif-unread" aria-label="não lido"></span>'}
+    </div>`;
+  }).join('');
+}
+
+function notifMarkAll() { notifMark(notifVisible().filter(a => !notifIsRead(a)), 'lidos'); }
+function notifDismiss(i) { const a = NOTIF.list[i]; if(a) notifMark([a], 'dispensados'); }
+function notifOpen(i) {
+  const a = NOTIF.list[i];
+  if(!a) return;
+  if(!notifIsRead(a)) notifMark([a], 'lidos');
+  notifNavigate(a);
+}
+function notifRaioX(i) {
+  const a = NOTIF.list[i];
+  if(!a) return;
+  if(!notifIsRead(a)) notifMark([a], 'lidos');
+  notifNavigate(a);
+  setTimeout(() => openConsultantRaioX(a.raiox), 450);
+}
+
+// ── Navegação: filtros + página + destaque ──
+function notifApplyFilters(sup, cons, month) {
+  if(!isConsMode() && sup !== undefined && sup !== null) {
+    const sel = document.getElementById('sel-supervisor');
+    const opt = sup === 'TODOS' ? 'TODOS' : (sel ? [...sel.options].map(o => o.value).find(v => sameSup(v, sup)) : null) || sup;
+    if(STATE.supervisor !== opt) {
+      if(sel) sel.value = opt;
+      changeSupervisor(opt);           // também zera estado, consultor e mês
     }
   }
+  if(STATE.state !== 'geral') {
+    STATE.state = 'geral';
+    const hs = document.getElementById('hdr-state'); if(hs) hs.textContent = 'Consolidado';
+    updateStateButtonsUI();
+  }
+  if(!isConsMode() && cons !== undefined) {
+    STATE.consultant = cons || 'todos';
+    const hc = document.getElementById('hdr-cons'); if(hc) hc.textContent = STATE.consultant === 'todos' ? 'Todos' : STATE.consultant;
+    buildSidebarConsultants();
+  }
+  if(month !== undefined && month !== null) {
+    STATE.month = month;
+    const selM = document.getElementById('sel-global-month'); if(selM) selM.value = month;
+    const mb = document.getElementById('hdr-month'); if(mb) mb.textContent = month === 'todos' ? allPeriodShort() : MONTH_NAMES[parseInt(month, 10)];
+  }
+}
+function notifSetCrm(crm) {
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.value = v; };
+  set('crm-search-txt', (crm && crm.search) || '');
+  set('crm-filter-curva', 'todos');
+  set('crm-filter-recencia', (crm && crm.rec) || 'todos');
+  set('crm-filter-status', (crm && crm.status) || 'todos');
+}
+function notifNavigate(a) {
+  const g = a.go || {};
+  const panel = document.getElementById('notif-panel');
+  if(panel) panel.classList.remove('open');
+  if(!NOTIF.prevNav) NOTIF.prevNav = { sup: STATE.supervisor, cons: STATE.consultant, month: STATE.month };
+
+  notifApplyFilters(g.sup, g.cons !== undefined ? g.cons : (g.sup ? null : undefined), g.month);
+  if(g.page === 'metas' && STATE.metasView) {
+    const pm = planMonthForIdx(CURRENT_METAS_MONTH_IDX);
+    if(pm) STATE.metasView.monthId = planMonthId(pm);
+    if(g.sup) STATE.metasView.sup = g.sup;
+  }
+  if(g.page === 'clientes') notifSetCrm(g.crm);
+  setPage(g.page || 'geral');
+  if(g.page === 'clientes' && g.crm) filterCrmTable();
+
+  // Barra "Filtro aplicado"
+  const parts = [];
+  if(!isConsMode() && STATE.supervisor && STATE.supervisor !== 'TODOS') parts.push(teamNameOf(STATE.supervisor));
+  if(!isConsMode() && STATE.consultant && STATE.consultant !== 'todos') parts.push(STATE.consultant);
+  if(STATE.month && STATE.month !== 'todos') parts.push(MONTH_NAMES[parseInt(STATE.month, 10)]);
+  if(g.crm && g.crm.status === 'inativo') parts.push('clientes inativos');
+  if(g.crm && g.crm.rec === 'soon') parts.push('ficam inativos em 7 dias');
+  if(g.crm && g.crm.search) parts.push('busca: ' + g.crm.search);
+  const bar = document.getElementById('notif-filterbar');
+  if(bar) {
+    if(parts.length) {
+      document.getElementById('notif-filterbar-txt').innerHTML = 'Filtro aplicado: <b>' + parts.map(escHtml).join(' · ') + '</b>';
+      bar.classList.add('show');
+    } else bar.classList.remove('show');
+  }
+  setTimeout(() => notifFlash(g.find), 380);
+}
+function notifFlash(find) {
+  if(!find) return;
+  const page = document.getElementById('page-' + STATE.page) || document;
+  let els = [...page.querySelectorAll(find.sel)];
+  if(find.text) {
+    const t = normTxt(find.text);
+    els = els.filter(el => normTxt(el.textContent).includes(t));
+  }
+  let el = els[0];
+  if(!el) return;
+  if(find.card) el = el.closest('.chart-card') || el;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  el.classList.remove('notif-flash'); void el.offsetWidth; el.classList.add('notif-flash');
+  setTimeout(() => el.classList.remove('notif-flash'), 2400);
+}
+function notifClearNav() {
+  const p = NOTIF.prevNav;
+  NOTIF.prevNav = null;
+  document.getElementById('notif-filterbar').classList.remove('show');
+  notifSetCrm(null);
+  if(p) notifApplyFilters(p.sup, p.cons, p.month);
+  renderCurrentPage();
 }
 
 function toggleNotifPanel() {
   const panel = document.getElementById('notif-panel');
   if(!panel) return;
+  // No celular o painel vira uma folha de baixo para cima: fica direto no <body>
+  // (o cabeçalho tem efeito de vidro, que prenderia o painel dentro dele)
+  const wrap = document.getElementById('notif-wrap');
+  const mobile = window.innerWidth <= 640;
+  if(mobile && panel.parentElement !== document.body) document.body.appendChild(panel);
+  else if(!mobile && wrap && panel.parentElement !== wrap) wrap.appendChild(panel);
   panel.classList.toggle('open');
+  if(panel.classList.contains('open')) renderNotifPanel();
 }
 
-// Fechar notif-panel ao clicar fora
+// Fechar o painel ao clicar fora (ignora cliques em itens que acabaram de ser redesenhados)
 document.addEventListener('click', e => {
   const wrap = document.getElementById('notif-wrap');
   const panel = document.getElementById('notif-panel');
-  if(wrap && panel && !wrap.contains(e.target)) {
+  if(!e.target.isConnected) return;
+  if(wrap && panel && !wrap.contains(e.target) && !panel.contains(e.target)) {
     panel.classList.remove('open');
   }
 });
@@ -7125,7 +7625,7 @@ async function processImportedRows(rawRows, fileName, headerRow) {
 
   const res = await saveStoredData(parsed, FILE_META);
   if(res.ok) {
-    FILE_META.savedAt = new Date().toISOString();
+    FILE_META.savedAt = res.savedAt || new Date().toISOString(); // mesma data gravada no banco (igual em todos os aparelhos)
     updateAppDisplayState();
     showSaveToast(`✅ <b>${fileName}</b> salva no banco de dados.<br>${parsed.length.toLocaleString('pt-BR')} linhas · Meses: ${periodLabel()}.<br>Ela passa a abrir automaticamente no painel.`, 'ok', 7000);
     setTimeout(() => publishConsultorArea(true), 2500);
