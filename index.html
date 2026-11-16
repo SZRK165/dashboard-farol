@@ -190,11 +190,19 @@ body:not(.cons-mode) .cons-only { display: none !important; }
 
 /* SIDEBAR */
 .sidebar {
-  width:270px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);
+  width:var(--sb-w,270px);flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);
   display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;
   transition:width .3s;
 }
 .sidebar-section{padding:16px 14px 8px}
+.sb-resizer{flex:0 0 0;width:0;position:relative;z-index:60;cursor:col-resize;touch-action:none}
+.sb-resizer::before{content:'';position:absolute;top:0;bottom:0;left:-5px;width:10px}
+.sb-resizer::after{content:'';position:absolute;top:0;bottom:0;left:-1px;width:3px;background:transparent;transition:background .15s}
+.sb-resizer:hover::after,.sb-resizer.dragging::after,.sb-resizer:focus-visible::after{background:var(--orange)}
+.sb-resizer:focus-visible{outline:none}
+body.sb-dragging{cursor:col-resize!important;user-select:none!important}
+body.sb-dragging .sidebar{transition:none}
+body.sb-dragging iframe,body.sb-dragging canvas{pointer-events:none}
 .sidebar-title{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;padding-left:4px}
 .nav-tabs{padding:12px 12px 0}
 .nav-tab{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;cursor:pointer;font-size:12.5px;font-weight:500;color:var(--muted);transition:.15s;margin-bottom:4px;border:1px solid transparent}
@@ -293,6 +301,7 @@ body:not(.cons-mode) .cons-only { display: none !important; }
 
 /* CHART CARDS */
 .chart-grid{display:grid;gap:18px;margin-bottom:18px}
+.chart-grid>*{min-width:0}
 .chart-grid.c1{grid-template-columns:1fr}
 .chart-grid.c2{grid-template-columns:1fr 1fr}
 .chart-grid.c3{grid-template-columns:1fr 1fr 1fr}
@@ -408,7 +417,7 @@ body.light .rank-row:hover{background:rgba(0,0,0,.04)}
 .status-pill.inactive{background:rgba(255,0,0,.15);color:var(--red);border:1px solid rgba(255,0,0,.3)}
 .status-pill.never{background:rgba(122,133,153,.15);color:var(--muted);border:1px solid var(--border)}
 
-.data-table-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--card);margin-bottom:16px}
+.data-table-wrap{border:1px solid var(--border);border-radius:10px;overflow-x:auto;overflow-y:hidden;background:var(--card);margin-bottom:16px}
 .data-table{width:100%;border-collapse:collapse;font-size:12px;text-align:left}
 .data-table thead tr{background:var(--bg3);border-bottom:1px solid var(--border)}
 .data-table th{padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);white-space:nowrap}
@@ -576,7 +585,7 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
 .modal-kpi-val{font-family:'DM Mono',monospace;font-size:18px;font-weight:700;margin-top:4px}
 .modal-kpi-sub{font-size:10.5px;color:var(--muted);margin-top:2px}
 .modal-section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-.modal-table-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.modal-table-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow-x:auto;overflow-y:hidden}
 .modal-table{width:100%;border-collapse:collapse;font-size:11.5px}
 .modal-table th{background:var(--bg2);padding:8px 12px;font-size:9.5px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);text-align:left}
 .modal-table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
@@ -645,12 +654,15 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
   display: none;
 }
 
-@media(max-width:1100px){
-  .rank-grid{grid-template-columns:1fr}
-  .chart-grid.c2{grid-template-columns:1fr}
-  .chart-grid.c4{grid-template-columns:repeat(2,1fr)}
-  .gauges-unified-row{grid-template-columns:repeat(2,1fr);gap:10px}
-  .gauge-cwrap{height:110px}
+/* Estreito = área de conteúdo com menos de 830px (equivale a tela de 1100px com o menu padrão).
+   Segue a largura real do conteúdo, então acompanha o tamanho que o menu lateral tiver. */
+.main.narrow .rank-grid{grid-template-columns:1fr}
+.main.narrow .chart-grid.c2{grid-template-columns:1fr}
+.main.narrow .chart-grid.c4{grid-template-columns:repeat(2,1fr)}
+.main.narrow .gauges-unified-row{grid-template-columns:repeat(2,1fr);gap:10px}
+.main.narrow .gauge-cwrap{height:110px}
+@media(max-width:900px){
+  .sb-resizer{display:none}
 }
 
 @media(max-width:900px){
@@ -947,6 +959,7 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
   </aside>
 
   <!-- BACKDROP PARA MOBILE SIDEBAR -->
+  <div class="sb-resizer" id="sb-resizer" role="separator" aria-orientation="vertical" aria-label="Ajustar largura do menu lateral" title="Arraste para ajustar o menu · duplo clique volta ao tamanho padrão" tabindex="0"></div>
   <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeMobileSidebar()"></div>
 
   <!-- MAIN VIEW CONTAINER -->
@@ -4571,12 +4584,21 @@ function renderRanking() {
 }
 
 // ─── HELPER: PARSER DE DATAS & DIAS DECORRIDOS ────────────────────────────────
+function fmtBuyDate(v, vazio) {
+  if(vazio === undefined) vazio = '—';
+  if(v === null || v === undefined || String(v).trim() === '') return vazio;
+  const d = parsePurchaseDate(v);
+  if(!d) return String(v);
+  const p2 = n => String(n).padStart(2, '0');
+  return p2(d.getDate()) + '/' + p2(d.getMonth() + 1) + '/' + d.getFullYear();
+}
 function parsePurchaseDate(dateStr) {
   if(!dateStr) return null;
   if(typeof dateStr === 'number') {
-    const excelEpoch = new Date(1899, 11, 30);
-    const d = new Date(excelEpoch.getTime() + dateStr * 86400000);
-    return isNaN(d.getTime()) ? null : d;
+    // Número de série do Excel (ex.: 46337). Calculado em UTC para não perder um dia por fuso horário.
+    if(!isFinite(dateStr) || dateStr < 1 || dateStr > 2958465) return null;
+    const u = new Date(Date.UTC(1899, 11, 30) + Math.floor(dateStr) * 86400000);
+    return new Date(u.getUTCFullYear(), u.getUTCMonth(), u.getUTCDate());
   }
   const s = String(dateStr).trim();
   if(!s) return null;
@@ -4772,7 +4794,7 @@ function renderClientesCRM() {
       <td>${c.city || '—'}</td>
       <td>${c.cons}</td>
       <td><span class="status-pill ${c.status.cls}">${c.status.label}</span></td>
-      <td style="font-family:'DM Mono',monospace;color:var(--muted)">${c.last_buy || '—'}</td>
+      <td style="font-family:'DM Mono',monospace;color:var(--muted);white-space:nowrap">${fmtBuyDate(c.last_buy)}</td>
       <td><span class="rec-pill ${c.recStatus.cls}">${c.recStatus.label}</span></td>
       <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:var(--green)">${fR0(c.totFat)}</td>
       <td class="wa-cell">
@@ -5322,7 +5344,7 @@ function renderCrmPage() {
       <td>${c.cons}</td>
       <td style="font-size:11px;color:var(--muted)">${c.group || '—'}</td>
       <td><span class="status-pill ${c.status.cls}">${c.status.label}</span></td>
-      <td style="font-family:'DM Mono',monospace;color:var(--muted)">${c.last_buy || '—'}</td>
+      <td style="font-family:'DM Mono',monospace;color:var(--muted);white-space:nowrap">${fmtBuyDate(c.last_buy)}</td>
       <td><span class="rec-pill ${c.recStatus.cls}">${c.recStatus.label}</span></td>
       <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:${c.totFat>0?'var(--green)':'var(--muted)'}">${fR0(c.totFat)}</td>
       <td class="wa-cell">
@@ -6332,7 +6354,7 @@ function openConsultantRaioX(consName) {
               <tr>
                 <td style="font-weight:700">${c.name}</td>
                 <td><span class="fstate-tag" style="background:var(--bg3);font-size:10px">${c.state}</span> ${c.city || ''}</td>
-                <td style="font-family:'DM Mono',monospace;color:var(--muted)">${c.last_buy || '—'}</td>
+                <td style="font-family:'DM Mono',monospace;color:var(--muted);white-space:nowrap">${fmtBuyDate(c.last_buy)}</td>
                 <td><span class="rec-pill ${c.recStatus.cls}">${c.recStatus.label}</span></td>
                 <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:var(--green)">${fR0(c.totFat)}</td>
                 <td class="wa-cell">
@@ -7667,7 +7689,7 @@ function exportSummaryData() {
     Cidade: r.city,
     Consultor: r.cons,
     Supervisor: r.sup,
-    Ultima_Compra: r.last_buy,
+    Ultima_Compra: fmtBuyDate(r.last_buy, ''),
     Faturamento_Total: (r.fat||[]).reduce((a,b)=>a+b,0),
     Pedidos_Total: (r.ped||[]).reduce((a,b)=>a+b,0)
   }));
@@ -7734,6 +7756,80 @@ function toggleMode() {
 window.addEventListener('resize', () => {
   Object.values(charts).forEach(c => { if(c && typeof c.resize === 'function') c.resize(); });
 });
+</script>
+<script>
+// ─── Menu lateral com largura ajustável (arrastar a linha divisória) ─────────
+const SB_MIN = 220, SB_MAX = 440, SB_DEF = 270, SB_KEY = 'farol_sb_w';
+function sbClamp(w) {
+  const max = Math.max(SB_MIN, Math.min(SB_MAX, window.innerWidth - 560)); // conteúdo nunca fica com menos de ~560px
+  return Math.round(Math.min(max, Math.max(SB_MIN, w)));
+}
+function sbApply(w, save) {
+  w = sbClamp(w);
+  document.documentElement.style.setProperty('--sb-w', w + 'px');
+  const r = document.getElementById('sb-resizer');
+  if(r) { r.setAttribute('aria-valuenow', w); r.setAttribute('aria-valuemin', SB_MIN); r.setAttribute('aria-valuemax', SB_MAX); }
+  if(save) { try { localStorage.setItem(SB_KEY, String(w)); } catch(e) {} }
+  mainWidthCheck();
+  return w;
+}
+function sbSaved() { try { const v = parseInt(localStorage.getItem(SB_KEY), 10); return isFinite(v) ? v : SB_DEF; } catch(e) { return SB_DEF; } }
+function mainWidthCheck() {
+  const m = document.querySelector('.main'); if(!m) return;
+  const w = m.clientWidth;
+  if(!w) return; // painel ainda escondido (tela de login)
+  m.classList.toggle('narrow', window.innerWidth <= 900 || w < 830);
+}
+(function initSidebarResizer() {
+  const r = document.getElementById('sb-resizer');
+  const sb = document.getElementById('app-sidebar');
+  if(!r || !sb) return;
+  let startX = 0, startW = 0, raf = 0, pending = null, cur = SB_DEF;
+  cur = sbApply(sbSaved(), false);
+  const move = e => {
+    pending = startW + (e.clientX - startX);
+    if(!raf) raf = requestAnimationFrame(() => { raf = 0; if(pending != null) cur = sbApply(pending, false); });
+  };
+  const end = e => {
+    if(!r.classList.contains('dragging')) return;
+    r.classList.remove('dragging'); document.body.classList.remove('sb-dragging');
+    try { r.releasePointerCapture(e.pointerId); } catch(_) {}
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', end);
+    window.removeEventListener('pointercancel', end);
+    if(raf) { cancelAnimationFrame(raf); raf = 0; }
+    if(pending != null) cur = sbApply(pending, true);
+    pending = null;
+    window.dispatchEvent(new Event('resize')); // gráficos se redesenham no tamanho final
+  };
+  r.addEventListener('pointerdown', e => {
+    if(e.button !== 0 || window.innerWidth <= 900) return;
+    e.preventDefault();
+    startX = e.clientX; startW = sb.getBoundingClientRect().width; pending = null;
+    r.classList.add('dragging'); document.body.classList.add('sb-dragging');
+    try { r.setPointerCapture(e.pointerId); } catch(_) {}
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
+  });
+  r.addEventListener('dblclick', () => { cur = sbApply(SB_DEF, true); window.dispatchEvent(new Event('resize')); });
+  r.addEventListener('keydown', e => {
+    const step = e.shiftKey ? 40 : 10;
+    if(e.key === 'ArrowLeft') cur = sbApply(cur - step, true);
+    else if(e.key === 'ArrowRight') cur = sbApply(cur + step, true);
+    else if(e.key === 'Home') cur = sbApply(SB_MIN, true);
+    else if(e.key === 'End') cur = sbApply(SB_MAX, true);
+    else return;
+    e.preventDefault();
+    window.dispatchEvent(new Event('resize'));
+  });
+  window.addEventListener('blur', () => end({ pointerId: 0 }));
+  let rt = 0;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { cur = sbApply(sbSaved(), false); }, 80); });
+  const main = document.querySelector('.main');
+  if(main && window.ResizeObserver) new ResizeObserver(() => mainWidthCheck()).observe(main);
+  else mainWidthCheck();
+})();
 </script>
 </body>
 </html>
