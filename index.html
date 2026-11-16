@@ -250,6 +250,10 @@ body:not(.cons-mode) .cons-only { display: none !important; }
 .btn-success{background:rgba(63,214,113,.15);color:var(--green);border:1px solid rgba(63,214,113,.3)}.btn-success:hover{background:rgba(63,214,113,.25)}
 .btn-danger{background:rgba(255,0,0,.1);color:var(--red);border:1px solid rgba(255,0,0,.25)}.btn-danger:hover{background:rgba(255,0,0,.2)}
 .btn-pill{padding:4px 12px;font-size:10px;border-radius:20px;letter-spacing:.5px}
+.wa-btn{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;text-decoration:none!important;color:var(--muted);font-size:10px;padding:3px 10px;line-height:1.2;flex-shrink:0}
+.wa-btn svg{width:13px;height:13px;flex-shrink:0}
+.wa-btn.wa-alert{border-color:var(--orange);color:var(--orange)}
+.wa-cell{text-align:right;white-space:nowrap}
 
 /* FILTER SUMMARY */
 .filter-summary{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:18px}
@@ -1371,7 +1375,7 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
                 <th>Última Compra</th>
                 <th>Recência (Dias)</th>
                 <th style="text-align:right">Faturamento Acumulado</th>
-                <th style="text-align:right;width:95px">Contato</th>
+                <th class="wa-cell">Contato</th>
               </tr>
             </thead>
             <tbody id="crm-top-clients-body"></tbody>
@@ -1427,7 +1431,7 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
                 <th>Última Compra</th>
                 <th>Recência (Dias)</th>
                 <th style="text-align:right">Fat. Total</th>
-                <th style="text-align:center;width:90px">Contato</th>
+                <th class="wa-cell">Contato</th>
               </tr>
             </thead>
             <tbody id="crm-full-table-body"></tbody>
@@ -4771,8 +4775,8 @@ function renderClientesCRM() {
       <td style="font-family:'DM Mono',monospace;color:var(--muted)">${c.last_buy || '—'}</td>
       <td><span class="rec-pill ${c.recStatus.cls}">${c.recStatus.label}</span></td>
       <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:var(--green)">${fR0(c.totFat)}</td>
-      <td style="text-align:right">
-        ${c.phone ? `<a href="https://wa.me/55${c.phone.replace(/\D/g,'')}?text=Ol%C3%A1%20${encodeURIComponent(c.name)}%2C%20aqui%20%C3%A9%20${encodeURIComponent(STATE.supervisor === 'TODOS' ? (c.sup || 'Caio Henrique') : STATE.supervisor)}%20da%20Farol%20Solar.%20Como%20est%C3%A3o%20seus%20projetos%3F" target="_blank" class="btn btn-ghost btn-pill" style="font-size:10px;padding:2px 8px">💬 WhatsApp</a>` : '<span style="color:var(--muted);font-size:10px">—</span>'}
+      <td class="wa-cell">
+        ${c.phone ? `<a href="https://wa.me/55${c.phone.replace(/\D/g,'')}?text=Ol%C3%A1%20${encodeURIComponent(c.name)}%2C%20aqui%20%C3%A9%20${encodeURIComponent(STATE.supervisor === 'TODOS' ? (c.sup || 'Caio Henrique') : STATE.supervisor)}%20da%20Farol%20Solar.%20Como%20est%C3%A3o%20seus%20projetos%3F" target="_blank" rel="noopener" class="btn btn-ghost btn-pill wa-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"/></svg>WhatsApp</a>` : '<span style="color:var(--muted);font-size:10px">—</span>'}
       </td>
     </tr>
   `).join('');
@@ -5321,8 +5325,8 @@ function renderCrmPage() {
       <td style="font-family:'DM Mono',monospace;color:var(--muted)">${c.last_buy || '—'}</td>
       <td><span class="rec-pill ${c.recStatus.cls}">${c.recStatus.label}</span></td>
       <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:${c.totFat>0?'var(--green)':'var(--muted)'}">${fR0(c.totFat)}</td>
-      <td style="text-align:center">
-        ${c.phone ? `<a href="https://wa.me/55${c.phone.replace(/\D/g,'')}?text=Ol%C3%A1%20${encodeURIComponent(c.name)}%2C%20aqui%20%C3%A9%20${encodeURIComponent(STATE.supervisor === 'TODOS' ? (c.sup || 'Caio Henrique') : STATE.supervisor)}%20da%20Farol%20Solar.%20Como%20est%C3%A3o%20seus%20projetos%3F" target="_blank" class="btn btn-ghost btn-pill" style="font-size:10px;padding:2px 8px">💬 WhatsApp</a>` : '<span style="color:var(--muted);font-size:10px">—</span>'}
+      <td class="wa-cell">
+        ${c.phone ? `<a href="https://wa.me/55${c.phone.replace(/\D/g,'')}?text=Ol%C3%A1%20${encodeURIComponent(c.name)}%2C%20aqui%20%C3%A9%20${encodeURIComponent(STATE.supervisor === 'TODOS' ? (c.sup || 'Caio Henrique') : STATE.supervisor)}%20da%20Farol%20Solar.%20Como%20est%C3%A3o%20seus%20projetos%3F" target="_blank" rel="noopener" class="btn btn-ghost btn-pill wa-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"/></svg>WhatsApp</a>` : '<span style="color:var(--muted);font-size:10px">—</span>'}
       </td>
     </tr>
   `).join('') : `<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--muted)">Nenhum integrador encontrado para este filtro.</td></tr>`;
@@ -6331,8 +6335,8 @@ function openConsultantRaioX(consName) {
                 <td style="font-family:'DM Mono',monospace;color:var(--muted)">${c.last_buy || '—'}</td>
                 <td><span class="rec-pill ${c.recStatus.cls}">${c.recStatus.label}</span></td>
                 <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:var(--green)">${fR0(c.totFat)}</td>
-                <td style="text-align:center">
-                  ${c.phone ? `<a href="https://wa.me/55${c.phone.replace(/\D/g,'')}?text=Ol%C3%A1%20${encodeURIComponent(c.name)}%2C%20aqui%20%C3%A9%20${encodeURIComponent(supName)}%20e%20${encodeURIComponent(consName)}%20da%20Farol%20Solar.%20Gostar%C3%ADamos%20de%20conversar%20sobre%20as%20condi%C3%A7%C3%B5es%20especiais%20deste%20m%C3%AAs!" target="_blank" class="btn btn-ghost btn-pill" style="font-size:10px;padding:2px 8px">💬 WhatsApp</a>` : '<span style="color:var(--muted);font-size:10px">—</span>'}
+                <td class="wa-cell">
+                  ${c.phone ? `<a href="https://wa.me/55${c.phone.replace(/\D/g,'')}?text=Ol%C3%A1%20${encodeURIComponent(c.name)}%2C%20aqui%20%C3%A9%20${encodeURIComponent(supName)}%20e%20${encodeURIComponent(consName)}%20da%20Farol%20Solar.%20Gostar%C3%ADamos%20de%20conversar%20sobre%20as%20condi%C3%A7%C3%B5es%20especiais%20deste%20m%C3%AAs!" target="_blank" rel="noopener" class="btn btn-ghost btn-pill wa-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"/></svg>WhatsApp</a>` : '<span style="color:var(--muted);font-size:10px">—</span>'}
                 </td>
               </tr>
             `).join('') : '<tr><td colspan="6" style="text-align:center;padding:12px;color:var(--muted)">Nenhum cliente Curva A cadastrado.</td></tr>'}
@@ -6366,8 +6370,8 @@ function openConsultantRaioX(consName) {
                 <td><span class="rec-pill ${c.recStatus.cls}">${c.recStatus.label}</span></td>
                 <td><span class="status-pill ${c.status.cls}">${c.status.label}</span></td>
                 <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:var(--text)">${fR0(c.totFat)}</td>
-                <td style="text-align:center">
-                  ${c.phone ? `<a href="https://wa.me/55${c.phone.replace(/\D/g,'')}?text=Ol%C3%A1%20${encodeURIComponent(c.name)}%2C%20tudo%20bem%3F%20Aqui%20%C3%A9%20${encodeURIComponent(supName)}%20da%20Farol%20Solar.%20Notamos%20que%20faz%20alguns%20dias%20que%20n%C3%A3o%20fechamos%20pedidos%20juntos.%20Temos%20novos%20m%C3%B3dulos%20e%20inversores%20com%20desconto%20especial%20para%20voc%C3%AA!" target="_blank" class="btn btn-ghost btn-pill" style="font-size:10px;padding:2px 8px;border-color:var(--orange);color:var(--orange)">⚡ Resgatar WhatsApp</a>` : '<span style="color:var(--muted);font-size:10px">—</span>'}
+                <td class="wa-cell">
+                  ${c.phone ? `<a href="https://wa.me/55${c.phone.replace(/\D/g,'')}?text=Ol%C3%A1%20${encodeURIComponent(c.name)}%2C%20tudo%20bem%3F%20Aqui%20%C3%A9%20${encodeURIComponent(supName)}%20da%20Farol%20Solar.%20Notamos%20que%20faz%20alguns%20dias%20que%20n%C3%A3o%20fechamos%20pedidos%20juntos.%20Temos%20novos%20m%C3%B3dulos%20e%20inversores%20com%20desconto%20especial%20para%20voc%C3%AA!" target="_blank" rel="noopener" class="btn btn-ghost btn-pill wa-btn wa-alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"/></svg>Resgatar</a>` : '<span style="color:var(--muted);font-size:10px">—</span>'}
                 </td>
               </tr>
             `).join('') : '<tr><td colspan="6" style="text-align:center;padding:12px;color:var(--muted)">Nenhum cliente em risco identificado nesta carteira! Toda a base está ativa e recente.</td></tr>'}
