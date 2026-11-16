@@ -419,6 +419,10 @@ body.light .rank-row:hover{background:rgba(0,0,0,.04)}
 
 .data-table-wrap{border:1px solid var(--border);border-radius:10px;overflow-x:auto;overflow-y:hidden;background:var(--card);margin-bottom:16px}
 .data-table{width:100%;border-collapse:collapse;font-size:12px;text-align:left}
+/* Tabelas centralizadas: título e conteúdo de cada coluna no mesmo eixo; só a coluna do nome fica à esquerda */
+table.tc th,table.tc td{text-align:center!important;vertical-align:middle}
+table.tc.n1 th:first-child,table.tc.n1 td:first-child:not([colspan]),
+table.tc.n2 th:nth-child(2),table.tc.n2 td:nth-child(2):not([colspan]){text-align:left!important}
 .data-table thead tr{background:var(--bg3);border-bottom:1px solid var(--border)}
 .data-table th{padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 .data-table td{padding:9px 12px;border-bottom:1px solid rgba(30,37,53,.5);color:var(--text)}
@@ -1211,7 +1215,7 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
           <span class="chart-pill pill-r" id="metas-count-badge">Consultores</span>
         </div>
         <div class="data-table-wrap">
-          <table class="metas-table" id="tbl-metas">
+          <table class="metas-table tc n2" id="tbl-metas">
             <thead>
               <tr>
                 <th style="width:36px">#</th>
@@ -1299,7 +1303,7 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
           <span class="chart-pill pill-o" id="reativ-list-count">0</span>
         </div>
         <div class="data-table-wrap reativ-table-wrap">
-          <table class="data-table">
+          <table class="data-table tc n2">
             <thead>
               <tr>
                 <th>Mês</th>
@@ -1345,7 +1349,7 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
         </div>
         <div class="conc-stats" id="conc-stats"></div>
         <div class="data-table-wrap">
-          <table class="data-table conc-table">
+          <table class="data-table conc-table tc n2">
             <thead>
               <tr>
                 <th style="width:30px">#</th>
@@ -1375,7 +1379,7 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
           <span class="chart-pill pill-g">VIPs</span>
         </div>
         <div class="data-table-wrap">
-          <table class="data-table">
+          <table class="data-table tc n2">
             <thead>
               <tr>
                 <th style="width:30px">#</th>
@@ -1430,7 +1434,7 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
         </div>
 
         <div class="data-table-wrap">
-          <table class="data-table">
+          <table class="data-table tc n2">
             <thead>
               <tr>
                 <th>ID</th>
@@ -1522,16 +1526,15 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
           <span class="chart-pill pill-p">Projeções</span>
         </div>
         <div class="data-table-wrap" style="margin-bottom:0">
-          <table class="data-table" id="t-proj-mensal">
+          <table class="data-table tc n1" id="t-proj-mensal">
             <thead>
               <tr>
                 <th>Indicador</th>
                 <th>Meta Equipe</th>
                 <th>Realizado</th>
-                <th>Ritmo / Dia Útil</th>
                 <th>Projeção Fim do Mês</th>
-                <th style="width:160px">% Meta (Projetado)</th>
-                <th>Status</th>
+                <th>% Meta Atingido</th>
+                <th style="width:180px">Status da Projeção</th>
               </tr>
             </thead>
             <tbody id="t-proj-mensal-body"></tbody>
@@ -3150,7 +3153,7 @@ function renderAcessosPedidos() {
   if(!box) return;
   if(cnt) cnt.textContent = `${PEDIDOS.length} ${PEDIDOS.length === 1 ? 'pedido' : 'pedidos'}`;
   if(!PEDIDOS.length) { box.innerHTML = '<div class="acc-empty">Nenhum pedido aguardando.</div>'; return; }
-  box.innerHTML = `<table class="acc-table"><thead><tr><th>Nome digitado</th><th>E-mail</th><th>Pedido em</th><th>Qual consultor é?</th><th></th></tr></thead><tbody>` +
+  box.innerHTML = `<table class="acc-table tc n1"><thead><tr><th>Nome digitado</th><th>E-mail</th><th>Pedido em</th><th>Qual consultor é?</th><th></th></tr></thead><tbody>` +
     PEDIDOS.map(p => {
       const sid = safeDomId(p.email);
       const ja = ACC_LIST.find(a => a.email === p.email);
@@ -3175,7 +3178,7 @@ function renderAcessosList() {
   const list = ACC_LIST.filter(a => !q || normTxt(`${a.email} ${a.cons} ${teamNameOf(a.sup)}`).includes(q));
   if(cnt) cnt.textContent = `${ACC_LIST.length} ${ACC_LIST.length === 1 ? 'acesso' : 'acessos'}`;
   if(!list.length) { box.innerHTML = `<div class="acc-empty">${ACC_LIST.length ? 'Nenhum acesso encontrado na busca.' : 'Nenhum acesso cadastrado ainda.'}</div>`; return; }
-  box.innerHTML = `<table class="acc-table"><thead><tr><th>E-mail</th><th>Consultor</th><th>Equipe</th><th>Situação</th><th></th></tr></thead><tbody>` +
+  box.innerHTML = `<table class="acc-table tc n1"><thead><tr><th>E-mail</th><th>Consultor</th><th>Equipe</th><th>Situação</th><th></th></tr></thead><tbody>` +
     list.map(a => `<tr>
       <td>${escHtml(a.email)}</td>
       <td><select class="form-select" onchange="changeAccessCons('${escHtml(a.email)}', this.value)">${consultantOptionsHtml(a.consId)}</select></td>
@@ -6126,7 +6129,7 @@ function renderCorridaMetasWidget() {
       </div>
 
       <div class="modal-table-wrap">
-        <table class="corrida-table">
+        <table class="corrida-table tc n1">
           <thead>
             <tr>
               <th>Consultor</th>
@@ -6338,7 +6341,7 @@ function openConsultantRaioX(consName) {
         <span>👑</span> Principais Contas VIP (Curva A) para Blindagem
       </div>
       <div class="modal-table-wrap">
-        <table class="modal-table">
+        <table class="modal-table tc n1">
           <thead>
             <tr>
               <th>Integrador</th>
@@ -6373,7 +6376,7 @@ function openConsultantRaioX(consName) {
         <span>🚨</span> Contas de Alto Valor para Resgate Imediato (>30d sem compras)
       </div>
       <div class="modal-table-wrap">
-        <table class="modal-table">
+        <table class="modal-table tc n1">
           <thead>
             <tr>
               <th>Integrador</th>
@@ -6479,7 +6482,7 @@ function renderMetasLevelsBox() {
     box.innerHTML = '<p>As metas de clientes, pedidos e fator de cada nível aparecem aqui quando a planilha de metas tiver a aba <b>BASE DE DADOS</b>.</p>';
     return;
   }
-  box.innerHTML = `<table class="metas-levels">
+  box.innerHTML = `<table class="metas-levels tc n1">
     <thead><tr><th>Nível</th><th>Clientes</th><th>Pedidos</th><th>Fator</th></tr></thead>
     <tbody>${levels.map(l => `<tr><td>${l.level}</td><td>${fNum(l.metaCli)}</td><td>${fNum(l.metaPed)}</td><td>${(l.metaFator || 0).toFixed(1).replace('.', ',')}×</td></tr>`).join('')}</tbody>
   </table>`;
