@@ -2008,7 +2008,7 @@ function getFocusStatesForSupervisor(supName) {
 // Paleta cíclica usada para colorir os estados prioritários dinamicamente
 // (cartões, botões de filtro e gráficos comparativos da página Estados de Foco).
 const FOCUS_STATE_PALETTE = [
-  '#3fd671', '#38bdf8', '#a855f7', '#f5a623', '#06b6d4',
+  '#70e000', '#00a8ff', '#a855f7', '#ffd60a', '#06b6d4',
   '#ec4899', '#84cc16', '#eab308', '#14b8a6', '#f43f5e'
 ];
 
@@ -2033,7 +2033,7 @@ function joinList(arr) {
 let FOCUS_STATES = [];
 
 const PALETTE = [
-  '#FF0000','#F37600','#3fd671','#38bdf8','#a855f7','#f5a623',
+  '#FF0000','#F37600','#70e000','#00a8ff','#a855f7','#ffd60a',
   '#06b6d4','#ec4899','#84cc16','#eab308','#14b8a6','#6366f1',
   '#f43f5e','#d946ef','#8b5cf6','#10b981'
 ];
@@ -4129,7 +4129,7 @@ function renderVisaoGeral() {
 
     pieLabels = top4Cities.map(c => c[0]);
     pieVals = top4Cities.map(c => c[1]);
-    pieColors = ['#3fd671', '#38bdf8', '#a855f7', '#f5a623'];
+    pieColors = ['#70e000', '#00a8ff', '#a855f7', '#ffd60a'];
 
     if(restSum > 0) {
       pieLabels.push('Outras Cidades');
@@ -4357,8 +4357,8 @@ function renderEstadosFoco() {
         {
           label: 'Clientes Positivados (Qtd)',
           data: focusMonthlyCli,
-          borderColor: '#3fd671',
-          backgroundColor: 'rgba(63,214,113,0.1)',
+          borderColor: '#70e000',
+          backgroundColor: 'rgba(112,224,0,0.1)',
           borderWidth: 2.5,
           borderDash: [5,4],
           tension: 0.35,
@@ -4495,7 +4495,7 @@ function renderEstadosFoco() {
   document.getElementById('title-state-cities').textContent = `Top Cidades em Faturamento — ${activeStName}`;
   
   let topCities = [];
-  let barColor = FOCUS_STATES.length ? getStateColor(FOCUS_STATES[0]) : '#3fd671';
+  let barColor = FOCUS_STATES.length ? getStateColor(FOCUS_STATES[0]) : '#70e000';
   if (stateStats[activeStName]) {
     topCities = Array.from(stateStats[activeStName].cities.entries()).sort((a,b)=>b[1]-a[1]).slice(0, 10);
     barColor = stateStats[activeStName].color;
@@ -5075,7 +5075,7 @@ function renderEvolucaoCarteira() {
   const rows = getFilteredRows();
   const { at, in_, nv, n } = evoSeries(rows);
   const light = isLightMode();
-  const cA = light ? '#15803d' : '#3fd671', cI = light ? '#dc2626' : '#ff3b3b', cN = light ? '#94a3b8' : '#4b5567', cL = light ? '#0369a1' : '#38bdf8';
+  const cA = light ? '#15803d' : '#70e000', cI = light ? '#dc2626' : '#ff3b3b', cN = light ? '#94a3b8' : '#4b5567', cL = light ? '#0369a1' : '#00a8ff';
   const isMonth = STATE.month && STATE.month !== 'todos';
   const mSel = isMonth ? parseInt(STATE.month, 10) : null;
   const idxs = []; for(let i = EVO_START; i < n; i++) idxs.push(i);
@@ -5149,11 +5149,11 @@ function evoDeltaFor(rows) {
 // contagem é por mês. O 1º mês possível é o 4º da planilha (precisa de histórico).
 const REATIV_MIN_GAP = 2;
 // Uma cor por mês do calendário (o mesmo mês tem sempre a mesma cor)
-const REATIV_MONTH_COLORS = ['#38bdf8', '#a855f7', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4',
+const REATIV_MONTH_COLORS = ['#00a8ff', '#a855f7', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4',
                              '#f97316', '#6366f1', '#84cc16', '#e11d48', '#14b8a6', '#eab308'];
 // Cor de cada equipe, ligada ao nome
-const TEAM_COLORS = { FAROL: '#f97316', GIRASSOL: '#eab308', CACTOS: '#22c55e', AURORA: '#a855f7', CLAREOU: '#38bdf8' };
-const CONS_COLORS = ['#38bdf8', '#a855f7', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4', '#6366f1',
+const TEAM_COLORS = { FAROL: '#f97316', GIRASSOL: '#eab308', CACTOS: '#22c55e', AURORA: '#a855f7', CLAREOU: '#00a8ff' };
+const CONS_COLORS = ['#00a8ff', '#a855f7', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4', '#6366f1',
                      '#84cc16', '#14b8a6', '#e11d48', '#eab308', '#8b5cf6', '#10b981', '#f43f5e', '#0ea5e9', '#d946ef'];
 function colorForName(name, palette) {
   let h = 0; const t = String(name || '');
@@ -5242,7 +5242,7 @@ function renderReativacoes() {
   const n = MONTH_KEYS.length;
   const START = REATIV_MIN_GAP + 1;
   const light = isLightMode();
-  const cGreen = light ? '#15803d' : '#3fd671';
+  const cGreen = light ? '#15803d' : '#70e000';
   const cFocus = light ? '#ea580c' : '#ff7a00';
   const cMuted = light ? 'rgba(90,98,128,0.35)' : 'rgba(122,133,153,0.38)';
 
@@ -5578,7 +5578,7 @@ function renderMensal() {
       datasets: [{
         label: 'Pedidos',
         data: sortedByPed.map(c => c.ped),
-        backgroundColor: 'rgba(56,189,248,0.85)',
+        backgroundColor: 'rgba(0,168,255,0.85)',
         borderRadius: 4,
         _fmt: 'n'
       }]
@@ -5705,7 +5705,7 @@ function renderMensal() {
     label: c.name,
     data: c.cli,
     borderColor: c.color,
-    backgroundColor: c.isSingle ? 'rgba(56,189,248,0.08)' : 'transparent',
+    backgroundColor: c.isSingle ? 'rgba(0,168,255,0.08)' : 'transparent',
     fill: c.isSingle,
     tension: 0.35,
     borderWidth: c.isSingle ? 3 : 2.5,
@@ -5897,8 +5897,8 @@ function renderGaugesAndProjections() {
   const t = data.team;
 
   function gaugeColor(pct) {
-    if(pct >= 100) return '#3fd671';
-    if(pct >= 70) return '#f5a623';
+    if(pct >= 100) return '#70e000';
+    if(pct >= 70) return '#ffd60a';
     return '#f03d3d';
   }
 
@@ -6006,7 +6006,7 @@ function renderGaugesAndProjections() {
 
   // 4. Share / Falta p/ Meta
   const gapFat = Math.max(0, t.fat.meta - t.fat.real);
-  const shareCol = gapFat === 0 ? '#3fd671' : '#a855f7';
+  const shareCol = gapFat === 0 ? '#70e000' : '#a855f7';
 
   renderChart('ch-gauge-share', {
     type: 'doughnut',
@@ -6066,7 +6066,7 @@ function renderProjectionsWidget() {
         {
           label: 'Realizado Atual',
           data: sorted.map(c => c.real),
-          backgroundColor: 'rgba(56, 189, 248, 0.85)',
+          backgroundColor: 'rgba(0,168,255, 0.85)',
           borderRadius: 4,
           _fmt: fmt,
           _hideLabels: true
@@ -6074,7 +6074,7 @@ function renderProjectionsWidget() {
         {
           label: 'Projeção Fim do Mês',
           data: sorted.map(c => Math.round(c.proj)),
-          backgroundColor: 'rgba(245, 166, 35, 0.85)',
+          backgroundColor: 'rgba(255,214,10, 0.85)',
           borderRadius: 4,
           _fmt: fmt,
           _hideLabels: true
@@ -6082,7 +6082,7 @@ function renderProjectionsWidget() {
         {
           label: 'Meta Estabelecida',
           data: sorted.map(c => c.meta),
-          backgroundColor: 'rgba(63, 214, 113, 0.85)',
+          backgroundColor: 'rgba(112,224,0, 0.85)',
           borderRadius: 4,
           _fmt: fmt,
           _hideLabels: true
@@ -6454,12 +6454,12 @@ function openConsultantRaioX(consName) {
         <span><i class="fi fi-rr-chart-pie-alt" aria-hidden="true"></i></span> Estrutura e Curva ABC da Carteira (${totalClients} Integradores)
       </div>
       <div class="modal-kpi-grid" style="grid-template-columns:repeat(3,1fr)">
-        <div class="modal-kpi" style="border-top:3px solid #3fd671;background:rgba(63,214,113,0.04)">
+        <div class="modal-kpi" style="border-top:3px solid #70e000;background:rgba(112,224,0,0.04)">
           <div class="modal-kpi-lbl" style="color:var(--green)"><i class="fi fi-rr-star" aria-hidden="true"></i> Curva A (VIPs 75%)</div>
           <div class="modal-kpi-val" style="color:var(--green)">${countA} <span style="font-size:12px;font-weight:400;color:var(--muted)">clientes</span></div>
           <div class="modal-kpi-sub">Faturado: <b>${fK(fatA)}</b> (${pctFatA.toFixed(1)}% do total)</div>
         </div>
-        <div class="modal-kpi" style="border-top:3px solid #38bdf8;background:rgba(56,189,248,0.04)">
+        <div class="modal-kpi" style="border-top:3px solid #00a8ff;background:rgba(0,168,255,0.04)">
           <div class="modal-kpi-lbl" style="color:var(--blue)"><i class="fi fi-rr-circle-small" aria-hidden="true"></i> Curva B (Médios 17%)</div>
           <div class="modal-kpi-val" style="color:var(--blue)">${countB} <span style="font-size:12px;font-weight:400;color:var(--muted)">clientes</span></div>
           <div class="modal-kpi-sub">Faturado: <b>${fK(fatB)}</b> (${pctFatB.toFixed(1)}% do total)</div>
@@ -8229,7 +8229,7 @@ function renderDescontos() {
 
 function renderDescMensal(scope, allMonths, selMonth, noRec) {
   const light = isLightMode();
-  const cBar = light ? '#ea580c' : '#f97316', cLine = light ? '#0369a1' : '#38bdf8', cTeam = light ? '#64748b' : '#94a3b8';
+  const cBar = light ? '#ea580c' : '#f97316', cLine = light ? '#0369a1' : '#00a8ff', cTeam = light ? '#64748b' : '#94a3b8';
   const by = {};
   allMonths.forEach(mk => by[mk] = { d: 0, fat: 0, plan: false });
   scope.forEach(x => { const b = by[x.mk]; if(!b) return; b.d += x.d; b.fat += x.fat; if(x.fatSrc === 'planilha') b.plan = true; });
@@ -8283,7 +8283,7 @@ function renderDescMensal(scope, allMonths, selMonth, noRec) {
 
 function renderDescCons(selMonth, months, noRec, tot, avg) {
   const light = isLightMode();
-  const cBar = light ? '#ea580c' : '#f97316', cGray = light ? '#94a3b8' : '#4b5567', cAvg = light ? '#0369a1' : '#38bdf8';
+  const cBar = light ? '#ea580c' : '#f97316', cGray = light ? '#94a3b8' : '#4b5567', cAvg = light ? '#0369a1' : '#00a8ff';
   const isPct = DESC_METRIC === 'pct';
   document.getElementById('desc-mt-rs').classList.toggle('on', !isPct);
   document.getElementById('desc-mt-pct').classList.toggle('on', isPct);
