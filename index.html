@@ -274,6 +274,13 @@ body.sb-dragging iframe,body.sb-dragging canvas{pointer-events:none}
 .nav-tab:hover{background:var(--bg3);color:var(--text)}
 .nav-tab.active{background:rgba(255,0,0,.1);color:var(--red);border-color:rgba(255,0,0,.25);font-weight:600}
 .nav-tab .tab-icon{font-size:15px;flex-shrink:0}
+.nav-tabs{position:relative}
+.nav-tab{position:relative;z-index:1}
+.nav-thumb{position:absolute;left:12px;right:12px;top:0;height:0;background:rgba(255,0,0,.1);border:1px solid rgba(255,0,0,.25);box-sizing:border-box;border-radius:10px;pointer-events:none;opacity:0;transition:transform .32s cubic-bezier(.4,0,.2,1),height .32s cubic-bezier(.4,0,.2,1),opacity .15s}
+.nav-thumb.no-anim{transition:none}
+.nav-tabs.has-thumb .nav-thumb{opacity:1}
+.nav-tabs.has-thumb .nav-tab.active,.nav-tabs.has-thumb .nav-tab.active:hover{background:transparent;border-color:transparent}
+@media (prefers-reduced-motion: reduce){.nav-thumb{transition:none}}
 .sidebar-divider{height:1px;background:var(--border);margin:8px 14px}
 .filter-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding-left:4px}
 .seg-btns{display:flex;flex-direction:column;gap:3px}
@@ -963,6 +970,7 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
     </div>
 
     <div class="nav-tabs">
+      <span class="nav-thumb no-anim" aria-hidden="true"></span>
       <div class="sidebar-title">Páginas de Análise</div>
       <div class="nav-tab active" onclick="setPage('geral',this)">
         <span class="tab-icon"><i class="fi fi-rr-apps" aria-hidden="true"></i></span>Visão Geral
@@ -4601,6 +4609,27 @@ function closeMobileSidebar() {
   if(bd) bd.classList.remove('active');
 }
 
+// Destaque do menu que desliza até a página escolhida
+function moveNavThumb(instant) {
+  const box = document.querySelector('.nav-tabs'); if(!box) return;
+  const th = box.querySelector('.nav-thumb'), on = box.querySelector('.nav-tab.active');
+  if(!th) return;
+  if(!on || !on.offsetParent || !on.offsetHeight) { box.classList.remove('has-thumb'); return; }
+  if(instant) th.classList.add('no-anim');
+  th.style.transform = 'translateY(' + on.offsetTop + 'px)';
+  th.style.height = on.offsetHeight + 'px';
+  box.classList.add('has-thumb');
+  if(instant || th.classList.contains('no-anim')) { void th.offsetWidth; requestAnimationFrame(() => th.classList.remove('no-anim')); }
+}
+(function initNavThumb() {
+  const go = () => {
+    const box = document.querySelector('.nav-tabs'); if(!box) return;
+    moveNavThumb(true);
+    try { new ResizeObserver(() => moveNavThumb(true)).observe(box); } catch(e) { window.addEventListener('resize', () => moveNavThumb(true)); }
+  };
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+})();
+
 function setPage(pageId, el) {
   if(pageId === 'notafutura') pageId = 'importar'; // seção dentro de Importar Planilha
   if(isConsMode() && (pageId === 'importar' || pageId === 'acessos')) pageId = 'geral';
@@ -4618,6 +4647,7 @@ function setPage(pageId, el) {
 
   const matchingMbNav = document.querySelector(`.mb-nav-item[data-page="${pageId}"]`);
   if(matchingMbNav) matchingMbNav.classList.add('active');
+  moveNavThumb();
 
   closeMobileSidebar();
   renderCurrentPage();
