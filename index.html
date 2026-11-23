@@ -4679,6 +4679,7 @@ function renderVisaoGeral() {
 
   // Gráfico 1: Linha de Evolução Mensal
   renderChart('ch-geral-timeline', {
+    _monthIdx: MONTH_SHORT.map((_, i) => i),
     type: 'line',
     data: {
       labels: MONTH_SHORT,
@@ -4976,6 +4977,7 @@ function renderEstadosFoco() {
   if(isMonthFiltered) pointRadii[m] = 8;
 
   renderChart('ch-state-focus-timeline', {
+    _monthIdx: MONTH_SHORT.map((_, i) => i),
     type: 'line',
     data: {
       labels: MONTH_SHORT,
@@ -5721,6 +5723,7 @@ function renderEvolucaoCarteira() {
   const fade = (col, i) => (isMonth && i !== mSel) ? col + '40' : col + 'd9';
   const pct = i => { const t = at[i] + in_[i] + nv[i]; return t ? at[i] / t * 100 : 0; };
   renderChart('ch-evo-carteira', {
+    _monthIdx: idxs,
     data: {
       labels: idxs.map(i => MONTH_SHORT[i] + (i === n - 1 ? (partialIdx >= 0 ? '*' : '') : '')),
       datasets: [
@@ -5916,6 +5919,7 @@ function renderReativacoes() {
     return c + 'e6';
   });
   renderChart('ch-reativ-mes', {
+    _monthIdx: idxs,
     type: 'bar',
     data: {
       labels: idxs.map(i => MONTH_SHORT[i] + (i === partialIdx ? '*' : '')),
@@ -6358,6 +6362,7 @@ function renderMensal() {
 
   // Renderizar Gráfico 1: Faturamento
   renderChart('ch-comp-fat', {
+    _monthIdx: MONTH_SHORT.map((_, i) => i),
     type: 'line',
     data: {
       labels: MONTH_SHORT,
@@ -6384,6 +6389,7 @@ function renderMensal() {
 
   // Renderizar Gráfico 2: Pedidos
   renderChart('ch-comp-ped', {
+    _monthIdx: MONTH_SHORT.map((_, i) => i),
     type: 'line',
     data: {
       labels: MONTH_SHORT,
@@ -6410,6 +6416,7 @@ function renderMensal() {
 
   // Renderizar Gráfico 3: Clientes
   renderChart('ch-comp-cli', {
+    _monthIdx: MONTH_SHORT.map((_, i) => i),
     type: 'line',
     data: {
       labels: MONTH_SHORT,
@@ -6570,6 +6577,7 @@ function renderLevelEvolution() {
   const isSel = x => selIdx >= 0 && x.idx === selIdx;
   const lvlColor = '#a855f7';
   renderChart('ch-lvl', {
+    _monthIdx: list.map(x => x.idx),
     type: 'line',
     data: {
       labels,
@@ -9321,7 +9329,38 @@ function renderChart(id, config) {
   if(!ctx) return;
   if(charts[id]) charts[id].destroy();
   try { reserveLabelRoom(config); } catch(e) { console.warn('Espaço dos rótulos:', e); }
+  if(Array.isArray(config._monthIdx)) attachMonthClick(config);
+  delete config._monthIdx;
   charts[id] = new Chart(ctx, config);
+}
+
+// Gráficos com um mês em cada coluna: clicar na coluna (ou na altura dela, nas
+// linhas) escolhe aquele mês no filtro de período; clicar de novo no mês já
+// escolhido volta para o período todo. config._monthIdx diz qual mês da planilha
+// é cada posição do eixo.
+function attachMonthClick(config) {
+  const map = config._monthIdx;
+  const o = config.options = config.options || {};
+  const hit = (chart, evt) => {
+    const els = chart.getElementsAtEventForMode(evt, 'index', { intersect: false }, true);
+    if(!els.length) return -1;
+    const a = chart.chartArea, x = evt.x, y = evt.y;
+    if(a && (x < a.left || x > a.right || y < a.top - 24 || y > a.bottom + 26)) return -1;
+    const mi = map[els[0].index];
+    return (mi === undefined || mi === null || mi < 0) ? -1 : mi;
+  };
+  const prevClick = o.onClick, prevHover = o.onHover;
+  o.onClick = (evt, els, chart) => {
+    if(prevClick) prevClick(evt, els, chart);
+    const mi = hit(chart, evt);
+    if(mi < 0) return;
+    setMonthFilter(String(STATE.month) === String(mi) ? 'todos' : String(mi));
+  };
+  o.onHover = (evt, els, chart) => {
+    if(prevHover) prevHover(evt, els, chart);
+    const t = evt.native && evt.native.target;
+    if(t) t.style.cursor = hit(chart, evt) >= 0 ? 'pointer' : 'default';
+  };
 }
 
 // Reserva espaço em volta da área do gráfico para os números escritos sobre
