@@ -4026,17 +4026,6 @@ async function publishConsultorArea(force) {
       if(!byCons.has(id)) cleanup.push(() => db.doc(`farol_cons/${id}`).delete().catch(() => {}));
     });
     ((prev && prev.teams) || []).forEach(tk => { if(!teams.has(tk)) cleanup.push(() => db.doc(`farol_equipe/${tk}`).delete().catch(() => {})); });
-    // Partes que sobraram de publicações que falharam no meio (não estão no registro anterior)
-    byCons.forEach((c, id) => {
-      cleanup.push(async () => {
-        try {
-          const ps = await db.collection(`farol_cons/${id}/partes`).get();
-          const dels = [];
-          ps.forEach(p => { if(!p.id.startsWith(version + '_')) dels.push(p.ref.delete().catch(() => {})); });
-          await Promise.all(dels);
-        } catch(e) {}
-      });
-    });
     await runPool(cleanup, 6);
 
     // Mantém os acessos com a equipe e o nome atuais da carteira
