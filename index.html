@@ -4812,6 +4812,7 @@ function renderVisaoGeral() {
 
   const top8 = sortedCons.slice(0, 8);
   renderChart('ch-geral-top-cons-bar', {
+    _consClick: top8.map(c => String(c.name || "").trim()),
     type: 'bar',
     data: {
       labels: top8.map(c => c.name.split(' ')[0]),
@@ -6187,6 +6188,7 @@ function renderMensal() {
 
   // Gráficos do Mês
   renderChart('ch-month-fat-bar', {
+    _consClick: sortedCons.map(c => String(c.name || "").trim()),
     type: 'bar',
     data: {
       labels: sortedCons.map(c => c.name.split(' ')[0]),
@@ -6212,6 +6214,7 @@ function renderMensal() {
 
   const sortedByPed = [...sortedCons].sort((a,b)=>b.ped - a.ped);
   renderChart('ch-month-ped-bar', {
+    _consClick: sortedByPed.map(c => String(c.name || "").trim()),
     type: 'bar',
     data: {
       labels: sortedByPed.map(c => c.name.split(' ')[0]),
@@ -9327,8 +9330,37 @@ function renderChart(id, config) {
   if(charts[id]) charts[id].destroy();
   try { reserveLabelRoom(config); } catch(e) { console.warn('Espaço dos rótulos:', e); }
   if(Array.isArray(config._monthIdx)) attachMonthClick(config);
-  delete config._monthIdx;
+  if(Array.isArray(config._consClick)) attachConsClick(config);
+  delete config._monthIdx; delete config._consClick;
   charts[id] = new Chart(ctx, config);
+}
+
+// Gráficos com um consultor em cada coluna: clicar na coluna escolhe o consultor
+// no menu lateral; clicar de novo no consultor já escolhido volta para a equipe toda.
+function attachConsClick(config) {
+  const names = config._consClick;
+  const o = config.options = config.options || {};
+  const hit = (chart, evt) => {
+    if(isConsMode()) return null;
+    const els = chart.getElementsAtEventForMode(evt, 'index', { intersect: false }, true);
+    if(!els.length) return null;
+    const a = chart.chartArea;
+    if(a && (evt.x < a.left || evt.x > a.right || evt.y < a.top - 24 || evt.y > a.bottom + 40)) return null;
+    return names[els[0].index] || null;
+  };
+  const prevClick = o.onClick, prevHover = o.onHover;
+  o.onClick = (evt, els, chart) => {
+    if(prevClick) prevClick(evt, els, chart);
+    const nm = hit(chart, evt);
+    if(!nm) return;
+    const same = STATE.consultant && STATE.consultant !== 'todos' && normTxt(STATE.consultant) === normTxt(nm);
+    setConsultantFilter(same ? 'todos' : nm);
+  };
+  o.onHover = (evt, els, chart) => {
+    if(prevHover) prevHover(evt, els, chart);
+    const t = evt.native && evt.native.target;
+    if(t) t.style.cursor = hit(chart, evt) ? 'pointer' : 'default';
+  };
 }
 
 // Gráficos com um mês em cada coluna: clicar na coluna (ou na altura dela, nas
