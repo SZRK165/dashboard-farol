@@ -348,6 +348,9 @@ body.sb-dragging iframe,body.sb-dragging canvas{pointer-events:none}
 .kpi-card:hover{border-color:rgba(255,100,0,.35);box-shadow:0 0 20px var(--glow);transform:translateY(-2px)}
 .kpi-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
 .kpi-value{font-size:24px;font-weight:700;letter-spacing:-.5px;font-variant-numeric:tabular-nums;color:var(--text)}
+.kpi-card:has(.kpi-full){container-type:inline-size}
+/* valor completo em R$ com centavos: diminui a fonte para caber sempre numa linha */
+.kpi-value.kpi-full{white-space:nowrap;font-size:clamp(13px,calc(100cqi / (var(--n,17) * .565)),24px)}
 .kpi-sub{font-size:11px;color:var(--muted);margin-top:4px}
 .kpi-sub b{color:var(--text)}
 
@@ -4545,8 +4548,8 @@ function renderVisaoGeral() {
   document.getElementById('kpi-strip-geral').innerHTML = `
     <div class="kpi-card k-fat">
       <div class="kpi-label">Faturamento ${isMonthFiltered ? '(' + mName + ')' : 'Total'} <span><i class="fi fi-rr-sack-dollar" aria-hidden="true"></i></span></div>
-      <div class="kpi-value">${fK(totFat)}</div>
-      <div class="kpi-sub">${isMonthFiltered ? 'Mês selecionado: <b>' + fR0(totFat) + '</b>' : 'Acumulado do período: <b>' + fR0(totFat) + '</b>'}</div>
+      <div class="kpi-value kpi-full" style="--n:${fR(totFat).length}">${fR(totFat)}</div>
+      <div class="kpi-sub">${isMonthFiltered ? 'Mês selecionado' : 'Acumulado do período'}</div>
     </div>
     <div class="kpi-card k-ped">
       <div class="kpi-label">Pedidos ${isMonthFiltered ? '(' + mName + ')' : 'Totais'} <span><i class="fi fi-rr-box-alt" aria-hidden="true"></i></span></div>
@@ -4555,7 +4558,7 @@ function renderVisaoGeral() {
     </div>
     <div class="kpi-card k-tkm">
       <div class="kpi-label">Ticket Médio <span><i class="fi fi-rr-tags" aria-hidden="true"></i></span></div>
-      <div class="kpi-value">${fR0(tkm)}</div>
+      <div class="kpi-value kpi-full" style="--n:${fR(tkm).length}">${fR(tkm)}</div>
       <div class="kpi-sub">Faturamento ÷ Pedidos</div>
     </div>
     <div class="kpi-card k-cli">
