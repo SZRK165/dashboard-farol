@@ -3356,11 +3356,23 @@ const FirebaseStore = {
   // meio do envio nunca deixa o painel com dados misturados.
   CHUNK_MAX_BYTES: 700000,
 
+  // Tamanho como o Firestore conta: número = 8 bytes, texto = bytes UTF-8 + 1, nome de campo = bytes + 1
+  docSize(v) {
+    if(v === null || v === undefined) return 1;
+    const t = typeof v;
+    if(t === 'number') return 8;
+    if(t === 'boolean') return 1;
+    if(t === 'string') return this._utf8(v) + 1;
+    if(Array.isArray(v)) { let n = 0; for(const x of v) n += this.docSize(x); return n; }
+    if(t === 'object') { let n = 32; for(const k of Object.keys(v)) n += this._utf8(k) + 1 + this.docSize(v[k]); return n; }
+    return 8;
+  },
+  _utf8(str) { let n = 0; for(let i = 0; i < str.length; i++) { const c = str.charCodeAt(i); n += c < 0x80 ? 1 : c < 0x800 ? 2 : (c >= 0xD800 && c < 0xDC00) ? (i++, 4) : 3; } return n; },
   splitIntoChunks(rows) {
     const chunks = [];
     let cur = [], size = 0;
     rows.forEach(r => {
-      const sz = JSON.stringify(r).length + 1;
+      const sz = this.docSize(r) + 4;
       if(cur.length && size + sz > this.CHUNK_MAX_BYTES) { chunks.push(cur); cur = []; size = 0; }
       cur.push(r); size += sz;
     });
