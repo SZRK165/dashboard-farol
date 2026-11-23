@@ -436,6 +436,14 @@ body.sb-dragging iframe,body.sb-dragging canvas{pointer-events:none}
 .fstate-card:hover{transform:translateY(-3px);border-color:rgba(255,100,0,.4);box-shadow:0 8px 24px var(--glow)}
 .seg-btn.active-dyn{background:var(--dyn-bg);color:var(--dyn-color);border-color:var(--dyn-border);font-weight:600}
 .seg-btn.active-dyn .seg-dot{background:var(--dyn-color)}
+/* Destaque deslizante dos Estados Prioritários e Consultores (muda de cor aos poucos) */
+.hl-wrap{position:relative}
+.hl-wrap>.seg-btn,.hl-wrap>.cons-btn{position:relative;z-index:1;transition:color .32s ease,background-color .15s,font-weight .32s}
+.hl-wrap .seg-dot{transition:background-color .32s ease}
+.hl-thumb{position:absolute;left:0;top:0;width:0;height:0;border:1px solid transparent;border-radius:8px;box-sizing:border-box;pointer-events:none;opacity:0;z-index:0;transition:transform .32s cubic-bezier(.4,0,.2,1),height .32s cubic-bezier(.4,0,.2,1),width .32s cubic-bezier(.4,0,.2,1),background-color .32s ease,border-color .32s ease,opacity .15s}
+.hl-wrap.hl-ready>.hl-thumb{opacity:1}
+.hl-wrap.hl-ready>.seg-btn.active,.hl-wrap.hl-ready>.seg-btn.active-red,.hl-wrap.hl-ready>.seg-btn.active-dyn,.hl-wrap.hl-ready>.cons-btn.active{background:transparent!important;border-color:transparent!important}
+@media (prefers-reduced-motion: reduce){.hl-thumb{transition:none}}
 .fstate-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .fstate-title{font-size:15px;font-weight:700}
 .fstate-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;text-transform:uppercase}
@@ -4428,6 +4436,50 @@ function populateStatesDropdown() {
 
 // Reconstrói os botões de filtro rápido de "Estados Prioritários" na barra
 // lateral de acordo com o FOCUS_STATES atual (que muda por supervisor).
+// Move o destaque até o item ativo; a cor de fundo e da borda vai mudando durante o caminho
+function slideHL(wrap, activeSel, colorsOf) {
+  if(!wrap) return;
+  wrap.classList.add('hl-wrap');
+  let th = wrap.querySelector(':scope > .hl-thumb');
+  const prev = wrap._hl;
+  if(!th) {
+    th = document.createElement('span'); th.className = 'hl-thumb'; th.setAttribute('aria-hidden', 'true');
+    wrap.insertBefore(th, wrap.firstChild);
+    if(prev) { // lista refeita: começa onde o destaque estava
+      th.style.transition = 'none';
+      th.style.transform = `translate(${prev.x}px,${prev.y}px)`; th.style.width = prev.w + 'px'; th.style.height = prev.h + 'px';
+      th.style.backgroundColor = prev.bg; th.style.borderColor = prev.bd;
+      th.offsetWidth; th.style.transition = '';
+    }
+  }
+  const on = wrap.querySelector(':scope > ' + activeSel);
+  if(!on || !on.offsetHeight) { if(!on) { wrap.classList.remove('hl-ready'); wrap._hl = null; } return; }
+  const c = colorsOf(on);
+  const t = { x: on.offsetLeft, y: on.offsetTop, w: on.offsetWidth, h: on.offsetHeight, bg: c[0], bd: c[1] };
+  const first = !wrap.classList.contains('hl-ready') || !prev;
+  if(first) th.style.transition = 'none';
+  th.style.transform = `translate(${t.x}px,${t.y}px)`; th.style.width = t.w + 'px'; th.style.height = t.h + 'px';
+  th.style.backgroundColor = t.bg; th.style.borderColor = t.bd;
+  if(first) { th.offsetWidth; th.style.transition = ''; }
+  wrap._hl = t;
+  wrap.classList.add('hl-ready');
+  if(!wrap._hlRO) { try { wrap._hlRO = new ResizeObserver(() => wrap._hlRefresh && wrap._hlRefresh()); wrap._hlRO.observe(wrap); } catch(e) {} }
+  wrap._hlRefresh = () => slideHL(wrap, activeSel, colorsOf);
+}
+function hexA(hex, a) {
+  const m = /^#?([0-9a-f]{6})/i.exec(String(hex || '')); if(!m) return hex;
+  const n = parseInt(m[1], 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`;
+}
+function slideStateHL() {
+  slideHL(document.getElementById('filter-state-btns'), '.seg-btn.active-red, .seg-btn.active-dyn, .seg-btn.active', el => {
+    if(el.dataset.st === 'geral' || el.classList.contains('active-red')) return ['rgba(255,0,0,.1)', 'rgba(255,0,0,.25)'];
+    const col = getStateColor(el.dataset.st); return [hexA(col, .12), hexA(col, .25)];
+  });
+}
+function slideConsHL() {
+  slideHL(document.getElementById('sidebar-cons-list'), '.cons-btn.active', () => ['rgba(255,68,0,.12)', 'rgba(255,68,0,.25)']);
+}
+
 function buildFocusStateButtons() {
   const wrap = document.getElementById('filter-state-btns');
   if(!wrap) return;
@@ -4447,6 +4499,7 @@ function buildFocusStateButtons() {
     </div>`;
   });
   wrap.innerHTML = html;
+  slideStateHL();
 }
 
 function buildSidebarConsultants() {
@@ -4473,6 +4526,7 @@ function buildSidebarConsultants() {
   });
 
   list.innerHTML = html;
+  slideConsHL();
 }
 
 function buildMonthSelectorButtons() {
@@ -4583,6 +4637,7 @@ function updateStateButtonsUI() {
       }
     }
   });
+  slideStateHL();
   const selOther = document.getElementById('sel-all-states');
   if(selOther) {
     if(!FOCUS_STATES.includes(STATE.state) && STATE.state !== 'geral') {
