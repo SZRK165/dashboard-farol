@@ -4504,7 +4504,9 @@ function buildFocusStateButtons() {
 
 function buildSidebarConsultants() {
   const list = document.getElementById('sidebar-cons-list');
-  const cons = getConsultantsListForCurrentFilters();
+  // Quem tem clientes primeiro, depois os "saiu"; cada grupo em ordem alfabética
+  const cons = getConsultantsListForCurrentFilters().slice().sort((a, b) =>
+    ((b.clients ? 1 : 0) - (a.clients ? 1 : 0)) || String(a.name).localeCompare(String(b.name), 'pt-BR', { sensitivity: 'base' }));
   
   let html = `<div class="cons-btn ${STATE.consultant==='todos'?'active':''}" onclick="setConsultantFilter('todos')">
     <div style="display:flex;align-items:center">
