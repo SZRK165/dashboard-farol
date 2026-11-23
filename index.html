@@ -988,9 +988,6 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
       <div class="nav-tab admin-only" onclick="setPage('importar',this)">
         <span class="tab-icon"><i class="fi fi-rr-file-import" aria-hidden="true"></i></span>Importar Planilha
       </div>
-      <div class="nav-tab admin-only" onclick="setPage('notafutura',this)">
-        <span class="tab-icon"><i class="fi fi-rr-receipt" aria-hidden="true"></i></span>Pedidos · Nota Futura
-      </div>
       <div class="nav-tab admin-only" onclick="setPage('acessos',this)">
         <span class="tab-icon"><i class="fi fi-rr-shield-check" aria-hidden="true"></i></span>Acessos<span class="nav-badge" id="nav-acessos-badge"></span>
       </div>
@@ -1830,7 +1827,7 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
     <div id="page-importar" class="page">
       <div class="page-header">
         <div>
-          <div class="page-title">Gerenciar <span>Planilha Excel</span></div>
+          <div class="page-title">Gerenciar <span>Planilhas</span></div>
           <div class="page-subtitle">Envie uma nova versão da planilha. Ela substitui a anterior no banco de dados.</div>
         </div>
         <div class="page-actions">
@@ -1856,23 +1853,7 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
         </div>
       </div>
 
-      <div class="chart-card" style="margin-top:20px">
-        <div class="chart-head">
-          <div>
-            <div class="chart-title"><i class="fi fi-rr-cloud" aria-hidden="true"></i> Onde os dados ficam salvos</div>
-            <div class="chart-subtitle">Como o painel guarda a planilha e as metas</div>
-          </div>
-        </div>
-        <div style="font-size:12.5px;color:var(--muted);line-height:1.8">
-          <p>• <b>Banco de dados (Firebase):</b> a última planilha enviada e as metas da equipe ficam salvas na nuvem.</p>
-          <p>• <b>Abertura direta:</b> ao abrir o link, o painel carrega sozinho a última planilha salva, em qualquer computador ou celular.</p>
-          <p>• <b>Atualização:</b> ao enviar uma nova planilha, ela substitui a anterior para todos que acessam o link.</p>
-        </div>
-      </div>
-    </div>
-
-    <div id="page-notafutura" class="page">
-      <div class="page-header">
+      <div class="page-header" id="nf-section" style="margin-top:34px;padding-top:26px;border-top:1px solid var(--border)">
         <div>
           <div class="page-title">Pedidos <span>pela Nota Futura</span></div>
           <div class="page-subtitle">O faturamento de cada mês passa a contar pela data em que o pedido foi faturado (nota futura), e não pela data em que foi criado.</div>
@@ -1915,6 +1896,20 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
           <p>• <b>Mês sem a data da nota futura no relatório</b> (o relatório só traz essa data a partir de 22/07/2026): continua pela carteira, tirando os pedidos que tiveram nota em outro mês e somando os que vieram de outro mês.</p>
           <p>• <b>Mês sem arquivo:</b> fica como na carteira.</p>
           <p>• A planilha da carteira salva no banco não é alterada. Ao enviar uma carteira nova, o painel refaz a conta sozinho, sem precisar reenviar os pedidos. Cancelados ficam de fora.</p>
+        </div>
+      </div>
+
+      <div class="chart-card" style="margin-top:20px">
+        <div class="chart-head">
+          <div>
+            <div class="chart-title"><i class="fi fi-rr-cloud" aria-hidden="true"></i> Onde os dados ficam salvos</div>
+            <div class="chart-subtitle">Como o painel guarda a planilha e as metas</div>
+          </div>
+        </div>
+        <div style="font-size:12.5px;color:var(--muted);line-height:1.8">
+          <p>• <b>Banco de dados (Firebase):</b> a última planilha enviada e as metas da equipe ficam salvas na nuvem.</p>
+          <p>• <b>Abertura direta:</b> ao abrir o link, o painel carrega sozinho a última planilha salva, em qualquer computador ou celular.</p>
+          <p>• <b>Atualização:</b> ao enviar uma nova planilha, ela substitui a anterior para todos que acessam o link.</p>
         </div>
       </div>
     </div>
@@ -4387,7 +4382,8 @@ function closeMobileSidebar() {
 }
 
 function setPage(pageId, el) {
-  if(isConsMode() && (pageId === 'importar' || pageId === 'acessos' || pageId === 'notafutura')) pageId = 'geral';
+  if(pageId === 'notafutura') pageId = 'importar'; // seção dentro de Importar Planilha
+  if(isConsMode() && (pageId === 'importar' || pageId === 'acessos')) pageId = 'geral';
   STATE.page = pageId;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -4410,6 +4406,7 @@ function setPage(pageId, el) {
 
 function renderCurrentPage() {
   if(STATE.page === 'acessos' && !isConsMode()) { renderAcessosPage(); return; }
+  if(STATE.page === 'importar' && !isConsMode()) { try { renderNfPage(); } catch(e) { console.error('Pedidos · nota futura:', e); } }
   if(!RAW_DATA || !RAW_DATA.length) return;
   if(isConsMode()) { const hc = document.getElementById('hdr-cons'); if(hc) hc.textContent = CONS_MODE.cons; }
   updateFilterSummaries();
@@ -4420,7 +4417,7 @@ function renderCurrentPage() {
   else if(STATE.page === 'clientes') renderClientesCRM();
   else if(STATE.page === 'mensal') renderMensal();
   else if(STATE.page === 'descontos') renderDescontos();
-  else if(STATE.page === 'notafutura') renderNfPage();
+
   refreshNotifications();
 }
 
