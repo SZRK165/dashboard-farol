@@ -1871,16 +1871,26 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
         <div class="chart-head">
           <div>
             <div class="chart-title"><i class="fi fi-rr-calendar" aria-hidden="true"></i> Mês a mês: carteira × nota futura</div>
-            <div class="chart-subtitle">Faturamento de equipamento (valor do pedido menos repasse), só de integradores da carteira</div>
+            <div class="chart-subtitle">Faturamento de equipamento (valor do pedido menos repasse). Nos meses da carteira, só integradores da carteira; antes dela, todos os pedidos</div>
           </div>
         </div>
         <div class="data-table-wrap" style="margin:0">
           <table class="data-table tc" id="t-nf">
-            <thead><tr><th>Mês</th><th>Planilha de pedidos</th><th>Carteira (data de criação)</th><th>Painel agora</th><th>Diferença</th><th>Pedidos (carteira → painel)</th><th>Como o mês é contado</th></tr></thead>
+            <thead><tr><th>Mês</th><th>Planilha de pedidos</th><th>Carteira (data de criação)</th><th>Painel agora</th><th>Diferença</th><th>Pedidos (carteira → painel)</th><th>Vendido por outro consultor</th><th>Como o mês é contado</th></tr></thead>
             <tbody id="t-nf-body"></tbody>
           </table>
         </div>
         <div class="desc-note" id="nf-note"></div>
+      </div>
+
+      <div class="chart-card" style="margin-bottom:18px">
+        <div class="chart-head">
+          <div>
+            <div class="chart-title"><i class="fi fi-rr-users" aria-hidden="true"></i> Quem vendeu</div>
+            <div class="chart-subtitle">Cada mês de cada cliente conta para o consultor que fez os pedidos, na equipe em que ele estava naquele mês (planilha de metas)</div>
+          </div>
+        </div>
+        <div id="nf-sellers"></div>
       </div>
 
       <div class="chart-card">
@@ -1895,6 +1905,8 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
           <p>• <b>Mês completo</b> (tem o arquivo do mês e do mês anterior, com a data da nota futura): faturamento e pedidos do mês vêm todos da nota futura.</p>
           <p>• <b>Mês sem a data da nota futura no relatório</b> (o relatório só traz essa data a partir de 22/07/2026): continua pela carteira, tirando os pedidos que tiveram nota em outro mês e somando os que vieram de outro mês.</p>
           <p>• <b>Mês sem arquivo:</b> fica como na carteira.</p>
+          <p>• <b>Quem vendeu:</b> cada pedido traz o consultor que vendeu. O faturamento, os pedidos e os clientes de cada mês contam para ele, na equipe em que estava naquele mês (planilha de metas), mesmo que hoje o cliente seja de outro consultor. Status, lista de clientes, top 10 e WhatsApp continuam pela carteira de hoje.</p>
+          <p>• <b>Meses antes da carteira</b> (2025, por exemplo) vêm só dos pedidos, contados pela data de criação, inclusive de clientes que não estão mais na carteira.</p>
           <p>• A planilha da carteira salva no banco não é alterada. Ao enviar uma carteira nova, o painel refaz a conta sozinho, sem precisar reenviar os pedidos. Cancelados ficam de fora.</p>
         </div>
       </div>
@@ -2102,71 +2114,224 @@ function applyNotaFutura() {
   try { _applyNotaFutura(); }
   finally { if(y) { applyYearView(y); try { buildGlobalMonthSelect(); } catch(e) {} } }
 }
+// ── Quem vendeu: nomes do sistema de pedidos × nomes da carteira ──
+// Mesmo consultor com outro nome no sistema de pedidos (conferido pelos clientes de cada um)
+const SELLER_ALIAS = {
+  'TALLYS LEAL': 'TALLYS EMANUEL', 'ISIS OLIVEIRA': 'ISIS CHRISTINE', 'BRENA VIANA': 'BRENA INGRID',
+  'MARCIO CAVALCANTE': 'MARCIO WENDELL', 'ISMAEL CARVALHO': 'ISMAEL HERBSTER', 'GILLIARD MATIAS': 'GILIARD BARBOSA',
+  'ALEXANDRE SOUZA': 'ALEXANDRE XAVIER', 'GUILHERME LIMA': 'GUILHERME RODRIGUES', 'ALANA SOUSA': 'ALANA KELLE',
+  'LUANDERSON NASCIMENTO': 'LUANDERSON LOURENCO', 'JAMILE SOUZA': 'JAMILE NASCIMENTO', 'JONATAS TAVARES': 'JONATHAS TAVARES',
+  'OTALIERNES MORAIS': 'OTALIERNES SILVA',
+  'ELA - TEMPORARIO ELA - TEMPORARIO': 'ELA - TEMPORARIO', 'LUC - TEMPORARIO LUC - TEMPORARIO': 'LUC - TEMPORARIO'
+};
+// Contas que não são vendedor: o mês fica com o dono do cliente na carteira
+const SELLER_NONE = /^(A DEFINIR|INTERNO\b|EXPURGO|Z PARA\b|PARAMETRIZACAO|NAN$|SEM VENDEDOR)/;
+const SEM_CONSULTOR = 'SEM CONSULTOR';
+function sellerKey(raw) {
+  let k = normTxt(raw);
+  if(!k || SELLER_NONE.test(k)) return '';
+  return SELLER_ALIAS[k] || k;
+}
+function sellerDisplay(raw) { return String(raw || '').replace(/\s+/g, ' ').trim().toUpperCase(); }
+function clientRows(rows) { return (rows || []).filter(r => !r._hist); }
+let HIST_STATS = null;   // resumo da atribuição por vendedor (página Importar)
+const PT_MONTH_KEY = ['janeiro', 'fevereiro', 'marco', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+
 function _applyNotaFutura() {
-  if(!RAW_DATA || !RAW_DATA.length) { NF_STATS = null; return; }
-  const keys = MONTH_YEAR_MAP.map(x => nfKey(x.y, x.m));
-  const n = keys.length;
-  // carteira original
-  RAW_DATA.forEach(r => {
+  const base = (RAW_DATA || []).filter(r => !r._hist);
+  if(!base.length) { NF_STATS = null; HIST_STATS = null; return; }
+  base.forEach(r => {
     if(!r._raw) Object.defineProperty(r, '_raw', { value: { fat: (r.fat || []).slice(), ped: (r.ped || []).slice() }, enumerable: false, writable: true, configurable: true });
   });
-  const has = NF && NF.agg && Object.keys(NF.agg).length;
-  const stats = keys.map(k => ({ k, cart: 0, cartPed: 0, now: 0, nowPed: 0, mode: 'carteira' }));
-  if(!has) {
-    RAW_DATA.forEach(r => {
-      r.fat = r._raw.fat.slice(); r.ped = r._raw.ped.slice();
-      for(let i = 0; i < n; i++) { stats[i].cart += r.fat[i] || 0; stats[i].cartPed += r.ped[i] || 0; }
-    });
-    stats.forEach(s => { s.now = s.cart; s.nowPed = s.cartPed; });
-    NF_STATS = { stats, complete: [], outside: {} };
-    return;
-  }
-  const complete = nfCompleteSet();
-  // por integrador: soma pela nota futura, o que sai de cada mês de criação e o que entra em cada mês da nota
-  const sumNf = new Map(), moveOut = new Map(), moveIn = new Map();
+  // meses da carteira (os do arquivo) e meses dos pedidos anteriores à carteira
+  const cartList = (FILE_META.months && FILE_META.months.length) ? FILE_META.months.slice() : MONTH_YEAR_MAP.map((x, i) => ({ key: MONTH_KEYS[i], y: x.y, m: x.m }));
+  const cartKeys = cartList.map(x => nfKey(x.y, x.m));
+  const has = !!(NF && NF.agg && Object.keys(NF.agg).length);
+  const first = cartKeys[0];
+  const pre = new Set();
+  if(has) Object.keys(NF.agg).forEach(mc => {
+    if(mc < first) pre.add(mc);
+    nfEntries(mc).forEach(e => { if(e[1] && e[1] < first) pre.add(e[1]); });
+  });
+  const preKeys = Array.from(pre).sort();
+  const keys = preKeys.concat(cartKeys), off = preKeys.length, n = keys.length;
+  const selYM = (STATE && STATE.month && STATE.month !== 'todos') ? MONTH_YEAR_MAP[parseInt(STATE.month, 10)] : null;
+  applyMonths(preKeys.map(k => { const [y, m] = k.split('-').map(Number); return { key: PT_MONTH_KEY[m - 1] + y, y, m: m - 1 }; }).concat(cartList));
+  if(selYM) { const ix = MONTH_YEAR_MAP.findIndex(x => x.y === selYM.y && x.m === selYM.m); STATE.month = ix >= 0 ? String(ix) : 'todos'; }
+  const kIdx = new Map(keys.map((k, i) => [k, i]));
+  const stats = keys.map((k, i) => ({ k, cart: 0, cartPed: 0, now: 0, nowPed: 0, moved: 0, mode: i < off ? 'pedidos' : 'carteira' }));
+  base.forEach(r => {
+    const raw = r._raw;
+    for(let i = off; i < n; i++) { stats[i].cart += raw.fat[i - off] || 0; stats[i].cartPed += raw.ped[i - off] || 0; }
+  });
+
+  // ── 1) valor de cada integrador em cada mês (dono atual), como antes ──
+  const complete = has ? nfCompleteSet() : new Set();
+  const sumNf = new Map(), moveOut = new Map(), moveIn = new Map(), dist = new Map(), names = new Map();
   const add = (map, id, k, v, q) => { let o = map.get(id); if(!o) { o = {}; map.set(id, o); } const a = o[k] || (o[k] = [0, 0]); a[0] += v; a[1] += q; };
-  Object.keys(NF.agg).forEach(mc => {
+  const addDist = (id, k, sk, disp, v, q) => {
+    let o = dist.get(id); if(!o) { o = {}; dist.set(id, o); }
+    const m = o[k] || (o[k] = {}); const a = m[sk] || (m[sk] = { v: 0, q: 0, disp }); a.v += v; a.q += q;
+  };
+  if(has) Object.keys(NF.agg).forEach(mc => {
     const g = NF.agg[mc];
-    Object.keys(g).forEach(id => {
-      Object.keys(g[id]).forEach(mn => {
-        const [v, q] = g[id][mn];
-        const eff = mn || mc; // sem data da nota: fica no mês de criação
-        add(sumNf, id, eff, v, q);
-        if(mn && mn !== mc) { add(moveOut, id, mc, v, q); add(moveIn, id, mn, v, q); }
-      });
+    nfEntries(mc).forEach(([id, mn, si, v, q]) => {
+      const eff = mn || mc;
+      add(sumNf, id, eff, v, q);
+      if(mn && mn !== mc) { add(moveOut, id, mc, v, q); add(moveIn, id, mn, v, q); }
+      const raw = (g.sellers && g.sellers[si]) || '';
+      addDist(id, eff, sellerKey(raw), sellerDisplay(raw), v, q);
+      if(g.names && g.names[id] && !names.has(id)) names.set(id, g.names[id]);
     });
   });
-  const known = new Set();
-  RAW_DATA.forEach(r => {
+  const known = new Set(base.map(r => String(r.id || '')));
+  const ownerVals = new Map(); // id -> { fat:[], ped:[] }
+  base.forEach(r => {
     const id = String(r.id || '');
-    known.add(id);
-    const raw = r._raw, fat = raw.fat.slice(), ped = raw.ped.slice();
+    const raw = r._raw, fat = Array(n).fill(0), ped = Array(n).fill(0);
     const sn = sumNf.get(id) || {}, mo = moveOut.get(id) || {}, mi = moveIn.get(id) || {};
     for(let i = 0; i < n; i++) {
       const k = keys[i];
-      stats[i].cart += raw.fat[i] || 0; stats[i].cartPed += raw.ped[i] || 0;
-      if(complete.has(k)) {
-        fat[i] = sn[k] ? Math.round(sn[k][0] * 100) / 100 : 0;
-        ped[i] = sn[k] ? sn[k][1] : 0;
-      } else if(NF.months[k] || mi[k] || NF.months[nfPrevKey(k)]) {
+      if(i < off) { if(sn[k]) { fat[i] = Math.round(sn[k][0] * 100) / 100; ped[i] = sn[k][1]; } continue; }
+      const rf = raw.fat[i - off] || 0, rp = raw.ped[i - off] || 0;
+      if(has && complete.has(k)) { fat[i] = sn[k] ? Math.round(sn[k][0] * 100) / 100 : 0; ped[i] = sn[k] ? sn[k][1] : 0; }
+      else if(has && (NF.months[k] || mi[k] || NF.months[nfPrevKey(k)])) {
         const o = mo[k] || [0, 0], a = mi[k] || [0, 0];
-        fat[i] = Math.max(0, Math.round(((raw.fat[i] || 0) - o[0] + a[0]) * 100) / 100);
-        ped[i] = Math.max(0, (raw.ped[i] || 0) - o[1] + a[1]);
-      }
-      stats[i].now += fat[i] || 0; stats[i].nowPed += ped[i] || 0;
+        fat[i] = Math.max(0, Math.round((rf - o[0] + a[0]) * 100) / 100); ped[i] = Math.max(0, rp - o[1] + a[1]);
+      } else { fat[i] = rf; ped[i] = rp; }
     }
-    r.fat = fat; r.ped = ped;
+    ownerVals.set(id, { fat, ped });
   });
-  keys.forEach((k, i) => {
-    stats[i].mode = complete.has(k) ? 'nf' : (NF.months[k] && (NF.months[k].cov || 0) > 0) || stats[i].now !== stats[i].cart ? 'ajuste' : (NF.months[k] ? 'semdata' : 'carteira');
-  });
-  // pedidos de integradores que não estão na carteira (ficam de fora, como na carteira)
-  const outside = {};
-  Object.keys(NF.agg).forEach(mc => Object.keys(NF.agg[mc]).forEach(id => {
+  // integradores fora da carteira: entram só nos meses anteriores à carteira
+  const outsideIds = [];
+  sumNf.forEach((o, id) => {
     if(known.has(id)) return;
-    Object.keys(NF.agg[mc][id]).forEach(mn => { const k = mn || mc; outside[k] = (outside[k] || 0) + NF.agg[mc][id][mn][0]; });
+    let any = false; const fat = Array(n).fill(0), ped = Array(n).fill(0);
+    for(let i = 0; i < off; i++) { const k = keys[i]; if(o[k]) { fat[i] = Math.round(o[k][0] * 100) / 100; ped[i] = o[k][1]; any = any || o[k][0] > 0 || o[k][1] > 0; } }
+    if(any) { ownerVals.set(id, { fat, ped }); outsideIds.push(id); }
+  });
+
+  // ── 2) consultores da carteira e equipe de cada um em cada mês (planilha de metas) ──
+  const consIdx = new Map();
+  base.forEach(r => {
+    const k = normTxt(r.cons); if(!k || consIdx.has(k)) return;
+    consIdx.set(k, { name: String(r.cons).trim(), consId: r.consId || '', sup: String(r.sup || '').trim() });
+  });
+  const plan = (METAS_PLAN && METAS_PLAN.months) ? METAS_PLAN.months.slice().sort((a, b) => (a.y * 12 + a.m) - (b.y * 12 + b.m)) : [];
+  const planByKey = new Map(plan.map(pm => [nfKey(pm.y, pm.m), pm]));
+  const teamSeen = new Map(); // nome normalizado -> [{k, sup}]
+  plan.forEach(pm => { const k = nfKey(pm.y, pm.m); pm.rows.forEach(x => {
+    const nk = normTxt(x.name); if(!teamSeen.has(nk)) teamSeen.set(nk, []); teamSeen.get(nk).push({ k, sup: x.sup, id: x.id });
+    if(x.id) { const ik = 'ID:' + x.id; if(!teamSeen.has(ik)) teamSeen.set(ik, []); teamSeen.get(ik).push({ k, sup: x.sup }); }
+  }); });
+  const teamCache = new Map();
+  const teamOf = (nk, consId, k) => {
+    const ck = nk + '|' + consId + '|' + k; if(teamCache.has(ck)) return teamCache.get(ck);
+    const list = (consId && teamSeen.get('ID:' + consId)) || teamSeen.get(nk) || [];
+    let t = '';
+    const hit = list.find(x => x.k === k);
+    if(hit) t = hit.sup;
+    else {
+      const ci = consIdx.get(nk);
+      if(list.length && k < list[0].k) t = list[0].sup;              // antes da primeira planilha de metas
+      else if(ci) t = ci.sup;                                          // depois: equipe da carteira de hoje
+      else if(list.length) t = list[list.length - 1].sup;              // saiu: última equipe conhecida
+    }
+    t = String(t || '').trim();
+    teamCache.set(ck, t); return t;
+  };
+
+  // ── 3) cada integrador × mês vai para quem vendeu, na equipe da época ──
+  const baseById = new Map(base.map(r => [String(r.id || ''), r]));
+  const histRows = new Map(); // id|consultor|equipe -> linha
+  const sellerTot = new Map(); // vendedores fora da carteira: nome -> { v, ini, fim }
+  let movedTot = 0;
+  const allIds = base.map(r => String(r.id || '')).concat(outsideIds);
+  allIds.forEach(id => {
+    const r = baseById.get(id) || null;
+    const vals = ownerVals.get(id); if(!vals) return;
+    const ownerNk = r ? normTxt(r.cons) : '';
+    const ownerName = r ? String(r.cons || '').trim() : SEM_CONSULTOR;
+    const pf = Array(n).fill(0), pp = Array(n).fill(0); // parte que fica na linha da carteira
+    const dd = dist.get(id) || {};
+    for(let i = 0; i < n; i++) {
+      const f = vals.fat[i] || 0, q = vals.ped[i] || 0;
+      if(!(f > 0 || q > 0)) continue;
+      const k = keys[i];
+      // quem vendeu neste mês
+      const parts = new Map();
+      const d = dd[k];
+      if(d) Object.keys(d).forEach(sk => {
+        const e = d[sk];
+        const tk = sk ? sk : (ownerNk || normTxt(SEM_CONSULTOR));
+        const ci = consIdx.get(tk);
+        const disp = sk ? (ci ? ci.name : e.disp) : ownerName;
+        const p = parts.get(tk) || { nk: tk, name: disp, consId: ci ? ci.consId : '', v: 0, q: 0 };
+        p.v += e.v; p.q += e.q; parts.set(tk, p);
+      });
+      if(!parts.size) parts.set(ownerNk || normTxt(SEM_CONSULTOR), { nk: ownerNk || normTxt(SEM_CONSULTOR), name: ownerName, consId: r ? (r.consId || '') : '', v: 1, q: 0 });
+      const list = Array.from(parts.values());
+      const tv = list.reduce((a, x) => a + Math.max(0, x.v), 0), tq = list.reduce((a, x) => a + x.q, 0);
+      // pedidos: inteiros que somam o total do mês
+      let qs = list.map(x => tq > 0 ? q * x.q / tq : (tv > 0 ? q * Math.max(0, x.v) / tv : q / list.length));
+      const qi = qs.map(Math.floor); let rest = q - qi.reduce((a, b) => a + b, 0);
+      qs.map((x, j) => [x - qi[j], j]).sort((a, b) => b[0] - a[0]).forEach(([, j]) => { if(rest > 0) { qi[j]++; rest--; } });
+      list.forEach((x, j) => {
+        const share = tv > 0 ? Math.max(0, x.v) / tv : 1 / list.length;
+        const fv = Math.round(f * share * 100) / 100, pv = qi[j];
+        if(!(fv > 0 || pv > 0)) return;
+        const team = teamOf(x.nk, x.consId, k);
+        const isOwnerRow = r && x.nk === ownerNk && normTxt(team) === normTxt(r.sup);
+        if(isOwnerRow) { pf[i] += fv; pp[i] += pv; }
+        else {
+          const hk = id + '|' + x.nk + '|' + normTxt(team);
+          let h = histRows.get(hk);
+          if(!h) {
+            h = { id, name: r ? r.name : (names.get(id) || ('Integrador ' + id)), group: r ? r.group : '', state: r ? r.state : '', city: r ? r.city : '',
+              phone: '', cnpj: r ? r.cnpj : '', cat: r ? r.cat : '', cons: x.name, consId: x.consId || '', sup: team, last_buy: '',
+              fat: Array(n).fill(0), ped: Array(n).fill(0), _hist: true };
+            histRows.set(hk, h);
+          }
+          h.fat[i] += fv; h.ped[i] += pv;
+          if(r && x.nk !== ownerNk) { movedTot += fv; stats[i].moved += fv; }
+        }
+        if(!consIdx.has(x.nk) && x.name !== SEM_CONSULTOR) {
+          const st = sellerTot.get(x.name) || { v: 0, ini: k, fim: k, team: '' };
+          st.v += fv; if(k < st.ini) st.ini = k; if(k > st.fim) { st.fim = k; } st.team = team || st.team; sellerTot.set(x.name, st);
+        }
+      });
+    }
+    if(r) { r.fat = pf.map(v => Math.round(v * 100) / 100); r.ped = pp; }
+  });
+  const hist = Array.from(histRows.values());
+  hist.forEach(h => { h.fat = h.fat.map(v => Math.round(v * 100) / 100); });
+  RAW_DATA = base.concat(hist);
+  RAW_DATA.forEach(r => { for(let i = 0; i < n; i++) { stats[i].now += r.fat[i] || 0; stats[i].nowPed += r.ped[i] || 0; } });
+  keys.forEach((k, i) => {
+    if(i < off) return;
+    stats[i].mode = (has && complete.has(k)) ? 'nf' : (has && NF.months[k] && (NF.months[k].cov || 0) > 0) || Math.abs(stats[i].now - stats[i].cart) > 1 ? 'ajuste' : (has && NF.months[k] ? 'semdata' : 'carteira');
+  });
+  const outside = {};
+  if(has) Object.keys(NF.agg).forEach(mc => nfEntries(mc).forEach(([id, mn, si, v]) => {
+    if(known.has(id)) return; const k = mn || mc; if(k < first) return; outside[k] = (outside[k] || 0) + v;
   }));
   NF_STATS = { stats, complete: Array.from(complete), outside };
+  const withSeller = has && Object.keys(NF.agg).some(mc => (NF.agg[mc].sellers || []).some(x => x));
+  HIST_STATS = { withSeller, moved: movedTot, histRows: hist.length,
+    sellers: Array.from(sellerTot.entries()).map(([name, x]) => ({ name, v: x.v, ini: x.ini, fim: x.fim, team: x.team })).sort((a, b) => b.v - a.v) };
+}
+// Linhas guardadas de um mês de pedidos: [integrador, mês da nota, índice do vendedor, valor, pedidos]
+function nfEntries(mc) {
+  const g = NF && NF.agg ? NF.agg[mc] : null;
+  return g && g.rows ? g.rows : [];
+}
+function nfFromStored(json) {
+  const x = typeof json === 'string' ? JSON.parse(json || '{}') : (json || {});
+  if(x && x.v === 2) return { rows: x.r || [], sellers: x.s || [], names: x.n || {} };
+  // formato antigo, sem vendedor: { id: { mn: [valor, qtd] } }
+  const rows = [];
+  Object.keys(x || {}).forEach(id => Object.keys(x[id] || {}).forEach(mn => { const a = x[id][mn]; rows.push([id, mn, 0, a[0], a[1]]); }));
+  return { rows, sellers: [''], names: {} };
 }
 
 // Lê os arquivos info_cli e agrupa por mês de criação → integrador → mês da nota futura
@@ -2201,14 +2366,16 @@ async function nfReadFile(file) {
   const col = (...names) => { for(const nm of names) if(hk[nm]) return hk[nm]; return null; };
   const C = {
     ped: col('numeropedido'), cri: col('datacriacaopedidoloja', 'datacriacaopedido'), nf: col('dtnotafutura'),
-    val: col('valorpedido'), rep: col('valorrepasse'), id: col('codintegrador'), st: col('statusloja')
+    val: col('valorpedido'), rep: col('valorrepasse'), id: col('codintegrador'), st: col('statusloja'),
+    rca: col('nomerca'), nome: col('nomeintegrador')
   };
   if(!C.ped || !C.cri || !C.val || !C.id) throw new Error(`"${file.name}" não parece um relatório de pedidos (faltam as colunas numero_pedido, data_criação_pedido_loja, valor_pedido ou cod_integrador).`);
   if(!C.nf) throw new Error(`"${file.name}" não tem a coluna DT_NOTA_FUTURA.`);
   return rows.map(r => ({
     ped: String(r[C.ped] || '').trim(), cri: nfParseDate(r[C.cri]), nf: nfParseDate(r[C.nf]),
     v: nfNum(r[C.val]) - (C.rep ? nfNum(r[C.rep]) : 0), id: String(r[C.id] || '').trim(),
-    canc: C.st ? /cancel/i.test(String(r[C.st] || '')) : false
+    canc: C.st ? /cancel|devolvid/i.test(String(r[C.st] || '')) : false,
+    rca: C.rca ? String(r[C.rca] || '').trim() : '', nome: C.nome ? String(r[C.nome] || '').replace(/\s+/g, ' ').trim().slice(0, 70) : ''
   })).filter(x => x.ped && x.cri && x.id);
 }
 async function handleNfFiles(input) {
@@ -2239,18 +2406,22 @@ async function handleNfFiles(input) {
     if(o.canc) { canc++; return; }
     mt.v += o.v;
     const mn = o.nf ? nfKey(o.nf.getFullYear(), o.nf.getMonth()) : '';
-    const g = byMonth[mc] || (byMonth[mc] = {});
-    const gi = g[o.id] || (g[o.id] = {});
-    const a = gi[mn] || (gi[mn] = [0, 0]);
-    a[0] = Math.round((a[0] + o.v) * 100) / 100; a[1] += 1;
+    const g = byMonth[mc] || (byMonth[mc] = { map: new Map(), sellers: [], sIdx: new Map(), names: {} });
+    if(!g.sIdx.has(o.rca)) { g.sIdx.set(o.rca, g.sellers.length); g.sellers.push(o.rca); }
+    const si = g.sIdx.get(o.rca);
+    const key = o.id + '|' + mn + '|' + si;
+    const a = g.map.get(key) || [o.id, mn, si, 0, 0];
+    a[3] = Math.round((a[3] + o.v) * 100) / 100; a[4] += 1; g.map.set(key, a);
+    if(o.nome && !g.names[o.id]) g.names[o.id] = o.nome;
   });
+  Object.keys(byMonth).forEach(mc => { const g = byMonth[mc]; byMonth[mc] = { rows: Array.from(g.map.values()), sellers: g.sellers, names: g.names }; });
   const mcs = Object.keys(byMonth).sort();
   if(!mcs.length) { showSaveToast('<i class="fi fi-rr-cross-circle" aria-hidden="true"></i> Nenhum pedido encontrado nos arquivos.', 'err', 0); return; }
   const now = new Date().toISOString();
   const metaMonths = Object.assign({}, (NF && NF.months) || {});
   mcs.forEach(mc => {
     const mt = meta[mc];
-    metaMonths[mc] = { file: Array.from(mt.file).join(', '), savedAt: now, n: mt.n, cov: mt.n ? Math.round(mt.withNf / mt.n * 1000) / 1000 : 0, v: Math.round(mt.v) };
+    metaMonths[mc] = { file: Array.from(mt.file).join(', '), savedAt: now, n: mt.n, cov: mt.n ? Math.round(mt.withNf / mt.n * 1000) / 1000 : 0, v: Math.round(mt.v), sel: 1 };
   });
   showSaveToast('<i class="fi fi-rr-cloud" aria-hidden="true"></i> Salvando ' + mcs.length + (mcs.length === 1 ? ' mês' : ' meses') + ' de pedidos…', '', 0);
   try { await FirebaseStore.saveNotaFuturaMonths(byMonth, metaMonths); }
@@ -2261,8 +2432,7 @@ async function handleNfFiles(input) {
   applyNotaFutura();
   renderCurrentPage();
   const semData = mcs.filter(mc => metaMonths[mc].cov < 0.02);
-  showSaveToast(`<i class="fi fi-rr-check-circle" aria-hidden="true"></i> Pedidos salvos: <b>${mcs.map(nfLabel).join(', ')}</b> (${byPed.size.toLocaleString('pt-BR')} pedidos${canc ? ', ' + canc + ' cancelados fora da conta' : ''}).` +
-    (semData.length ? `<br>Sem data da nota futura: ${semData.map(nfLabel).join(', ')} (continuam pela carteira).` : ''), 'ok', 9000);
+  showSaveToast(`<i class="fi fi-rr-check-circle" aria-hidden="true"></i> Pedidos salvos: <b>${mcs.length > 6 ? nfLabel(mcs[0]) + ' a ' + nfLabel(mcs[mcs.length - 1]) : mcs.map(nfLabel).join(', ')}</b> (${byPed.size.toLocaleString('pt-BR')} pedidos${canc ? ', ' + canc + ' cancelados ou devolvidos fora da conta' : ''}).`, 'ok', 9000);
   setTimeout(() => publishConsultorArea(true), 2500);
 }
 async function nfRemoveMonth(mc) {
@@ -2290,19 +2460,20 @@ function renderNfPage() {
     ? `<i class="fi fi-rr-check-circle" aria-hidden="true"></i> Pedidos de <b>${loaded.length}</b> ${loaded.length === 1 ? 'mês' : 'meses'} salvos (${nfLabel(loaded[0])} a ${nfLabel(loaded[loaded.length - 1])}) · ${nComplete} ${nComplete === 1 ? 'mês contado' : 'meses contados'} pela nota futura`
     : '<i class="fi fi-rr-info" aria-hidden="true"></i> Nenhuma planilha de pedidos enviada ainda. O painel está contando tudo pela carteira.';
   const fullMap = fullMonthYearMap();
-  const tot = st.stats.reduce((a, x) => { a.c += x.cart; a.n += x.now; return a; }, { c: 0, n: 0 });
+  const cartStats = st.stats.filter(x => x.mode !== 'pedidos');
+  const tot = cartStats.reduce((a, x) => { a.c += x.cart; a.n += x.now; return a; }, { c: 0, n: 0 });
   document.getElementById('nf-kpis').innerHTML = `
     <div class="kpi-card"><div class="kpi-label">Carteira (criação)</div><div class="kpi-value">${fK(tot.c)}</div><div class="kpi-sub">${fR0(tot.c)}</div></div>
     <div class="kpi-card"><div class="kpi-label">Painel agora</div><div class="kpi-value">${fK(tot.n)}</div><div class="kpi-sub">${fR0(tot.n)}</div></div>
     <div class="kpi-card"><div class="kpi-label">Diferença</div><div class="kpi-value">${(tot.n - tot.c >= 0 ? '+' : '−') + fK(Math.abs(tot.n - tot.c))}</div><div class="kpi-sub">no período da carteira</div></div>
-    <div class="kpi-card"><div class="kpi-label">Meses pela nota futura</div><div class="kpi-value">${nComplete}</div><div class="kpi-sub">de ${st.stats.length} da carteira</div></div>`;
-  const modeTxt = { nf: '<span class="chart-pill pill-g" style="font-size:9.5px">Nota futura</span>', ajuste: '<span class="chart-pill pill-o" style="font-size:9.5px">Carteira ajustada</span>', semdata: '<span class="chart-pill pill-p" style="font-size:9.5px">Sem data da nota</span>', carteira: '<span class="chart-pill" style="font-size:9.5px">Carteira</span>' };
+    <div class="kpi-card"><div class="kpi-label">Meses pela nota futura</div><div class="kpi-value">${nComplete}</div><div class="kpi-sub">de ${cartStats.length} da carteira</div></div>`;
+  const modeTxt = { pedidos: '<span class="chart-pill pill-b" style="font-size:9.5px">Só pedidos (antes da carteira)</span>', nf: '<span class="chart-pill pill-g" style="font-size:9.5px">Nota futura</span>', ajuste: '<span class="chart-pill pill-o" style="font-size:9.5px">Carteira ajustada</span>', semdata: '<span class="chart-pill pill-p" style="font-size:9.5px">Sem data da nota</span>', carteira: '<span class="chart-pill" style="font-size:9.5px">Carteira</span>' };
   body.innerHTML = st.stats.slice().reverse().map(x => {
-    const mt = months[x.k], d = x.now - x.cart;
+    const mt = months[x.k], d = x.mode === 'pedidos' ? 0 : x.now - x.cart;
     const arq = mt ? `${fNum(mt.n)} pedidos · ${mt.cov >= NF_MIN_COV ? 'com nota futura' : mt.cov > 0.02 ? Math.round(mt.cov * 100) + '% com nota futura' : 'sem data da nota'} <button type="button" class="btn btn-ghost btn-pill" style="font-size:9.5px;padding:1px 8px;margin-left:6px" data-nf-del="${x.k}" onclick="nfRemoveMonth('${x.k}')">Remover</button>` : '<span style="color:var(--muted)">—</span>';
-    return `<tr><td><b>${nfLabel(x.k)}</b></td><td>${arq}</td><td>${fR0(x.cart)}</td><td><b>${fR0(x.now)}</b></td>
+    return `<tr><td><b>${nfLabel(x.k)}</b></td><td>${arq}</td><td>${x.mode === 'pedidos' ? '<span style="color:var(--muted)">fora da carteira</span>' : fR0(x.cart)}</td><td><b>${fR0(x.now)}</b></td>
       <td style="color:${Math.abs(d) < 1 ? 'var(--muted)' : d > 0 ? 'var(--green)' : 'var(--red)'}">${Math.abs(d) < 1 ? '—' : (d > 0 ? '+' : '−') + fR0(Math.abs(d))}</td>
-      <td>${fNum(x.cartPed)} → ${fNum(x.nowPed)}</td><td>${modeTxt[x.mode] || ''}</td></tr>`;
+      <td>${x.mode === 'pedidos' ? fNum(x.nowPed) : fNum(x.cartPed) + ' → ' + fNum(x.nowPed)}</td><td>${x.moved > 1 ? fR0(x.moved) : '—'}</td><td>${modeTxt[x.mode] || ''}</td></tr>`;
   }).join('');
   const extra = loaded.filter(k => !st.stats.some(x => x.k === k));
   const outTot = Object.values(st.outside || {}).reduce((a, b) => a + b, 0);
@@ -2311,6 +2482,26 @@ function renderNfPage() {
   if(outTot > 0) notes.push(`${fR0(outTot)} em pedidos de integradores que não estão na carteira ficaram de fora (como já acontece na carteira).`);
   notes.push('Os valores do painel inteiro (Visão Geral, Metas, Ranking, Evolução, Descontos e a área dos consultores) já usam a coluna "Painel agora".');
   document.getElementById('nf-note').textContent = notes.join(' ');
+  renderNfSellers(loaded);
+}
+function renderNfSellers(loaded) {
+  const box = document.getElementById('nf-sellers');
+  if(!box) return;
+  const H = HIST_STATS;
+  if(!loaded.length || !H) { box.innerHTML = '<div class="desc-note">Envie as planilhas de pedidos (info_cli) para o painel saber quem vendeu em cada mês.</div>'; return; }
+  const semVend = loaded.filter(k => !(NF.months[k] && NF.months[k].sel));
+  let h = '';
+  if(semVend.length) h += `<div class="desc-status" style="margin:0 0 12px;color:var(--orange)"><i class="fi fi-rr-triangle-warning" aria-hidden="true"></i> ${semVend.length} ${semVend.length === 1 ? 'mês foi salvo' : 'meses foram salvos'} antes desta versão, sem o vendedor (${semVend.length > 6 ? nfLabel(semVend[0]) + ' a ' + nfLabel(semVend[semVend.length - 1]) : semVend.map(nfLabel).join(', ')}). Esses meses ficam com o dono de hoje até você reenviar os arquivos desses meses.</div>`;
+  h += `<div class="desc-note" style="margin:0 0 10px">${fR0(H.moved)} de clientes da carteira foram vendidos por outro consultor (e ficam com quem vendeu). Pedidos sem vendedor definido ("A DEFINIR", usuários internos, testes) ficam com o dono do cliente.</div>`;
+  const list = (H.sellers || []).filter(x => x.v > 1);
+  const curTeams = new Set(getSupervisorsList().map(normTxt));
+  if(list.length) {
+    h += `<div style="font-size:12px;font-weight:700;margin:6px 0 8px">Vendedores que não estão na carteira de hoje (${list.length})</div>
+      <div class="data-table-wrap" style="margin:0;max-height:320px;overflow:auto"><table class="data-table tc"><thead><tr><th>Vendedor</th><th>Vendeu</th><th>De</th><th>Até</th><th>Última equipe</th></tr></thead><tbody>` +
+      list.map(x => `<tr><td style="text-align:left">${escHtml(x.name)}</td><td>${fR0(x.v)}</td><td>${nfLabel(x.ini)}</td><td>${nfLabel(x.fim)}</td><td>${x.team ? (curTeams.has(normTxt(x.team)) ? escHtml(teamNameOf(x.team)) : '<span style="color:var(--muted)">equipe encerrada</span>') : '<span style="color:var(--muted)">sem equipe na planilha de metas</span>'}</td></tr>`).join('') +
+      `</tbody></table></div><div class="desc-note">Quem saiu aparece com o que vendeu (Ranking, Evolução, Metas). Se algum nome desta lista for de um consultor que está na carteira com outro nome, me avise para ligar os dois.</div>`;
+  }
+  box.innerHTML = h;
 }
 
 // ─── FILTRO DE ANO ────────────────────────────────────────────────────────────
@@ -2993,14 +3184,16 @@ function getTeamRoster(sup, idx) {
     });
     return { fromPlan: true, planMonth: pm, members };
   }
+  // Sem planilha de metas no mês: a equipe é a da carteira de hoje; as vendas do
+  // consultor entram todas (inclusive as de clientes que hoje são de outro dono)
   const map = new Map();
   (RAW_DATA || []).forEach(r => {
-    if(!r.cons || !sameSup(r.sup, sup)) return;
+    if(r._hist || !r.cons || !sameSup(r.sup, sup)) return;
     const k = r.cons.trim().toUpperCase();
-    if(!map.has(k)) map.set(k, []);
-    map.get(k).push(r);
+    if(!map.has(k)) map.set(k, true);
   });
-  const members = Array.from(map.keys()).sort().map(k => ({ name: k, planName: k, id: '', rows: map.get(k), meta: getConsultantMeta(k, idx) }));
+  buildConsIndex();
+  const members = Array.from(map.keys()).sort().map(k => ({ name: k, planName: k, id: '', rows: _consByName.get(normTxt(k)) || [], meta: getConsultantMeta(k, idx) }));
   return { fromPlan: false, planMonth: null, members };
 }
 
@@ -3125,7 +3318,7 @@ const FirebaseStore = {
       const d = await col.doc('nf_' + mc).get();
       if(!d.exists) return;
       const x = d.data();
-      try { out.agg[mc] = JSON.parse(x.json || '{}'); out.months[mc] = months[mc]; } catch(e) { console.warn('Mês de pedidos ilegível:', mc, e); }
+      try { out.agg[mc] = nfFromStored(x.json); out.months[mc] = months[mc]; } catch(e) { console.warn('Mês de pedidos ilegível:', mc, e); }
     }));
     return out;
   },
@@ -3133,7 +3326,8 @@ const FirebaseStore = {
     if(!this.ready || !this.db) throw new Error('Banco de dados não conectado');
     const col = this.db.collection('farol_metas');
     for(const mc of Object.keys(byMonth)) {
-      await col.doc('nf_' + mc).set({ mc, json: JSON.stringify(byMonth[mc]), savedAt: new Date().toISOString() });
+      const g = byMonth[mc];
+      await col.doc('nf_' + mc).set({ mc, json: JSON.stringify({ v: 2, r: g.rows, s: g.sellers, n: g.names }), savedAt: new Date().toISOString() });
     }
     await col.doc('nf_index').set({ months: metaMonths, savedAt: new Date().toISOString() });
   },
@@ -3433,7 +3627,7 @@ async function loadAppData() {
 // ═════════════════════════════════════════════════════════════════════════════
 const ADMIN_EMAILS = ['analisesupervisaosou@gmail.com'];
 const CONS_DOMAIN = [114,98,46,109,111,99,46,121,103,114,101,110,101,117,111,115].reverse().map(c=>String.fromCharCode(c)).join('');
-const PUB_FORMAT = 1;
+const PUB_FORMAT = 2; // 2: histórico por vendedor
 let USER_ROLE = null;       // 'admin' | 'consultor'
 let CONS_MODE = null;       // { email, consId, cons, sup, teamKey }
 let TEAM_SUMMARY = null;    // resumo da equipe do consultor
@@ -3676,7 +3870,7 @@ async function runPool(tasks, limit) {
 function consultantOptions() {
   const map = new Map();
   (RAW_DATA || []).forEach(r => {
-    if(!r.consId || !r.cons) return;
+    if(!r.consId || !r.cons || r._hist) return;
     if(!map.has(r.consId)) map.set(r.consId, { id: r.consId, name: String(r.cons).trim(), sup: String(r.sup || '').trim(), clients: 0 });
     map.get(r.consId).clients++;
   });
@@ -3717,7 +3911,7 @@ async function publishConsultorArea(force) {
     const n = MONTH_KEYS.length;
     const ref = getCarteiraRefDate();
     const refISO = `${ref.getFullYear()}-${String(ref.getMonth() + 1).padStart(2, '0')}-${String(ref.getDate()).padStart(2, '0')}T12:00:00`;
-    const months = FILE_META.months || [];
+    const months = MONTH_YEAR_MAP.map((x, i) => ({ key: MONTH_KEYS[i], y: x.y, m: x.m }));
 
     // Metas de cada consultor, mês a mês (pelo ID WINTHOR)
     const planByCons = new Map();
@@ -3736,7 +3930,9 @@ async function publishConsultorArea(force) {
       const cons = String(r.cons || '').trim();
       if(r.consId) {
         if(!byCons.has(r.consId)) byCons.set(r.consId, { id: r.consId, name: cons, sup, rows: [] });
-        byCons.get(r.consId).rows.push(r);
+        const bc = byCons.get(r.consId);
+        if(!r._hist && !bc._own) { bc.name = cons; bc.sup = sup; bc._own = true; }
+        bc.rows.push(r);
       }
       if(!sup || !cons) return;
       const tk = teamKeyOf(sup);
@@ -3748,7 +3944,7 @@ async function publishConsultorArea(force) {
       const st = r.state || 'Sem estado';
       if(!mb.byState[st]) mb.byState[st] = { fat: Array(n).fill(0), ped: Array(n).fill(0), act: Array(n).fill(0), actAll: 0, clients: 0 };
       const d = mb.byState[st];
-      d.clients++;
+      if(!r._hist) d.clients++;
       let any = false;
       for(let i = 0; i < n; i++) {
         const f = (r.fat && r.fat[i]) || 0, p = (r.ped && r.ped[i]) || 0;
@@ -4074,11 +4270,11 @@ function updateAppDisplayState() {
     btnSwitch.style.display = 'inline-flex';
     
     const fileName = FILE_META.name || 'Planilha Carregada';
-    srcBadge.innerHTML = `<i class="fi fi-rr-folder" aria-hidden="true"></i> <b>${fileName}</b> (${RAW_DATA.length.toLocaleString('pt-BR')} linhas)`;
+    srcBadge.innerHTML = `<i class="fi fi-rr-folder" aria-hidden="true"></i> <b>${fileName}</b> (${clientRows(RAW_DATA).length.toLocaleString("pt-BR")} linhas)`;
     srcBadge.className = 'hbadge file desktop-only';
 
     document.getElementById('status-box-title').innerHTML = `Planilha em Uso: <b>${fileName}</b>`;
-    document.getElementById('status-box-desc').innerHTML = `${RAW_DATA.length.toLocaleString('pt-BR')} linhas · Meses: ${periodLabel()}${FILE_META.savedAt ? ' · Salva no banco em ' + formatSavedAt(FILE_META.savedAt) : ''}`;
+    document.getElementById('status-box-desc').innerHTML = `${clientRows(RAW_DATA).length.toLocaleString("pt-BR")} linhas · Meses: ${periodLabel()}${FILE_META.savedAt ? ' · Salva no banco em ' + formatSavedAt(FILE_META.savedAt) : ''}`;
 
     populateSupervisorsDropdown();
     FOCUS_STATES = getFocusStatesForSupervisor(STATE.supervisor);
@@ -4098,9 +4294,10 @@ function getFilteredRows() {
   const st = STATE.state;
   const cons = (STATE.consultant || '').trim();
 
+  const cm = isConsMode(); // consultor: tudo o que é dele, de qualquer equipe em que esteve
   return RAW_DATA.filter(r => {
     const rSup = (r.sup || '').trim().toUpperCase();
-    if(sup && sup !== 'TODOS' && rSup !== sup) return false;
+    if(!cm && sup && sup !== 'TODOS' && rSup !== sup) return false;
     if(st && st !== 'geral' && r.state !== st) return false;
     if(cons && cons !== 'todos' && (r.cons || '').trim() !== cons) return false;
     return true;
@@ -4109,7 +4306,7 @@ function getFilteredRows() {
 
 function getSupervisorsList() {
   const sups = new Set();
-  RAW_DATA.forEach(r => { if(r.sup) sups.add(r.sup.trim()); });
+  RAW_DATA.forEach(r => { if(r.sup && !r._hist) sups.add(r.sup.trim()); });
   return Array.from(sups).sort();
 }
 
@@ -4142,7 +4339,7 @@ function getConsultantsListForCurrentFilters() {
     if(!r.cons) return;
     const consName = r.cons.trim();
     const cur = map.get(consName) || { name: consName, clients: 0, fat: 0 };
-    cur.clients++;
+    if(!r._hist) cur.clients++;
     cur.fat += (r.fat || []).reduce((a,b)=>a+b,0);
     map.set(consName, cur);
   });
@@ -4231,7 +4428,7 @@ function buildSidebarConsultants() {
         <div class="cons-dot" style="background:${clr}"></div>
         <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</div>
       </div>
-      <span class="seg-tag">${c.clients}</span>
+      <span class="seg-tag"${c.clients ? '' : ' title="Sem clientes na carteira de hoje: aparece pelo que vendeu"'}>${c.clients || 'saiu'}</span>
     </div>`;
   });
 
@@ -4456,7 +4653,8 @@ function renderVisaoGeral() {
 
   let totFat = 0, totPed = 0;
   let activeClients = 0;
-  const totalClients = rows.length;
+  const totalClients = rows.filter(r => !r._hist).length;
+  const activeIds = new Set();
 
   const monthlyFat = Array(MONTH_KEYS.length).fill(0);
   const monthlyPed = Array(MONTH_KEYS.length).fill(0);
@@ -4484,21 +4682,21 @@ function renderVisaoGeral() {
       totFat += mf;
       totPed += mp;
       if(mf > 0 || mp > 0) {
-        activeClients++;
+        activeIds.add(r.id);
         clientActiveInPeriod = true;
       }
 
       const cObj = consMap.get(r.cons) || { name: r.cons, fat: 0, ped: 0, clients: 0, active: 0 };
       cObj.fat += mf;
       cObj.ped += mp;
-      cObj.clients++;
+      if(!r._hist) cObj.clients++;
       if(clientActiveInPeriod) cObj.active++;
       consMap.set(r.cons, cObj);
 
       const sObj = stateMap.get(r.state) || { state: r.state, fat: 0, ped: 0, clients: 0, active: 0 };
       sObj.fat += mf;
       sObj.ped += mp;
-      sObj.clients++;
+      if(!r._hist) sObj.clients++;
       if(clientActiveInPeriod) sObj.active++;
       stateMap.set(r.state, sObj);
 
@@ -4513,21 +4711,21 @@ function renderVisaoGeral() {
       totFat += cFat;
       totPed += cPed;
       if(cFat > 0 || cPed > 0) {
-        activeClients++;
+        activeIds.add(r.id);
         clientActiveInPeriod = true;
       }
 
       const cObj = consMap.get(r.cons) || { name: r.cons, fat: 0, ped: 0, clients: 0, active: 0 };
       cObj.fat += cFat;
       cObj.ped += cPed;
-      cObj.clients++;
+      if(!r._hist) cObj.clients++;
       if(clientActiveInPeriod) cObj.active++;
       consMap.set(r.cons, cObj);
 
       const sObj = stateMap.get(r.state) || { state: r.state, fat: 0, ped: 0, clients: 0, active: 0 };
       sObj.fat += cFat;
       sObj.ped += cPed;
-      sObj.clients++;
+      if(!r._hist) sObj.clients++;
       if(clientActiveInPeriod) sObj.active++;
       stateMap.set(r.state, sObj);
 
@@ -4539,6 +4737,7 @@ function renderVisaoGeral() {
   });
 
   const tkm = totPed > 0 ? totFat / totPed : 0;
+  activeClients = activeIds.size;
   const txPos = totalClients > 0 ? (activeClients / totalClients * 100) : 0;
 
   // Render KPI Strip
@@ -4855,7 +5054,7 @@ function renderEstadosFoco() {
 
   let supRows = RAW_DATA.filter(r => {
     const rSup = (r.sup || '').trim().toUpperCase();
-    if(sup && sup !== 'TODOS' && rSup !== sup) return false;
+    if(!isConsMode() && sup && sup !== 'TODOS' && rSup !== sup) return false;
     return true;
   });
   if (hasConsultant) {
@@ -4874,7 +5073,7 @@ function renderEstadosFoco() {
   supRows.forEach(r => {
     if(stateStats[r.state]) {
       const st = stateStats[r.state];
-      st.clients++;
+      if(!r._hist) st.clients++;
       let f = 0, p = 0;
       if(isMonthFiltered) {
         f = (r.fat && r.fat[m]) || 0;
@@ -5224,8 +5423,8 @@ function renderRanking() {
     cObj.fat += f;
     cObj.ped += p;
     cObj.curFat += (r.fat && r.fat[CURRENT_METAS_MONTH_IDX]) || 0;
-    cObj.clients++;
-    if(f > 0 || p > 0) cObj.active++;
+    if(!r._hist) cObj.clients++;
+    if(f > 0 || p > 0) { cObj._ids = cObj._ids || new Set(); if(!cObj._ids.has(r.id)) { cObj._ids.add(r.id); cObj.active++; } }
     if(r.state) cObj.states.add(r.state);
     consMap.set(r.cons, cObj);
   });
@@ -5527,7 +5726,7 @@ function calcClientABCAndRecencia(rows) {
 }
 
 function renderClientesCRM() {
-  const rows = getFilteredRows();
+  const rows = clientRows(getFilteredRows());
   let cAtivos = 0, cInativo = 0, cNunca = 0;
   let fAtivos = 0, fInativo = 0;
 
@@ -5618,7 +5817,7 @@ function concentrationOf(rows, fatFn) {
 function renderConcentracao() {
   const body = document.getElementById('conc-body');
   if(!body) return;
-  const rows = getFilteredRows();
+  const rows = clientRows(getFilteredRows());
   const isMonth = STATE.month && STATE.month !== 'todos';
   const mSel = isMonth ? parseInt(STATE.month, 10) : null;
   const periodTxt = isMonth ? MONTH_NAMES[mSel] : 'todo o período (' + periodLabel() + ')';
@@ -5710,7 +5909,7 @@ function evoSeries(rows) {
 }
 function renderEvolucaoCarteira() {
   if(!document.getElementById('ch-evo-carteira')) return;
-  const rows = getFilteredRows();
+  const rows = clientRows(getFilteredRows());
   const { at, in_, nv, n } = evoSeries(rows);
   const light = isLightMode();
   const cA = light ? '#15803d' : '#70e000', cI = light ? '#dc2626' : '#ff3b3b', cN = light ? '#94a3b8' : '#4b5567', cL = light ? '#0369a1' : '#00a8ff';
@@ -5895,6 +6094,7 @@ function renderReativacoes() {
 
   // Base sem o filtro de consultor (para comparar com os colegas)
   let base = RAW_DATA.filter(r => {
+    if(r._hist) return false; // reativação é do cliente: fica com o dono de hoje
     if(!isAllSup && (r.sup || '').trim().toUpperCase() !== sup) return false;
     if(st && st !== 'geral' && r.state !== st) return false;
     return true;
@@ -6074,7 +6274,7 @@ function drawReativList() {
 function showMoreReativ() { REATIV_SHOWN += REATIV_PAGE; drawReativList(); }
 
 function filterCrmTable() {
-  const rows = getFilteredRows();
+  const rows = clientRows(getFilteredRows());
   const txt = (document.getElementById('crm-search-txt')?.value || '').trim().toLowerCase();
   const curvaFilter = document.getElementById('crm-filter-curva')?.value || 'todos';
   const recFilter = document.getElementById('crm-filter-recencia')?.value || 'todos';
@@ -6446,7 +6646,7 @@ function renderMensal() {
   renderHtmlLegend('leg-comp-ped', pedDatasets, 'ch-comp-ped');
   renderHtmlLegend('leg-comp-cli', cliDatasets, 'ch-comp-cli');
 
-  renderMensalIndicadores(sortedCons, totFatMonth, totPedMonth, activeClientsMonth, rows.length);
+  renderMensalIndicadores(sortedCons, totFatMonth, totPedMonth, activeClientsMonth, rows.filter(r => !r._hist).length);
   renderMensalProjTable();
   try { renderLevelEvolution(); } catch(e) { console.error('Evolução de nível:', e); }
 }
@@ -6659,7 +6859,7 @@ function renderLevelEvolution() {
   else if(steps[0].rank > 0) notes.push(`O registro de nível começa em ${lvlMonthShort(firstKnown.y, firstKnown.m)}, já como ${steps[0].label}; meses anteriores não estão na planilha de metas.`);
   if(list.some(x => x.lvl !== null && x.idx < 0)) notes.push('Meses com nível mas fora da carteira aparecem sem vendas.');
   if(partialIdx >= 0 && list.some(x => x.idx === partialIdx)) notes.push('* Mês em andamento: fica fora das médias e da contagem de meta batida.');
-  notes.push('Médias por mês dentro de cada nível; vendas pela carteira atual (cliente que trocou de consultor conta para o dono de hoje).');
+  notes.push(HIST_STATS && HIST_STATS.withSeller ? 'Médias por mês dentro de cada nível; vendas de quem vendeu em cada mês (planilhas de pedidos), inclusive para clientes que hoje são de outro consultor.' : 'Médias por mês dentro de cada nível; vendas pela carteira atual (cliente que trocou de consultor conta para o dono de hoje).');
   document.getElementById('lvl-note').textContent = notes.join(' ');
 }
 
@@ -7230,7 +7430,7 @@ function openConsultantRaioX(consName) {
   const pctCliMeta = metaCli > 0 ? (monthActiveClients / metaCli) * 100 : 0;
 
   // Curva ABC da carteira do consultor
-  const processedClients = calcClientABCAndRecencia(consRows);
+  const processedClients = calcClientABCAndRecencia(clientRows(consRows));
   const totalClients = processedClients.length;
 
   let countA = 0, fatA = 0;
@@ -7459,7 +7659,9 @@ function getMetasViewSelection() {
   STATE.metasView.lastGlobalSup = globalSup;
 
   const sups = [];
-  pm.rows.forEach(x => { if(!sups.some(s => sameSup(s, x.sup))) sups.push(x.sup); });
+  // A Farol foi dissolvida: não aparece como equipe (as vendas dela continuam no histórico de cada consultor)
+  pm.rows.forEach(x => { if(teamNameOf(x.sup) === 'FAROL') return; if(!sups.some(s => sameSup(s, x.sup))) sups.push(x.sup); });
+  if(!sups.length) pm.rows.forEach(x => { if(!sups.some(s => sameSup(s, x.sup))) sups.push(x.sup); });
   sups.sort((a, b) => teamNameOf(a).localeCompare(teamNameOf(b)));
   let sup = sups.find(s => sameSup(s, STATE.metasView.sup))
          || sups.find(s => sameSup(s, STATE.metasSupervisor))
@@ -7711,6 +7913,7 @@ function handleMetasFile(input) {
     plan.savedAt = new Date().toISOString();
     METAS_PLAN = plan;
     STATE.metasView.monthId = null;
+    try { applyNotaFutura(); } catch(e) { console.error('Histórico por vendedor:', e); }
     renderCurrentPage();
     showSaveToast('<i class="fi fi-rr-cloud" aria-hidden="true"></i> Salvando planilha de metas…', '', 0);
     try {
@@ -8089,7 +8292,7 @@ function buildSupAlerts() {
 
   teams.forEach(sup => {
     const team = teamNameOf(sup);
-    const teamRows = RAW_DATA.filter(r => sameSup(r.sup, sup));
+    const teamRows = RAW_DATA.filter(r => !r._hist && sameSup(r.sup, sup));
     if(!teamRows.length) return;
 
     // Ritmo da meta (abaixo de 70% / 115% ou mais)
@@ -8184,7 +8387,7 @@ function buildSupAlerts() {
 // ── Avisos do consultor (só a carteira dele) ──
 function buildConsAlerts() {
   const out = [];
-  const rows = RAW_DATA || [];
+  const rows = clientRows(RAW_DATA || []);
   const mIdx = CURRENT_METAS_MONTH_IDX, mName = MONTH_NAMES[mIdx];
   const B = notifBiz(mIdx);
 
@@ -8685,7 +8888,7 @@ function exportCurrentDataJson() {
 }
 
 function exportSummaryData() {
-  const rows = getFilteredRows();
+  const rows = clientRows(getFilteredRows());
   if(!rows.length) return;
   const summary = rows.map(r => ({
     ID: r.id,
