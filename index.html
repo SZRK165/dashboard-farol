@@ -2191,7 +2191,23 @@ const NfCache = {
   set(v) { return this._run('readwrite', st => st.put(v, 'nf')); },
   clear() { return this._run('readwrite', st => st.delete('nf')); }
 };
-function clientRows(rows) { return (rows || []).filter(r => !r._hist); }
+// Visão do cliente: uma linha por integrador (dono de hoje) com o histórico de compras completo
+// (todos os vendedores e épocas: campos cf/cp, preenchidos quando parte das compras está no histórico)
+let _cliViews = new WeakMap();
+function clientRows(rows) {
+  return (rows || []).filter(r => !r._hist).map(r => {
+    if(!r.cf) return r;
+    let v = _cliViews.get(r);
+    if(!v || v._cf !== r.cf) {
+      v = Object.assign({}, r, { fat: r.cf, ped: r.cp || r.ped });
+      Object.defineProperty(v, '_cf', { value: r.cf });
+      _cliViews.set(r, v);
+    }
+    return v;
+  });
+}
+// Reativações creditadas a quem vendeu o pedido da volta (campo ra: meses sem comprar, por mês)
+let REATIV_CREDITED = false;
 let HIST_STATS = null;   // resumo da atribuição por vendedor (página Importar)
 const PT_MONTH_KEY = ['janeiro', 'fevereiro', 'marco', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 
@@ -2363,6 +2379,35 @@ function _applyNotaFutura() {
   });
   const hist = Array.from(histRows.values());
   hist.forEach(h => { h.fat = h.fat.map(v => Math.round(v * 100) / 100); });
+
+  // ── 4) visão do cliente (histórico completo) e reativações por quem vendeu ──
+  const rowsById = new Map();
+  base.forEach(r => { delete r.cf; delete r.cp; delete r.ra; rowsById.set(String(r.id || ''), [r]); });
+  hist.forEach(h => { const k = String(h.id || ''); if(!rowsById.has(k)) rowsById.set(k, []); rowsById.get(k).push(h); });
+  const same = (a, b) => a.length === b.length && a.every((x, i) => Math.abs((x || 0) - (b[i] || 0)) < 0.005);
+  rowsById.forEach((rs, id) => {
+    const full = ownerVals.get(id); if(!full) return;
+    const own = baseById.get(id);
+    if(own && rs.length > 1) {
+      const cf = full.fat.map(v => Math.round((v || 0) * 100) / 100), cp = full.ped.map(v => v || 0);
+      if(!same(cf, own.fat) || !same(cp, own.ped)) { own.cf = cf; own.cp = cp; }
+    }
+    let last = -1;
+    for(let i = 0; i < n; i++) {
+      if(!((full.fat[i] || 0) > 0 || (full.ped[i] || 0) > 0)) continue;
+      if(last >= 0 && i - last - 1 >= REATIV_MIN_GAP) {
+        let best = null, bf = -1, bp = -1;
+        rs.forEach(x => {
+          const f = (x.fat && x.fat[i]) || 0, q = (x.ped && x.ped[i]) || 0;
+          if(!(f > 0 || q > 0)) return;
+          if(f > bf || (f === bf && q > bp)) { best = x; bf = f; bp = q; }
+        });
+        if(best) { if(!best.ra) best.ra = Array(n).fill(0); best.ra[i] = i - last - 1; }
+      }
+      last = i;
+    }
+  });
+  REATIV_CREDITED = true;
   RAW_DATA = base.concat(hist);
   RAW_DATA.forEach(r => { for(let i = 0; i < n; i++) { stats[i].now += r.fat[i] || 0; stats[i].nowPed += r.ped[i] || 0; } });
   keys.forEach((k, i) => {
@@ -2610,7 +2655,11 @@ function applyYearView(y) {
     MONTH_KEYS = idx.map(i => f.keys[i]); MONTH_COLS = idx.map(i => f.cols[i]); MONTH_YEAR_MAP = idx.map(i => f.ym[i]);
     MONTH_NAMES = idx.map(i => f.names[i]); MONTH_SHORT = idx.map(i => f.short[i]);
     CURRENT_METAS_MONTH_IDX = idx.includes(f.cur) ? idx.indexOf(f.cur) : idx.length - 1;
-    RAW_DATA = f.data.map(r => Object.assign({}, r, { fat: idx.map(i => (r.fat && r.fat[i]) || 0), ped: idx.map(i => (r.ped && r.ped[i]) || 0) }));
+    RAW_DATA = f.data.map(r => {
+      const o = Object.assign({}, r, { fat: idx.map(i => (r.fat && r.fat[i]) || 0), ped: idx.map(i => (r.ped && r.ped[i]) || 0) });
+      ['cf', 'cp', 'ra'].forEach(k => { if(r[k]) o[k] = idx.map(i => r[k][i] || 0); });
+      return o;
+    });
     if(TEAM_SUMMARY) TEAM_SUMMARY = sliceTeamSummary(TEAM_SUMMARY, idx);
     try { STATE.selectedMonthIdx = CURRENT_METAS_MONTH_IDX; } catch(e) {}
   } finally { _yearSlicing = false; }
@@ -3898,6 +3947,7 @@ async function loadConsultantData(email, acc) {
     CONS_MODE = { email, consId: acc.consId, cons: meta.name || acc.cons, sup: meta.sup || acc.sup, teamKey: acc.teamKey };
     TEAM_SUMMARY = team;
     RAW_DATA = rows;
+    REATIV_CREDITED = !!meta.reatCred;
     FILE_META = { name: 'Sua carteira', months: meta.months || [], savedAt: meta.savedAt || null, rows: rows.length };
     if(FILE_META.months.length) applyMonths(FILE_META.months);
     CARTEIRA_REF_OVERRIDE = meta.refDate || null;
@@ -4069,7 +4119,7 @@ async function publishConsultorArea(force) {
           metasFile: (METAS_PLAN && METAS_PLAN.fileName) || '', metasSavedAt: (METAS_PLAN && METAS_PLAN.savedAt) || '',
           desc: descByCons.get(c.id) || [], descTeam: descTeams[teamNameOf(c.sup)] || {},
           descSavedAt: (DESC && DESC.savedAt) || '', descFile: (DESC && DESC.fileName) || '',
-          descMonths: (DESC && DESC.months) || {}, descNoRecord,
+          descMonths: (DESC && DESC.months) || {}, descNoRecord, reatCred: REATIV_CREDITED,
           publishedAt: new Date().toISOString()
         });
       });
@@ -6204,6 +6254,11 @@ function reativEventsOf(r) {
   if(_reativCacheSrc !== RAW_DATA) { _reativCacheSrc = RAW_DATA; _reativCache = new WeakMap(); }
   if(_reativCache.has(r)) return _reativCache.get(r);
   const ev = [];
+  if(REATIV_CREDITED) {
+    (r.ra || []).forEach((g, i) => { if(g > 0) ev.push({ m: i, gap: g, val: (r.fat && r.fat[i]) || 0, ped: (r.ped && r.ped[i]) || 0 }); });
+    _reativCache.set(r, ev);
+    return ev;
+  }
   let last = -1;
   for(let i = 0; i < MONTH_KEYS.length; i++) {
     if(!rowBoughtIn(r, i)) continue;
@@ -6285,8 +6340,8 @@ function renderReativacoes() {
 
   // Base sem o filtro de consultor (para comparar com os colegas)
   let base = RAW_DATA.filter(r => {
-    if(r._hist) return false; // reativação é do cliente: fica com o dono de hoje
-    if(!isAllSup && (r.sup || '').trim().toUpperCase() !== sup) return false;
+    if(r._hist && !REATIV_CREDITED) return false; // a reativação conta para quem vendeu o pedido da volta, na equipe da época
+    if(!isAllSup && !isConsMode() && (r.sup || '').trim().toUpperCase() !== sup) return false;
     if(st && st !== 'geral' && r.state !== st) return false;
     return true;
   });
@@ -6347,9 +6402,12 @@ function renderReativacoes() {
   // 2) Quem reativou
   const byTeam = isAllSup && !hasCons;
   const groups = new Map();
+  const curTeams = new Set(getSupervisorsList().map(x => String(x).trim()));
   base.forEach(r => {
     const key = byTeam ? (r.sup || '').trim() : (r.cons || '').trim();
     if(!key) return;
+    if(byTeam && !curTeams.has(key)) return;   // equipes encerradas contam só no total
+    if(!byTeam && isNoCons(key)) return;
     if(!groups.has(key)) groups.set(key, { key, cnt: 0, val: 0 });
     const g = groups.get(key);
     reativEventsOf(r).forEach(e => {
@@ -6368,6 +6426,10 @@ function renderReativacoes() {
   document.getElementById('reativ-quem-sub').textContent = hasCons
     ? (isMonth ? `${consSel} em destaque entre os colegas · ${periodTxt}` : `${consSel} · soma de todo o período`)
     : `${byTeam ? 'Equipes' : 'Consultores da equipe ' + teamNameOf(STATE.supervisor)} · ${periodTxt}`;
+  if(byTeam) {
+    const rest = scopeCnt - list.reduce((x, g) => x + g.cnt, 0);
+    if(rest > 0) document.getElementById('reativ-quem-sub').textContent += ` · mais ${fNum(rest)} de equipes que não existem mais (contam só no total)`;
+  }
 
   const empty = document.getElementById('reativ-quem-empty');
   const wrap = document.getElementById('reativ-quem-wrap');
@@ -8483,7 +8545,7 @@ function buildSupAlerts() {
 
   teams.forEach(sup => {
     const team = teamNameOf(sup);
-    const teamRows = RAW_DATA.filter(r => !r._hist && sameSup(r.sup, sup));
+    const teamRows = clientRows(RAW_DATA.filter(r => sameSup(r.sup, sup)));
     if(!teamRows.length) return;
 
     // Ritmo da meta (abaixo de 70% / 115% ou mais)
@@ -8653,7 +8715,7 @@ function buildConsAlerts() {
   }
 
   // Reativações do mês
-  const reat = rows.filter(r => reativEventsOf(r).some(e => e.m === mIdx)).length;
+  const reat = new Set((REATIV_CREDITED ? (RAW_DATA || []) : rows).filter(r => reativEventsOf(r).some(e => e.m === mIdx)).map(r => r.id)).size;
   if(reat > 0 && mIdx >= REATIV_MIN_GAP + 1) {
     out.push({ id: `reativ|${mIdx}|${reat}`, sev: 'ok',
       title: `Você reativou ${reat === 1 ? '1 cliente' : reat + ' clientes'} em ${mName}`,
