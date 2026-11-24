@@ -7017,9 +7017,10 @@ function lvlMonthShort(y, m) { return `${PT_MONTH_SHORT[m]}/${String(y).slice(-2
 function levelEvolutionData() {
   const cons = isConsMode() ? (CONS_MODE.cons || '') : String(STATE.consultant || '').trim();
   if(!isConsMode() && (!cons || cons === 'todos')) return { empty: 'pick' };
-  const rows = getFilteredRows();
-  const id = (rows.find(r => r.consId) || {}).consId || (isConsMode() ? CONS_MODE.consId : '');
   const nk = normTxt(cons);
+  // Tudo o que o consultor vendeu, em qualquer equipe e estado (o nível é dele, não da equipe filtrada)
+  const rows = isConsMode() ? (RAW_DATA || []) : (RAW_DATA || []).filter(r => normTxt(r.cons) === nk);
+  const id = (rows.find(r => r.consId) || {}).consId || (isConsMode() ? CONS_MODE.consId : '');
   const plan = (METAS_PLAN && METAS_PLAN.months) || [];
   const byMonth = new Map(); // chave y*12+m
   const slot = (y, m) => { const k = y * 12 + m; if(!byMonth.has(k)) byMonth.set(k, { y, m, idx: -1, lvl: null, meta: null, fat: null, ped: null, cli: null }); return byMonth.get(k); };
@@ -7031,11 +7032,13 @@ function levelEvolutionData() {
   });
   const firstLevelKey = byMonth.size ? Math.min(...byMonth.keys()) : Infinity;
   MONTH_YEAR_MAP.forEach((mi, i) => {
-    let f = 0, pd = 0, c = 0;
+    let f = 0, pd = 0;
+    const buyers = new Set();
     rows.forEach(r => {
       const a = (r.fat && r.fat[i]) || 0, b = (r.ped && r.ped[i]) || 0;
-      f += a; pd += b; if(a > 0 || b > 0) c++;
+      f += a; pd += b; if(a > 0 || b > 0) buyers.add(r.id);
     });
+    const c = buyers.size;
     const k = mi.y * 12 + mi.m;
     // Antes do primeiro mês com nível, só entra mês em que ele vendeu
     if(!byMonth.has(k) && k < firstLevelKey && !(f > 0 || pd > 0)) return;
