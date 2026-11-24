@@ -1483,6 +1483,92 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
         </div>
       </div>
 
+      <!-- CLIENTES NOVOS (primeira compra, BI) -->
+      <div id="novos-section">
+        <div class="page-header" style="margin-top:14px">
+          <div>
+            <div class="page-title" style="font-size:20px">Clientes <span>novos</span></div>
+            <div class="page-subtitle">Primeira compra da história do integrador, como no BI (sem cancelamento e sem devolução). Conta para quem vendeu, na equipe do pedido.</div>
+          </div>
+        </div>
+        <div class="chart-card" id="novos-empty" style="display:none;margin-bottom:20px">
+          <div style="font-size:12.5px;color:var(--muted);line-height:1.7"><i class="fi fi-rr-info" aria-hidden="true"></i> Ainda não há primeiras compras. Exporte a tabela da página <b>Primeira Compra</b> do BI e envie em <b>Importar Planilha</b>.</div>
+        </div>
+        <div id="novos-body">
+          <div class="chart-grid c2" style="align-items:stretch">
+            <div class="chart-card">
+              <div class="chart-head">
+                <div>
+                  <div class="chart-title"><i class="fi fi-rr-user-add" aria-hidden="true"></i> Clientes novos mês a mês</div>
+                  <div class="chart-subtitle" id="novos-mes-sub">—</div>
+                </div>
+                <span class="chart-pill pill-g" id="novos-total-pill">—</span>
+              </div>
+              <div class="cwrap h320"><canvas id="ch-novos-mes" aria-label="Clientes novos por mês"></canvas></div>
+              <div class="reativ-note" id="novos-mes-note"></div>
+            </div>
+            <div class="chart-card" style="display:flex;flex-direction:column">
+              <div class="chart-head">
+                <div>
+                  <div class="chart-title" id="novos-quem-title">Clientes novos por equipe</div>
+                  <div class="chart-subtitle" id="novos-quem-sub">—</div>
+                </div>
+              </div>
+              <div style="position:relative;flex:1 1 auto;min-height:340px">
+                <div class="reativ-scroll" id="novos-quem-scroll" style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding-right:4px">
+                  <div class="cwrap" id="novos-quem-wrap" style="height:320px">
+                    <canvas id="ch-novos-quem" aria-label="Clientes novos por equipe ou consultor"></canvas>
+                    <div class="reativ-empty" id="novos-quem-empty"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="reativ-note">Clique numa barra para filtrar o painel por aquela equipe ou consultor.</div>
+            </div>
+          </div>
+          <div class="chart-card" style="margin-bottom:20px" id="novos-geo-card">
+            <div class="chart-head">
+              <div>
+                <div class="chart-title"><i class="fi fi-rr-marker" aria-hidden="true"></i> Clientes novos por estado</div>
+                <div class="chart-subtitle" id="novos-geo-sub">Clique num estado (mapa ou tabela) ou numa região para filtrar os clientes novos</div>
+              </div>
+              <button class="btn btn-ghost btn-pill" id="novos-geo-clear" onclick="setNovosGeo(null)" style="display:none;font-size:11px">Limpar filtro</button>
+            </div>
+            <div class="geo-grid">
+              <div class="data-table-wrap" style="max-height:460px;overflow:auto">
+                <table class="data-table tc n2 geo-table">
+                  <thead><tr><th>Estado</th><th>Região</th><th style="text-align:right">Clientes novos</th><th style="text-align:right">Valor</th><th style="text-align:right">% do total</th><th></th></tr></thead>
+                  <tbody id="novos-geo-body"></tbody>
+                </table>
+              </div>
+              <div>
+                <div class="geo-regs" id="novos-geo-regs"></div>
+                <div class="geo-map-wrap" id="novos-geo-map"></div>
+                <div class="geo-legend" id="novos-geo-legend"></div>
+                <div class="geo-credit">Mapa: SVG Maps (Victor Cazanave), licença CC BY 4.0</div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-card" style="margin-bottom:20px">
+            <div class="chart-head">
+              <div>
+                <div class="chart-title">Lista de clientes novos</div>
+                <div class="chart-subtitle" id="novos-list-sub">—</div>
+              </div>
+              <span class="chart-pill pill-o" id="novos-list-count">0</span>
+            </div>
+            <div class="data-table-wrap reativ-table-wrap">
+              <table class="data-table tc n2">
+                <thead><tr><th>1ª compra</th><th>Cliente</th><th>Vendeu</th><th>Equipe</th><th>Estado</th><th style="text-align:right">Valor</th><th>Situação hoje</th><th>Dono hoje</th></tr></thead>
+                <tbody id="novos-list-body"></tbody>
+              </table>
+            </div>
+            <div style="text-align:center">
+              <button class="btn btn-ghost btn-pill" id="novos-more-btn" onclick="showMoreNovos()" style="display:none;font-size:11px">Mostrar mais</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- EVOLUÇÃO DA CARTEIRA -->
       <div class="chart-card" style="margin-bottom:20px">
         <div class="chart-head">
@@ -1986,6 +2072,25 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
           <p>• <b>Quem vendeu:</b> cada pedido traz o consultor que vendeu. O faturamento, os pedidos e os clientes de cada mês contam para ele, na equipe em que estava naquele mês (planilha de metas), mesmo que hoje o cliente seja de outro consultor. Status, lista de clientes, top 10 e WhatsApp continuam pela carteira de hoje.</p>
           <p>• <b>Meses antes da carteira</b> (2025, por exemplo) vêm só dos pedidos, contados pela data de criação, inclusive de clientes que não estão mais na carteira.</p>
           <p>• A planilha da carteira salva no banco não é alterada. Ao enviar uma carteira nova, o painel refaz a conta sozinho, sem precisar reenviar os pedidos. Cancelados ficam de fora.</p>
+        </div>
+      </div>
+
+      <div class="page-header" id="pc-section" style="margin-top:34px;padding-top:26px;border-top:1px solid var(--border)">
+        <div>
+          <div class="page-title">Primeiras <span>compras (BI)</span></div>
+          <div class="page-subtitle">Exportação da tabela da página <b>Primeira Compra</b> do BI. Alimenta os <b>Clientes novos</b> da Saúde da Carteira.</div>
+          <div class="desc-status" id="pc-status"></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto">
+          <button class="btn btn-primary" onclick="document.getElementById('pc-file-input').click()"><i class="fi fi-rr-upload" aria-hidden="true"></i> Enviar Primeiras Compras (BI)</button>
+          <input type="file" id="pc-file-input" accept=".xlsx,.xls" multiple style="display:none" onchange="handlePcFiles(this)">
+        </div>
+      </div>
+      <div class="chart-card">
+        <div style="font-size:12.5px;color:var(--muted);line-height:1.8">
+          <p>• No BI (COMERCIAL, versão antiga → MENU → <b>Primeira Compra</b>), deixe Supervisor e Vendedor em todos, escolha o ano e exporte a tabela (… → Exportar dados).</p>
+          <p>• Pode enviar um arquivo por ano, ou vários de uma vez. Cada ano enviado substitui só aquele ano; os outros continuam salvos. Todo mês, basta reenviar o ano atual.</p>
+          <p>• Cada cliente novo conta para o vendedor e o supervisor do pedido, como no BI. Para ligar ao cliente da carteira, o painel usa o número do pedido (planilhas info_cli enviadas a partir de agora) e, se não achar, o nome do integrador.</p>
         </div>
       </div>
 
@@ -2509,7 +2614,7 @@ function nfEntries(mc) {
 }
 function nfFromStored(json) {
   const x = typeof json === 'string' ? JSON.parse(json || '{}') : (json || {});
-  if(x && x.v === 2) return { rows: x.r || [], sellers: x.s || [], names: x.n || {} };
+  if(x && x.v === 2) return { rows: x.r || [], sellers: x.s || [], names: x.n || {}, p: x.p || null };
   // formato antigo, sem vendedor: { id: { mn: [valor, qtd] } }
   const rows = [];
   Object.keys(x || {}).forEach(id => Object.keys(x[id] || {}).forEach(mn => { const a = x[id][mn]; rows.push([id, mn, 0, a[0], a[1]]); }));
@@ -2588,7 +2693,8 @@ async function handleNfFiles(input) {
     if(o.canc) { canc++; return; }
     mt.v += o.v;
     const mn = o.nf ? nfKey(o.nf.getFullYear(), o.nf.getMonth()) : '';
-    const g = byMonth[mc] || (byMonth[mc] = { map: new Map(), sellers: [], sIdx: new Map(), names: {} });
+    const g = byMonth[mc] || (byMonth[mc] = { map: new Map(), sellers: [], sIdx: new Map(), names: {}, p: {} });
+    g.p[o.ped] = o.id; // pedido → integrador (liga as primeiras compras do BI à carteira)
     if(!g.sIdx.has(o.rca)) { g.sIdx.set(o.rca, g.sellers.length); g.sellers.push(o.rca); }
     const si = g.sIdx.get(o.rca);
     const key = o.id + '|' + mn + '|' + si;
@@ -2596,7 +2702,7 @@ async function handleNfFiles(input) {
     a[3] = Math.round((a[3] + o.v) * 100) / 100; a[4] += 1; g.map.set(key, a);
     if(o.nome && !g.names[o.id]) g.names[o.id] = o.nome;
   });
-  Object.keys(byMonth).forEach(mc => { const g = byMonth[mc]; byMonth[mc] = { rows: Array.from(g.map.values()), sellers: g.sellers, names: g.names }; });
+  Object.keys(byMonth).forEach(mc => { const g = byMonth[mc]; byMonth[mc] = { rows: Array.from(g.map.values()), sellers: g.sellers, names: g.names, p: g.p }; });
   const mcs = Object.keys(byMonth).sort();
   if(!mcs.length) { showSaveToast('<i class="fi fi-rr-cross-circle" aria-hidden="true"></i> Nenhum pedido encontrado nos arquivos.', 'err', 0); return; }
   const now = new Date().toISOString();
@@ -2631,6 +2737,7 @@ async function nfRemoveMonth(mc) {
   setTimeout(() => publishConsultorArea(true), 2500);
 }
 function renderNfPage() {
+  try { renderPcStatus(); } catch(e) { console.warn('Primeiras compras:', e); }
   const body = document.getElementById('t-nf-body');
   if(!body) return;
   const st = NF_STATS || { stats: [], complete: [], outside: {} };
@@ -3519,12 +3626,33 @@ const FirebaseStore = {
     });
     return out;
   },
+  // Primeiras compras exportadas do BI: um documento por ano
+  async loadPrimeiras() {
+    if(!this.ready || !this.db) throw new Error('Banco de dados não conectado');
+    const col = this.db.collection('farol_metas');
+    const idx = await col.doc('pc_index').get();
+    if(!idx.exists) return null;
+    const years = (idx.data() || {}).years || {};
+    const out = { years: {}, rows: [] };
+    await Promise.all(Object.keys(years).map(async y => {
+      const d = await col.doc('pc_' + y).get();
+      if(!d.exists) return;
+      try { out.rows.push(...JSON.parse(d.data().json || '[]')); out.years[y] = years[y]; } catch(e) { console.warn('Primeiras compras ilegíveis:', y, e); }
+    }));
+    return out;
+  },
+  async savePrimeirasYears(byYear, yearsMeta) {
+    if(!this.ready || !this.db) throw new Error('Banco de dados não conectado');
+    const col = this.db.collection('farol_metas');
+    for(const y of Object.keys(byYear)) await col.doc('pc_' + y).set({ y, json: JSON.stringify(byYear[y]), savedAt: new Date().toISOString() });
+    await col.doc('pc_index').set({ years: yearsMeta, savedAt: new Date().toISOString() });
+  },
   async saveNotaFuturaMonths(byMonth, metaMonths) {
     if(!this.ready || !this.db) throw new Error('Banco de dados não conectado');
     const col = this.db.collection('farol_metas');
     for(const mc of Object.keys(byMonth)) {
       const g = byMonth[mc];
-      await col.doc('nf_' + mc).set({ mc, json: JSON.stringify({ v: 2, r: g.rows, s: g.sellers, n: g.names }), savedAt: new Date().toISOString() });
+      await col.doc('nf_' + mc).set({ mc, json: JSON.stringify({ v: 2, r: g.rows, s: g.sellers, n: g.names, p: g.p || {} }), savedAt: new Date().toISOString() });
     }
     await col.doc('nf_index').set({ months: metaMonths, savedAt: new Date().toISOString() });
   },
@@ -3815,6 +3943,7 @@ async function loadAppData() {
     if(res.stored.savedAt) FILE_META.savedAt = res.stored.savedAt;
     if(FILE_META.months && FILE_META.months.length) applyMonths(FILE_META.months);
     try { NF = await FirebaseStore.loadNotaFutura(); } catch(e) { console.warn('Não foi possível carregar os pedidos da nota futura:', e); }
+    try { PC = await FirebaseStore.loadPrimeiras(); } catch(e) { console.warn('Não foi possível carregar as primeiras compras:', e); }
     applyNotaFutura();
   } else if(!res.ok && errBox) {
     errBox.innerHTML = '<i class="fi fi-rr-triangle-warning" aria-hidden="true"></i> ' + res.error;
@@ -4027,6 +4156,7 @@ async function loadConsultantData(email, acc) {
     TEAM_SUMMARY = team;
     RAW_DATA = rows;
     REATIV_CREDITED = !!meta.reatCred;
+    CONS_PC = Array.isArray(meta.pc) ? meta.pc : null;
     FILE_META = { name: 'Sua carteira', months: meta.months || [], savedAt: meta.savedAt || null, rows: rows.length };
     if(FILE_META.months.length) applyMonths(FILE_META.months);
     CARTEIRA_REF_OVERRIDE = meta.refDate || null;
@@ -4200,7 +4330,7 @@ async function publishConsultorArea(force) {
           metasFile: (METAS_PLAN && METAS_PLAN.fileName) || '', metasSavedAt: (METAS_PLAN && METAS_PLAN.savedAt) || '',
           desc: descByCons.get(c.id) || [], descTeam: descTeams[teamNameOf(c.sup)] || {},
           descSavedAt: (DESC && DESC.savedAt) || '', descFile: (DESC && DESC.fileName) || '',
-          descMonths: (DESC && DESC.months) || {}, descNoRecord, reatCred: REATIV_CREDITED,
+          descMonths: (DESC && DESC.months) || {}, descNoRecord, reatCred: REATIV_CREDITED, pc: pcForCons(c.name),
           publishedAt: new Date().toISOString()
         });
       });
@@ -6150,6 +6280,7 @@ function renderClientesCRM() {
   `).join('');
 
   renderReativacoes();
+  try { renderNovos(); } catch(e) { console.error('Clientes novos:', e); }
   renderEvolucaoCarteira();
   renderConcentracao();
   filterCrmTable();
@@ -6476,23 +6607,24 @@ function setReativGeo(kind, key) {
   renderReativacoes();
 }
 function ufOfRow(r) { const u = getStateTag(r.state || ''); return UF_NAME[u] ? u : ''; }
-// Tabela e mapa: contam as reativações do filtro atual (sem o filtro geográfico)
-function renderReativGeo(rows, inScope) {
-  const body = document.getElementById('reativ-geo-body'), mapEl = document.getElementById('reativ-geo-map');
+function geoSetOf(geo) { return geo ? new Set(geo.kind === 'uf' ? [geo.key] : (BR_REGIONS[geo.key] || [])) : null; }
+function geoLabelOf(geo) { return !geo ? '' : (geo.kind === 'uf' ? (UF_NAME[geo.key] || geo.key) : 'região ' + geo.key); }
+// Tabela por estado + mapa do Brasil (usado nas reativações e nos clientes novos)
+// items: [{ u: sigla ou '', v: valor }]; G: { geo, fn, one, many, empty, what }
+function renderGeoBlock(P, items, G) {
+  const body = document.getElementById(P + '-body'), mapEl = document.getElementById(P + '-map');
   if(!body || !mapEl) return;
   const by = {}; let tot = 0, totV = 0, semUf = 0, semUfV = 0;
-  rows.forEach(r => reativEventsOf(r).forEach(e => {
-    if(!inScope(e)) return;
-    tot++; totV += e.val;
-    const u = ufOfRow(r);
-    if(!u) { semUf++; semUfV += e.val; return; }
-    const o = by[u] || (by[u] = { c: 0, v: 0 }); o.c++; o.v += e.val;
-  }));
-  const sel = reativGeoSet();
+  items.forEach(it => {
+    tot++; totV += it.v || 0;
+    if(!it.u) { semUf++; semUfV += it.v || 0; return; }
+    const o = by[it.u] || (by[it.u] = { c: 0, v: 0 }); o.c++; o.v += it.v || 0;
+  });
+  const sel = geoSetOf(G.geo);
   const list = Object.entries(by).sort((a, b) => b[1].c - a[1].c || b[1].v - a[1].v);
   const max = list.length ? list[0][1].c : 0;
   body.innerHTML = list.length ? list.map(([u, o]) => `
-    <tr class="${sel && sel.has(u) ? 'sel' : ''}" onclick="setReativGeo('uf','${u}')" title="Filtrar as reativações por ${escHtml(UF_NAME[u])}">
+    <tr class="${sel && sel.has(u) ? 'sel' : ''}" onclick="${G.fn}('uf','${u}')" title="Filtrar ${G.what} por ${escHtml(UF_NAME[u])}">
       <td style="text-align:left;font-weight:600;white-space:nowrap">${escHtml(UF_NAME[u])} <span class="seg-tag" style="margin-left:4px">${u}</span></td>
       <td>${UF_REGION[u] || '—'}</td>
       <td class="num" style="font-weight:700">${fNum(o.c)}</td>
@@ -6500,14 +6632,14 @@ function renderReativGeo(rows, inScope) {
       <td class="num">${tot ? fPct(o.c / tot * 100) : '—'}</td>
       <td><div class="geo-bar"><i style="width:${max ? (o.c / max * 100).toFixed(1) : 0}%"></i></div></td>
     </tr>`).join('') + (semUf ? `<tr style="cursor:default"><td style="text-align:left;color:var(--muted)">Sem estado no cadastro</td><td>—</td><td class="num">${fNum(semUf)}</td><td class="num">${fR0(semUfV)}</td><td class="num">${fPct(semUf / tot * 100)}</td><td></td></tr>` : '')
-    : '<tr><td colspan="6" style="text-align:center;padding:16px;color:var(--muted)">Nenhuma reativação neste filtro.</td></tr>';
+    : `<tr><td colspan="6" style="text-align:center;padding:16px;color:var(--muted)">${G.empty}</td></tr>`;
 
   // Regiões
-  const regEl = document.getElementById('reativ-geo-regs');
+  const regEl = document.getElementById(P + '-regs');
   regEl.innerHTML = Object.keys(BR_REGIONS).map(rg => {
     const c = BR_REGIONS[rg].reduce((a, u) => a + ((by[u] && by[u].c) || 0), 0);
-    const on = REATIV_GEO && REATIV_GEO.kind === 'reg' && REATIV_GEO.key === rg;
-    return `<button class="geo-reg${on ? ' on' : ''}" onclick="setReativGeo('reg','${rg}')">${rg}<b>${fNum(c)}</b></button>`;
+    const on = G.geo && G.geo.kind === 'reg' && G.geo.key === rg;
+    return `<button class="geo-reg${on ? ' on' : ''}" onclick="${G.fn}('reg','${rg}')">${rg}<b>${fNum(c)}</b></button>`;
   }).join('');
 
   // Mapa no estilo do painel de produtos: sem seleção = intensidade pela quantidade (com legenda);
@@ -6529,11 +6661,11 @@ function renderReativGeo(rows, inScope) {
     const o = by[u] || { c: 0, v: 0 };
     const isSel = sel && sel.has(u);
     const fill = sel ? (isSel ? selCol : mapOff) : colorFor(o.c);
-    return `<path d="${d}" fill="${fill}" class="${isSel ? 'sel' : ''}" data-uf="${u}" onclick="setReativGeo('uf','${u}')"></path>`;
+    return `<path d="${d}" fill="${fill}" class="${isSel ? 'sel' : ''}" data-uf="${u}" onclick="${G.fn}('uf','${u}')"></path>`;
   }).join('');
-  mapEl.innerHTML = `<svg class="geo-map" viewBox="${BR_MAP.vb}" role="img" aria-label="Mapa do Brasil com as reativações por estado">${paths}<g id="reativ-geo-labels"></g></svg><div class="geo-tip" hidden></div>`;
+  mapEl.innerHTML = `<svg class="geo-map" viewBox="${BR_MAP.vb}" role="img" aria-label="Mapa do Brasil por estado">${paths}<g class="geo-labels"></g></svg><div class="geo-tip" hidden></div>`;
   // Siglas no centro de cada estado
-  const svg = mapEl.querySelector('svg'), g = svg.querySelector('#reativ-geo-labels'), tipEl = mapEl.querySelector('.geo-tip');
+  const svg = mapEl.querySelector('svg'), g = svg.querySelector('.geo-labels'), tipEl = mapEl.querySelector('.geo-tip');
   svg.querySelectorAll('path').forEach(p => {
     const u = p.dataset.uf;
     try { const b = p.getBBox(); if(b.width < 12 && b.height < 12) return;
@@ -6542,20 +6674,28 @@ function renderReativGeo(rows, inScope) {
       if(sel && sel.has(u)) tx.setAttribute('class', 'on');
       tx.textContent = u; g.appendChild(tx);
     } catch(e) {}
-    // Dica ao passar o mouse: estado, clientes reativados e valor
+    // Dica ao passar o mouse: estado, quantidade e valor
     p.addEventListener('mousemove', ev => {
       const o = by[u] || { c: 0, v: 0 }, rc = mapEl.getBoundingClientRect();
-      tipEl.innerHTML = `<b>${escHtml(UF_NAME[u] || u)}</b>${fNum(o.c)} ${o.c === 1 ? 'cliente reativado' : 'clientes reativados'}${o.c ? '<br>Valor: ' + fR0(o.v) : ''}`;
+      tipEl.innerHTML = `<b>${escHtml(UF_NAME[u] || u)}</b>${fNum(o.c)} ${o.c === 1 ? G.one : G.many}${o.c ? '<br>Valor: ' + fR0(o.v) : ''}`;
       tipEl.style.left = (ev.clientX - rc.left) + 'px'; tipEl.style.top = (ev.clientY - rc.top) + 'px'; tipEl.hidden = false;
     });
     p.addEventListener('mouseleave', () => { tipEl.hidden = true; });
   });
-  const leg = document.getElementById('reativ-geo-legend');
+  const leg = document.getElementById(P + '-legend');
   if(leg) leg.innerHTML = sel ? '' : `<span>menos</span><i style="background:linear-gradient(90deg,${scale.join(',')})"></i><span>mais</span>`;
-  document.getElementById('reativ-geo-clear').style.display = REATIV_GEO ? 'inline-flex' : 'none';
-  document.getElementById('reativ-geo-sub').textContent = REATIV_GEO
-    ? `Filtrando as reativações por ${reativGeoLabel()} · clique de novo para tirar`
-    : 'Clique num estado (mapa ou tabela) ou numa região para filtrar as reativações';
+  document.getElementById(P + '-clear').style.display = G.geo ? 'inline-flex' : 'none';
+  document.getElementById(P + '-sub').textContent = G.geo
+    ? `Filtrando ${G.what} por ${geoLabelOf(G.geo)} · clique de novo para tirar`
+    : `Clique num estado (mapa ou tabela) ou numa região para filtrar ${G.what}`;
+}
+
+
+// Tabela e mapa: contam as reativações do filtro atual (sem o filtro geográfico)
+function renderReativGeo(rows, inScope) {
+  const items = [];
+  rows.forEach(r => reativEventsOf(r).forEach(e => { if(inScope(e)) items.push({ u: ufOfRow(r), v: e.val }); }));
+  renderGeoBlock('reativ-geo', items, { geo: REATIV_GEO, fn: 'setReativGeo', one: 'cliente reativado', many: 'clientes reativados', empty: 'Nenhuma reativação neste filtro.', what: 'as reativações' });
 }
 
 function renderReativacoes() {
@@ -6749,6 +6889,264 @@ function renderReativacoes() {
   document.getElementById('reativ-list-count').textContent = `${fNum(REATIV_LIST.length)} clientes`;
   document.getElementById('reativ-list-sub').textContent = `${whoTxt} · ${periodTxt} · do mais recente para o mais antigo, maior valor primeiro`;
   drawReativList();
+}
+
+// ─── CLIENTES NOVOS (primeira compra, exportada do BI) ───────────────────────
+// Regra do BI: 1º pedido da história do integrador (sem cancelamento e sem devolução).
+// Conta para o vendedor (RCA) e o supervisor do pedido, como estão no BI.
+let PC = null;          // { years: { AAAA: { file, savedAt, n } }, rows: [[pedido, 'AAAA-MM-DD', codWinthor, integrador, supervisor, rca, valor]] }
+let CONS_PC = null;     // área do consultor: [[ 'AAAA-MM-DD', cliente, valor, estado, idCarteira, supervisor ]]
+let NOVOS_GEO = null;
+let NOVOS_LIST = [], NOVOS_SHOWN = 50;
+const PC_RCA_ALIAS = { 'MATHEUS SILVA': 'MATHEUS FERREIRA', 'NYVEA OLIVEIRA': 'NYVEA QUEIROZ', 'ERICK RAFAEL DA SILVA FERREIRA': 'ERICK FERREIRA' };
+let _pcCache = null;
+function pcNorm(t) { return normTxt(t).replace(/[^A-Z0-9]+/g, ' ').trim(); }
+function pcMonthIdx() { const m = new Map(); MONTH_YEAR_MAP.forEach((x, i) => m.set(x.y + '-' + String(x.m + 1).padStart(2, '0'), i)); return m; }
+function pcSellerKey(rca) { const n = normTxt(rca); return sellerKey(PC_RCA_ALIAS[n] || n); }
+// Uma linha por integrador novo: data, quem vendeu, equipe da época, valor e o cliente na carteira de hoje
+function pcEvents() {
+  if(isConsMode()) {
+    if(!CONS_PC) return [];
+    const mi = pcMonthIdx(), mine = new Map((RAW_DATA || []).filter(r => !r._hist).map(r => [String(r.id), r]));
+    return CONS_PC.map(x => {
+      const m = mi.get(String(x[0]).slice(0, 7)); if(m === undefined) return null;
+      const row = x[4] ? mine.get(String(x[4])) || null : null;
+      return { m, d: x[0], name: x[1], val: x[2] || 0, state: x[3] || '', uf: getStateTag(x[3] || '') in UF_NAME ? getStateTag(x[3]) : '', row, cons: CONS_MODE.cons, sup: x[5] || CONS_MODE.sup };
+    }).filter(Boolean);
+  }
+  if(!PC || !PC.rows || !PC.rows.length) return [];
+  if(_pcCache && _pcCache.src === RAW_DATA && _pcCache.pc === PC && _pcCache.nf === NF && _pcCache.n === MONTH_KEYS.length) return _pcCache.ev;
+  const mi = pcMonthIdx();
+  // pedido → integrador da carteira (planilhas info_cli), senão pelo nome
+  const pedMap = new Map();
+  if(NF && NF.agg) Object.values(NF.agg).forEach(g => { if(g && g.p) Object.keys(g.p).forEach(k => pedMap.set(k, String(g.p[k]))); });
+  const base = clientRows(RAW_DATA), byId = new Map(base.map(r => [String(r.id), r]));
+  const names = base.map(r => [pcNorm(r.name), r]).sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+  const byName = k => { // nome da carteira começando pelo nome do BI (só se for um cliente só)
+    if(!k) return null;
+    let lo = 0, hi = names.length;
+    while(lo < hi) { const md = (lo + hi) >> 1; if(names[md][0] < k) lo = md + 1; else hi = md; }
+    const hits = [];
+    for(let i = lo; i < names.length && names[i][0].startsWith(k) && hits.length < 3; i++) if(names[i][0] === k || names[i][0][k.length] === ' ') hits.push(names[i][1]);
+    return hits.length === 1 ? hits[0] : null;
+  };
+  const consName = new Map(); (RAW_DATA || []).forEach(r => { const k = normTxt(r.cons); if(k && !consName.has(k)) consName.set(k, String(r.cons).trim()); });
+  // soma os itens de cada pedido e junta os pedidos de cada integrador
+  const peds = new Map();
+  PC.rows.forEach(x => { const o = peds.get(x[0]); if(o) o[6] = Math.round((o[6] + (x[6] || 0)) * 100) / 100; else peds.set(x[0], x.slice()); });
+  const ints = new Map();
+  peds.forEach(x => {
+    const k = x[2] || ('P' + x[0]);
+    const o = ints.get(k) || { d: x[1], cw: x[2], nome: x[3], sup: x[4], rca: x[5], val: 0, best: -1, peds: [] };
+    if(x[1] < o.d) o.d = x[1];
+    o.val += x[6] || 0; o.peds.push(x[0]);
+    if((x[6] || 0) > o.best) { o.best = x[6] || 0; o.sup = x[4]; o.rca = x[5]; }
+    ints.set(k, o);
+  });
+  const ev = [];
+  ints.forEach(o => {
+    const m = mi.get(String(o.d).slice(0, 7)); if(m === undefined) return;
+    let row = null;
+    for(const pd of o.peds) { const id = pedMap.get(String(pd)); if(id && byId.has(id)) { row = byId.get(id); break; } }
+    if(!row) row = byName(pcNorm(o.nome));
+    const sk = pcSellerKey(o.rca);
+    const sup = /PARAMETRIZ/i.test(o.sup || '') ? '' : String(o.sup || '').trim();
+    ev.push({ m, d: o.d, name: row ? row.name : o.nome, val: Math.round(o.val * 100) / 100, row, state: row ? (row.state || '') : '', uf: row ? ufOfRow(row) : '',
+      cons: sk ? (consName.get(sk) || String(o.rca).trim()) : SEM_CONSULTOR, sup });
+  });
+  _pcCache = { src: RAW_DATA, pc: PC, nf: NF, n: MONTH_KEYS.length, ev };
+  return ev;
+}
+// Para a área de cada consultor (publicada): as primeiras compras que ele fez
+function pcForCons(name) {
+  if(!PC) return [];
+  const k = normTxt(name);
+  return withFullView(() => pcEvents()).filter(e => normTxt(e.cons) === k)
+    .map(e => [e.d, String(e.name || '').slice(0, 70), e.val, e.state, e.row ? String(e.row.id) : '', e.sup]);
+}
+function setNovosGeo(kind, key) {
+  if(!kind || (NOVOS_GEO && NOVOS_GEO.kind === kind && NOVOS_GEO.key === key)) NOVOS_GEO = null;
+  else NOVOS_GEO = { kind, key };
+  renderNovos();
+}
+function renderNovos() {
+  const card = document.getElementById('novos-section');
+  if(!card) return;
+  const all = pcEvents();
+  const has = isConsMode() ? !!CONS_PC : !!(PC && PC.rows && PC.rows.length);
+  document.getElementById('novos-empty').style.display = has ? 'none' : 'block';
+  document.getElementById('novos-body').style.display = has ? '' : 'none';
+  if(!has) return;
+  const n = MONTH_KEYS.length, light = isLightMode();
+  const isMonth = STATE.month && STATE.month !== 'todos';
+  const mSel = isMonth ? parseInt(STATE.month, 10) : null;
+  const hasCons = !isConsMode() && STATE.consultant && STATE.consultant !== 'todos';
+  const consSel = hasCons ? normTxt(STATE.consultant) : null;
+  const sup = (STATE.supervisor || '').trim();
+  const isAllSup = isConsMode() || !sup || sup.toUpperCase() === 'TODOS';
+  const st = STATE.state;
+  // filtro da página (equipe da época, estado do cliente, consultor que vendeu)
+  let base = all.filter(e => (isAllSup || sameSup(e.sup, sup)) && (!st || st === 'geral' || e.state === st));
+  const focus = hasCons ? base.filter(e => normTxt(e.cons) === consSel) : base;
+  const inPeriod = e => !isMonth || e.m === mSel;
+  // estados e mapa (sem o filtro geográfico)
+  renderGeoBlock('novos-geo', focus.filter(inPeriod).map(e => ({ u: e.uf, v: e.val })),
+    { geo: NOVOS_GEO, fn: 'setNovosGeo', one: 'cliente novo', many: 'clientes novos', empty: 'Nenhum cliente novo neste filtro.', what: 'os clientes novos' });
+  const gs = geoSetOf(NOVOS_GEO);
+  const geoOk = e => !gs || gs.has(e.uf);
+  const fRows = focus.filter(geoOk);
+  base = base.filter(geoOk);
+  const whoTxt = (isConsMode() ? 'seus clientes' : hasCons ? STATE.consultant : (isAllSup ? 'todas as equipes' : 'equipe ' + teamNameOf(sup))) + (NOVOS_GEO ? ' · ' + geoLabelOf(NOVOS_GEO) : '');
+  // 1) mês a mês
+  const cnt = Array(n).fill(0), val = Array(n).fill(0);
+  fRows.forEach(e => { cnt[e.m]++; val[e.m] += e.val; });
+  const idxs = []; for(let i = 0; i < n; i++) idxs.push(i);
+  const partialIdx = isPartialMonth(n - 1) ? n - 1 : -1;
+  renderChart('ch-novos-mes', {
+    _monthIdx: idxs, type: 'bar',
+    data: { labels: idxs.map(i => MONTH_SHORT[i] + (i === partialIdx ? '*' : '')),
+      datasets: [{ label: 'Clientes novos', data: idxs.map(i => cnt[i]), borderRadius: 4, _fmt: 'n',
+        backgroundColor: idxs.map(i => { const c = monthColor(i); return (isMonth && i !== mSel) ? c + '40' : (i === partialIdx ? c + '80' : c + 'e6'); }),
+        borderColor: idxs.map(i => (isMonth && i === mSel) ? (light ? '#111318' : '#ffffff') : 'transparent'), borderWidth: idxs.map(i => (isMonth && i === mSel) ? 2 : 0) }] },
+    options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 18 } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: {
+        title: items => MONTH_NAMES[idxs[items[0].dataIndex]] + (idxs[items[0].dataIndex] === partialIdx ? ' (parcial)' : ''),
+        label: c => ` ${fNum(c.raw)} ${c.raw === 1 ? 'cliente novo' : 'clientes novos'}`,
+        afterLabel: c => ` Valor da 1ª compra: ${fR0(val[idxs[c.dataIndex]])}` } } },
+      scales: { x: { ticks: { color: getTextColor() }, grid: { display: false } }, y: { beginAtZero: true, ticks: { color: getTextColor(), precision: 0 }, grid: { color: getGridColor() } } } }
+  });
+  const scopeRows = fRows.filter(inPeriod);
+  const scopeVal = scopeRows.reduce((a, e) => a + e.val, 0);
+  document.getElementById('novos-total-pill').textContent = `${fNum(scopeRows.length)} clientes · ${fK(scopeVal)}`;
+  document.getElementById('novos-mes-sub').textContent = `Primeiro pedido da história do integrador (regra do BI) · ${whoTxt}`;
+  document.getElementById('novos-mes-note').textContent = (partialIdx >= 0 ? `* ${MONTH_NAMES[partialIdx]} está em andamento. ` : '') + 'Fonte: exportação "Primeira Compra" do BI (Importar Planilha).';
+  // 2) por equipe ou consultor
+  const byTeam = isAllSup && !hasCons && !isConsMode();
+  const curTeams = new Set(getSupervisorsList().map(x => normTxt(x)));
+  const groups = new Map(); let fora = 0;
+  (hasCons ? base.filter(geoOk) : fRows).filter(inPeriod).forEach(e => {
+    let key;
+    if(byTeam) { if(!curTeams.has(normTxt(e.sup))) { fora++; return; } key = teamNameOf(e.sup); }
+    else { if(isNoCons(e.cons)) return; key = e.cons; }
+    const g = groups.get(key) || { key, cnt: 0, val: 0 }; g.cnt++; g.val += e.val; groups.set(key, g);
+  });
+  const list = Array.from(groups.values()).sort((a, b) => b.cnt - a.cnt || b.val - a.val || a.key.localeCompare(b.key));
+  const focusIdx = hasCons ? list.findIndex(g => normTxt(g.key) === consSel) : -1;
+  document.getElementById('novos-quem-title').textContent = byTeam ? 'Clientes novos por equipe' : 'Clientes novos por consultor';
+  document.getElementById('novos-quem-sub').textContent = (byTeam ? 'Equipe do supervisor do pedido (como no BI)' : 'Quem fez a primeira venda') + ` · ${isMonth ? MONTH_NAMES[mSel] : 'todo o período'}` + (byTeam && fora ? ` · mais ${fNum(fora)} de equipes que não existem mais (contam só no total)` : '');
+  const empty = document.getElementById('novos-quem-empty'), wrap = document.getElementById('novos-quem-wrap');
+  if(!list.length) {
+    if(charts['ch-novos-quem']) { charts['ch-novos-quem'].destroy(); delete charts['ch-novos-quem']; }
+    empty.style.display = 'flex'; empty.textContent = 'Nenhum cliente novo neste filtro.'; wrap.style.height = '220px';
+  } else {
+    empty.style.display = 'none';
+    const box = document.getElementById('novos-quem-scroll'), boxH = box ? box.clientHeight - 4 : 320;
+    wrap.style.height = Math.max(160, boxH, list.length * 30 + 50) + 'px';
+    if(box) box.scrollTop = focusIdx > 3 ? Math.max(0, focusIdx * 30 - boxH / 2) : 0;
+    const cFocus = light ? '#ea580c' : '#ff7a00';
+    renderChart('ch-novos-quem', {
+      type: 'bar',
+      data: { labels: list.map(g => byTeam ? g.key : shortName(g.key)),
+        datasets: [{ label: 'Clientes novos', data: list.map(g => g.cnt), borderRadius: 5, barThickness: 18, _fmt: 'n',
+          backgroundColor: list.map((g, i) => byTeam ? colorForName(g.key, CONS_COLORS) + 'e6' : (focusIdx >= 0 && i !== focusIdx ? colorForName(g.key, CONS_COLORS) + '55' : colorForName(g.key, CONS_COLORS) + 'e6')) }] },
+      options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 34 } },
+        onClick: (evt, els) => { if(!els.length || isConsMode()) return; const g = list[els[0].index];
+          setTimeout(() => { if(byTeam) { const sp = getSupervisorsList().find(x => teamNameOf(x) === g.key); if(sp) { const sel = document.getElementById('sel-supervisor'); if(sel) sel.value = sp; changeSupervisor(sp); } } else setConsultantFilter(g.key); }, 0); },
+        onHover: (evt, els) => { evt.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
+        plugins: { legend: { display: false }, glowBar: { index: focusIdx, color: cFocus }, tooltip: { callbacks: {
+          title: items => list[items[0].dataIndex].key,
+          label: c => ` ${fNum(c.raw)} ${c.raw === 1 ? 'cliente novo' : 'clientes novos'}`,
+          afterLabel: c => ` Valor da 1ª compra: ${fR0(list[c.dataIndex].val)}` } } },
+        scales: { x: { beginAtZero: true, ticks: { color: getTextColor(), precision: 0 }, grid: { color: getGridColor() } },
+          y: { ticks: { color: c => (focusIdx >= 0 && c.index === focusIdx) ? cFocus : getTextColor(), font: c => (focusIdx >= 0 && c.index === focusIdx) ? { weight: 'bold', size: 12 } : { size: 11 } }, grid: { display: false } } } },
+      plugins: [glowBarPlugin]
+    });
+  }
+  // 3) lista
+  NOVOS_LIST = scopeRows.slice().sort((a, b) => (b.d > a.d ? 1 : b.d < a.d ? -1 : b.val - a.val));
+  NOVOS_SHOWN = 50;
+  const ativos = NOVOS_LIST.filter(e => { const t = novoStatus(e); return t && t.code === 'ativo'; }).length;
+  document.getElementById('novos-list-count').textContent = `${fNum(NOVOS_LIST.length)} clientes`;
+  document.getElementById('novos-list-sub').textContent = `${whoTxt} · ${isMonth ? MONTH_NAMES[mSel] : 'todo o período'} · ${fNum(ativos)} ativos hoje · mais recentes primeiro`;
+  drawNovosList();
+}
+// Situação hoje do cliente novo: pela carteira; se a carteira ainda não tem a 1ª compra (pedido recente), pela data dela
+function novoStatus(e) {
+  if(!e.row) return null;
+  const stt = getClientStatus(e.row);
+  if(stt.code === 'ativo') return stt;
+  const ref = getCarteiraRefDate(), dd = new Date(e.d + 'T12:00:00');
+  return (!isNaN(dd) && (ref - dd) / 86400000 <= INATIVO_DIAS) ? { code: 'ativo', label: 'Ativo', cls: 'active' } : stt;
+}
+function drawNovosList() {
+  const body = document.getElementById('novos-list-body'); if(!body) return;
+  const rows = NOVOS_LIST.slice(0, NOVOS_SHOWN);
+  const dt = d => { const p = String(d).split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : d; };
+  body.innerHTML = rows.length ? rows.map(e => {
+    const stt = novoStatus(e);
+    const sCol = !stt ? 'var(--muted)' : stt.code === 'ativo' ? 'var(--green)' : stt.code === 'inativo' ? 'var(--red)' : 'var(--muted)';
+    return `<tr>
+      <td style="white-space:nowrap">${dt(e.d)}</td>
+      <td style="font-weight:600">${escHtml(e.name || '—')}</td>
+      <td>${escHtml(isNoCons(e.cons) ? 'Sem vendedor' : e.cons)}</td>
+      <td>${escHtml(e.sup ? teamNameOf(e.sup) : '—')}</td>
+      <td>${escHtml(e.state || '—')}</td>
+      <td class="num" style="color:var(--green);font-weight:700">${fR0(e.val)}</td>
+      <td style="color:${sCol};font-weight:600">${stt ? stt.label : 'Fora da carteira'}</td>
+      <td>${escHtml(e.row ? (e.row.cons || '—') : '—')}</td>
+    </tr>`; }).join('')
+    : '<tr><td colspan="8" style="text-align:center;padding:16px;color:var(--muted)">Nenhum cliente novo neste filtro.</td></tr>';
+  const btn = document.getElementById('novos-more-btn'), left = NOVOS_LIST.length - rows.length;
+  btn.style.display = left > 0 ? 'inline-flex' : 'none';
+  btn.textContent = `Mostrar mais (${fNum(left)} restantes)`;
+}
+function showMoreNovos() { NOVOS_SHOWN += 50; drawNovosList(); }
+
+// Importar: lê a exportação "Primeira Compra" do BI (um ou vários arquivos, por ano)
+async function pcReadFile(file) {
+  const wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true });
+  const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '', raw: true });
+  if(!rows.length) return [];
+  const hk = {}; Object.keys(rows[0]).forEach(h => { hk[nfNormHeader(h)] = h; });
+  const C = { ped: hk.numpedweb, cw: hk.codintegrador, nome: hk.integrador, sup: hk.supervisor, rca: hk.rca, dt: hk.datanffutura, val: hk.valorequipamento };
+  if(!C.ped || !C.dt || !C.rca) throw new Error(`"${file.name}" não parece a exportação de Primeira Compra do BI (faltam NUMPEDWEB, RCA ou DATA_NFFUTURA).`);
+  const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return rows.map(r => {
+    const ped = String(r[C.ped] || '').trim().replace(/\.0+$/, ''), d = nfParseDate(r[C.dt]);
+    if(!/^\d+$/.test(ped) || !d) return null;
+    return [ped, ymd(d), String(r[C.cw] || '').trim().replace(/\.0+$/, ''), String(r[C.nome] || '').replace(/\s+/g, ' ').trim().slice(0, 70),
+      String(r[C.sup] || '').trim(), String(r[C.rca] || '').trim(), Math.round(nfNum(r[C.val]) * 100) / 100];
+  }).filter(Boolean);
+}
+async function handlePcFiles(input) {
+  const files = Array.from(input.files || []); input.value = '';
+  if(!files.length) return;
+  showSaveToast('<i class="fi fi-rr-time-fast" aria-hidden="true"></i> Lendo ' + files.length + (files.length === 1 ? ' arquivo' : ' arquivos') + ' de primeiras compras…', '', 0);
+  const byYear = {}, fileOf = {};
+  try {
+    for(const f of files) (await pcReadFile(f)).forEach(x => { const y = x[1].slice(0, 4); (byYear[y] = byYear[y] || []).push(x); (fileOf[y] = fileOf[y] || new Set()).add(f.name); });
+  } catch(e) { showSaveToast('<i class="fi fi-rr-cross-circle" aria-hidden="true"></i> ' + escHtml(e.message || e), 'err', 0); return; }
+  const ys = Object.keys(byYear).sort();
+  if(!ys.length) { showSaveToast('<i class="fi fi-rr-cross-circle" aria-hidden="true"></i> Nenhuma primeira compra encontrada nos arquivos.', 'err', 0); return; }
+  const now = new Date().toISOString();
+  const meta = Object.assign({}, (PC && PC.years) || {});
+  ys.forEach(y => { meta[y] = { file: Array.from(fileOf[y]).join(', '), savedAt: now, n: new Set(byYear[y].map(x => x[2] || x[0])).size }; });
+  showSaveToast('<i class="fi fi-rr-cloud" aria-hidden="true"></i> Salvando primeiras compras de ' + ys.join(', ') + '…', '', 0);
+  try { await FirebaseStore.savePrimeirasYears(byYear, meta); }
+  catch(e) { showSaveToast('<i class="fi fi-rr-cross-circle" aria-hidden="true"></i> As primeiras compras <b>não foram salvas</b>.<br>' + escHtml(dbErrorHint(e)), 'err', 0); return; }
+  const keep = ((PC && PC.rows) || []).filter(x => !byYear[x[1].slice(0, 4)]);
+  PC = { years: meta, rows: keep.concat(...ys.map(y => byYear[y])) };
+  _pcCache = null;
+  showSaveToast('<i class="fi fi-rr-check" aria-hidden="true"></i> Primeiras compras salvas: ' + ys.map(y => `${y} (${fNum(meta[y].n)} clientes)`).join(', ') + '.', 'ok', 6000);
+  renderCurrentPage();
+  try { publishConsultorArea(true); } catch(e) {}
+}
+function renderPcStatus() {
+  const el = document.getElementById('pc-status'); if(!el) return;
+  if(!PC || !PC.years || !Object.keys(PC.years).length) { el.innerHTML = 'Nenhuma exportação enviada ainda.'; return; }
+  const ev = pcEvents(), linked = ev.filter(e => e.row).length;
+  el.innerHTML = Object.keys(PC.years).sort().map(y => { const x = PC.years[y]; return `<b>${y}</b>: ${fNum(x.n)} clientes novos · ${escHtml(x.file || '')} · ${formatSavedAt(x.savedAt)}`; }).join('<br>')
+    + (ev.length ? `<br>Ligados a um cliente da carteira de hoje: <b>${fNum(linked)}</b> de ${fNum(ev.length)} (os outros saíram da carteira ou têm outro nome).` : '');
 }
 
 function drawReativList() {
