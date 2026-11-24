@@ -4156,7 +4156,7 @@ async function loadConsultantData(email, acc) {
     TEAM_SUMMARY = team;
     RAW_DATA = rows;
     REATIV_CREDITED = !!meta.reatCred;
-    CONS_PC = Array.isArray(meta.pc) ? meta.pc : null;
+    try { CONS_PC = typeof meta.pc === 'string' ? JSON.parse(meta.pc) : (Array.isArray(meta.pc) ? meta.pc : null); } catch(e) { CONS_PC = null; }
     FILE_META = { name: 'Sua carteira', months: meta.months || [], savedAt: meta.savedAt || null, rows: rows.length };
     if(FILE_META.months.length) applyMonths(FILE_META.months);
     CARTEIRA_REF_OVERRIDE = meta.refDate || null;
@@ -4330,7 +4330,7 @@ async function publishConsultorArea(force) {
           metasFile: (METAS_PLAN && METAS_PLAN.fileName) || '', metasSavedAt: (METAS_PLAN && METAS_PLAN.savedAt) || '',
           desc: descByCons.get(c.id) || [], descTeam: descTeams[teamNameOf(c.sup)] || {},
           descSavedAt: (DESC && DESC.savedAt) || '', descFile: (DESC && DESC.fileName) || '',
-          descMonths: (DESC && DESC.months) || {}, descNoRecord, reatCred: REATIV_CREDITED, pc: pcForCons(c.name),
+          descMonths: (DESC && DESC.months) || {}, descNoRecord, reatCred: REATIV_CREDITED, pc: JSON.stringify(pcForCons(c.name)), // texto: o Firestore não aceita lista dentro de lista
           publishedAt: new Date().toISOString()
         });
       });
