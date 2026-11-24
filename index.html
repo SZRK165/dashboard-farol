@@ -5694,10 +5694,40 @@ function renderRanking() {
     if(r.state) cObj.states.add(r.state);
     consMap.set(r.cons, cObj);
   });
+  // No mês atual a positivação é pela carteira de hoje (%). Nos meses passados e no período inteiro não
+  // temos a carteira da época: a coluna mostra para quantos clientes cada um vendeu (clientes atendidos).
+  const posRate = isConsMode() || (isMonthFiltered && m === CURRENT_METAS_MONTH_IDX);
   if(!isConsMode() || !(TEAM_SUMMARY && Array.isArray(TEAM_SUMMARY.members))) {
-    // Positivação de cada consultor = clientes da carteira dele hoje que compraram (com qualquer vendedor)
+    const supSel = (STATE.supervisor || '').trim(), allSup = !supSel || supSel.toUpperCase() === 'TODOS';
+    const consSel = (STATE.consultant && STATE.consultant !== 'todos') ? STATE.consultant.trim() : null;
+    const stSel = STATE.state && STATE.state !== 'geral';
+    // Quem aparece: quem estava na equipe no mês (planilha de metas); nos meses sem planilha, quem vendeu pela equipe
+    const idxs = isMonthFiltered ? [m] : MONTH_KEYS.map((_, i) => i);
+    const roster = new Set(); let noPlanMonths = false;
+    idxs.forEach(i => {
+      const pm = planMonthForIdx(i);
+      if(!pm) { noPlanMonths = true; return; }
+      pm.rows.forEach(x => {
+        if(!allSup && !sameSup(x.sup, supSel)) return;
+        const rs = rowsOfPlanMember(x);
+        const nm = String(rs.length ? rs[0].cons : x.name).trim();
+        if(!nm || isNoCons(nm)) return;
+        roster.add(normTxt(nm));
+        if(consSel && normTxt(consSel) !== normTxt(nm)) return;
+        if(!stSel && !Array.from(consMap.values()).some(c => normTxt(c.name) === normTxt(nm)))
+          consMap.set(nm, { name: nm, fat: 0, ped: 0, clients: 0, active: 0, states: new Set(), curFat: 0 });
+      });
+    });
+    consMap.forEach((c, k) => {
+      const sold = c.fat > 0 || c.ped > 0;
+      if(!(roster.has(normTxt(c.name)) || (noPlanMonths && sold))) consMap.delete(k);
+    });
     const CP = carteiraPos(rows, isMonthFiltered ? [m] : null);
-    consMap.forEach(c => { const x = CP.byCons.get(String(c.name || '').trim()) || { clients: 0, active: 0 }; c.clients = x.clients; c.active = x.active; });
+    consMap.forEach(c => {
+      const x = CP.byCons.get(String(c.name || '').trim()) || { clients: 0, active: 0 };
+      c.clients = x.clients;
+      if(posRate) c.active = x.active; // senão fica o número de clientes atendidos (calculado acima)
+    });
   }
 
   const consListAll = Array.from(consMap.values());
@@ -5746,13 +5776,29 @@ function renderRanking() {
     `;
   }).join('');
 
-  // Positivação
+  // Positivação (mês atual) ou clientes atendidos (meses passados e período)
   const byPos = [...consList].sort((a,b)=> {
+    if(!posRate) return b.active - a.active || b.fat - a.fat;
     const txB = b.clients > 0 ? b.active / b.clients : 0;
     const txA = a.clients > 0 ? a.active / a.clients : 0;
     return txB - txA || b.active - a.active;
   });
+  const maxAct = byPos.length ? Math.max(...byPos.map(c => c.active)) : 0;
   const posHtml = byPos.map((c, i) => {
+    if(!posRate) {
+      const w = maxAct > 0 ? (c.active / maxAct * 100) : 0;
+      return `
+      <div class="rank-row${c.isMe ? ' is-me' : ''}">
+        <div class="rank-medal">${medal(i)}</div>
+        <div class="rank-name" title="${c.name}">${c.name}${c.isMe ? '<span class="me-tag">você</span>' : ''}</div>
+        <div class="rank-bar-wrap">
+          <div class="rank-track"><div class="rank-fill" style="width:${w.toFixed(1)}%;background:var(--green)"></div></div>
+          <div class="rank-pct">${fNum(c.active)} ${c.active === 1 ? 'cliente' : 'clientes'}</div>
+        </div>
+        <div class="rank-val">${c.active > 0 ? fNum(c.active) : '—'}</div>
+      </div>
+    `;
+    }
     const tx = c.clients > 0 ? (c.active / c.clients * 100) : 0;
     return `
       <div class="rank-row${c.isMe ? ' is-me' : ''}">
@@ -5779,9 +5825,9 @@ function renderRanking() {
       <div class="rank-footnote">Total: <b>${fNum(totPed)} pedidos</b></div>
     </div>
     <div class="rank-col rc-pos">
-      <div class="rank-col-head"><i class="fi fi-rr-bullseye-arrow" aria-hidden="true"></i> Taxa de Positivação ${isMonthFiltered ? '(' + mName + ')' : ''}</div>
+      <div class="rank-col-head"><i class="fi fi-rr-bullseye-arrow" aria-hidden="true"></i> ${posRate ? 'Taxa de Positivação' : 'Clientes Atendidos'} ${isMonthFiltered ? '(' + mName + ')' : ''}</div>
       <div class="rank-rows">${posHtml}</div>
-      <div class="rank-footnote">Total: <b>${fNum(totAct)} clientes ativos</b></div>
+      <div class="rank-footnote">${posRate ? `Total: <b>${fNum(totAct)} clientes ativos</b>` : `Para quantos clientes cada um vendeu${isMonthFiltered ? ' no mês' : ' no período'} · a taxa sobre a carteira aparece no mês atual`}</div>
     </div>
   `;
 
@@ -5818,8 +5864,8 @@ function renderRanking() {
             <span class="ccons-meta-val" style="color:var(--blue)">${fNum(c.ped)}</span>
           </div>
           <div class="ccons-meta-item">
-            <span class="ccons-meta-lbl">Ativação</span>
-            <span class="ccons-meta-val" style="color:${pctColor(tx)}">${fPct(tx)}</span>
+            <span class="ccons-meta-lbl">${posRate ? 'Ativação' : 'Atendidos'}</span>
+            <span class="ccons-meta-val" style="color:${posRate ? pctColor(tx) : 'var(--green)'}">${posRate ? fPct(tx) : fNum(c.active)}</span>
           </div>
           <div class="ccons-meta-item">
             <span class="ccons-meta-lbl">Ticket M.</span>
@@ -6621,6 +6667,9 @@ function renderCrmPage() {
 // ─── RENDER: EVOLUÇÃO MENSAL (PAGE 5) ─────────────────────────────────────────
 function renderMensal() {
   const rows = getFilteredRows();
+  // Botões dos meses sempre da lista atual (o filtro de ano muda a lista)
+  if(!(STATE.selectedMonthIdx >= 0 && STATE.selectedMonthIdx < MONTH_KEYS.length)) STATE.selectedMonthIdx = CURRENT_METAS_MONTH_IDX;
+  buildMonthSelectorButtons();
   const mIdx = STATE.selectedMonthIdx;
   const mName = MONTH_NAMES[mIdx];
 
@@ -6671,16 +6720,17 @@ function renderMensal() {
     </div>
   `;
 
-  // Gráficos do Mês
+  // Gráficos do Mês (só quem tem valor no mês)
+  const fatCons = sortedCons.filter(c => c.fat > 0);
   renderChart('ch-month-fat-bar', {
-    _consClick: sortedCons.map(c => String(c.name || "").trim()),
+    _consClick: fatCons.map(c => String(c.name || "").trim()),
     type: 'bar',
     data: {
-      labels: sortedCons.map(c => c.name.split(' ')[0]),
+      labels: fatCons.map(c => c.name.split(' ')[0]),
       datasets: [{
         label: 'Faturamento (R$)',
-        data: sortedCons.map(c => c.fat),
-        backgroundColor: sortedCons.map((_,i) => PALETTE[i % PALETTE.length] + 'cc'),
+        data: fatCons.map(c => c.fat),
+        backgroundColor: fatCons.map((_,i) => PALETTE[i % PALETTE.length] + 'cc'),
         borderRadius: 4,
         maxBarThickness: 90,
         _fmt: 'r'
@@ -6697,7 +6747,7 @@ function renderMensal() {
     }
   });
 
-  const sortedByPed = [...sortedCons].sort((a,b)=>b.ped - a.ped);
+  const sortedByPed = sortedCons.filter(c => c.ped > 0).sort((a,b)=>b.ped - a.ped);
   renderChart('ch-month-ped-bar', {
     _consClick: sortedByPed.map(c => String(c.name || "").trim()),
     type: 'bar',
