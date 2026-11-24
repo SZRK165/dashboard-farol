@@ -5075,14 +5075,6 @@ function renderVisaoGeral() {
       </div>
     </div>
     <div class="exec-card">
-      <div class="exec-icon blue"><i class="fi fi-rr-bolt" aria-hidden="true"></i></div>
-      <div>
-        <div class="exec-title">Maior Taxa de Ativação</div>
-        <div class="exec-main">${sortedStates.find(s=>s.clients>=10 && s.active/s.clients >= 0.5)?.state || (sortedStates[0]?.state || '—')}</div>
-        <div class="exec-desc">Destaque em positivação da base</div>
-      </div>
-    </div>
-    <div class="exec-card">
       <div class="exec-icon red"><i class="fi fi-rr-rocket-lunch" aria-hidden="true"></i></div>
       <div>
         <div class="exec-title">Oportunidade (${getStateTag(oppStateName)})</div>
@@ -6291,7 +6283,7 @@ function renderEvolucaoCarteira() {
 
 // Resumo para os cartões da Visão Geral
 function evoDeltaFor(rows) {
-  const { at, in_, nv, n } = evoSeries(rows);
+  const { at, in_, nv, n } = evoSeries(clientRows(rows)); // um cliente por linha, com o histórico completo
   const cur = n - 1, prev = cur - 3;
   if(prev < EVO_START) return null;
   const pct = i => { const t = at[i] + in_[i] + nv[i]; return t ? at[i] / t * 100 : 0; };
