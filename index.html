@@ -2203,6 +2203,11 @@ const SELLER_ALIAS = {
   'ELA - TEMPORARIO ELA - TEMPORARIO': 'ELA - TEMPORARIO', 'LUC - TEMPORARIO LUC - TEMPORARIO': 'LUC - TEMPORARIO'
 };
 // Contas que não são vendedor: o mês fica com o dono do cliente na carteira
+// Equipe fixa de contas que não estão na planilha de metas (confere com o BI).
+// "Eduarda - Temporário": equipe do Caio (Clareou) até agosto/26; depois, a equipe da própria Eduarda (Aurora).
+const SELLER_TEAM_OVERRIDE = {
+  'EDUARDA - TEMPORARIO': k => (k <= '2026-08' ? 'CAIO CESAR' : 'EDUARDA SAMPAIO')
+};
 const SELLER_NONE = /^(A DEFINIR|INTERNO\b|EXPURGO|Z PARA\b|PARAMETRIZACAO|NAN$|SEM VENDEDOR)/;
 const SEM_CONSULTOR = 'SEM CONSULTOR';
 // Vendas sem vendedor de clientes fora da carteira: somam nos totais, mas não aparecem como consultor
@@ -2377,7 +2382,8 @@ function _applyNotaFutura() {
     const list = (consId && teamSeen.get('ID:' + consId)) || teamSeen.get(nk) || [];
     let t = '';
     const hit = list.find(x => x.k === k);
-    if(hit) t = hit.sup;
+    if(SELLER_TEAM_OVERRIDE[nk]) t = SELLER_TEAM_OVERRIDE[nk](k);
+    else if(hit) t = hit.sup;
     else {
       const ci = consIdx.get(nk);
       if(list.length && k < list[0].k) t = list[0].sup;              // antes da primeira planilha de metas
@@ -3831,7 +3837,7 @@ async function loadAppData() {
 // ═════════════════════════════════════════════════════════════════════════════
 const ADMIN_EMAILS = ['analisesupervisaosou@gmail.com'];
 const CONS_DOMAIN = [114,98,46,109,111,99,46,121,103,114,101,110,101,117,111,115].reverse().map(c=>String.fromCharCode(c)).join('');
-const PUB_FORMAT = 3; // 2: histórico por vendedor · 3: positivação pela carteira de hoje
+const PUB_FORMAT = 4; // 2: histórico por vendedor · 3: positivação pela carteira de hoje
 let USER_ROLE = null;       // 'admin' | 'consultor'
 let CONS_MODE = null;       // { email, consId, cons, sup, teamKey }
 let TEAM_SUMMARY = null;    // resumo da equipe do consultor
