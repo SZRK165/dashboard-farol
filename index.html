@@ -2152,12 +2152,45 @@ const SELLER_ALIAS = {
 // Contas que não são vendedor: o mês fica com o dono do cliente na carteira
 const SELLER_NONE = /^(A DEFINIR|INTERNO\b|EXPURGO|Z PARA\b|PARAMETRIZACAO|NAN$|SEM VENDEDOR)/;
 const SEM_CONSULTOR = 'SEM CONSULTOR';
+// Vendas sem vendedor de clientes fora da carteira: somam nos totais, mas não aparecem como consultor
+function isNoCons(name) { return normTxt(name) === SEM_CONSULTOR; }
 function sellerKey(raw) {
   let k = normTxt(raw);
   if(!k || SELLER_NONE.test(k)) return '';
   return SELLER_ALIAS[k] || k;
 }
 function sellerDisplay(raw) { return String(raw || '').replace(/\s+/g, ' ').trim().toUpperCase(); }
+// Cópia dos pedidos (info_cli) no navegador, para não baixar tudo a cada abertura.
+// Qualquer falha aqui só faz o painel baixar do banco, como antes.
+const NfCache = {
+  _db: null,
+  _open() {
+    if(this._db) return this._db;
+    this._db = new Promise((res) => {
+      try {
+        const rq = indexedDB.open('analytics_cache', 1);
+        rq.onupgradeneeded = () => { try { rq.result.createObjectStore('kv'); } catch(e) {} };
+        rq.onsuccess = () => res(rq.result);
+        rq.onerror = () => res(null);
+        rq.onblocked = () => res(null);
+      } catch(e) { res(null); }
+    });
+    return this._db;
+  },
+  async _run(mode, fn) {
+    try {
+      const db = await this._open(); if(!db) return null;
+      return await new Promise((res) => {
+        try { const tx = db.transaction('kv', mode); const st = tx.objectStore('kv'); const rq = fn(st);
+          tx.oncomplete = () => res(rq && 'result' in rq ? rq.result : true); tx.onerror = tx.onabort = () => res(null);
+        } catch(e) { res(null); }
+      });
+    } catch(e) { return null; }
+  },
+  get() { return this._run('readonly', st => st.get('nf')); },
+  set(v) { return this._run('readwrite', st => st.put(v, 'nf')); },
+  clear() { return this._run('readwrite', st => st.delete('nf')); }
+};
 function clientRows(rows) { return (rows || []).filter(r => !r._hist); }
 let HIST_STATS = null;   // resumo da atribuição por vendedor (página Importar)
 const PT_MONTH_KEY = ['janeiro', 'fevereiro', 'marco', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -3339,12 +3372,23 @@ const FirebaseStore = {
     const meta = idx.data() || {};
     const months = meta.months || {};
     const out = { months: {}, agg: {} };
-    await Promise.all(Object.keys(months).map(async mc => {
-      const d = await col.doc('nf_' + mc).get();
-      if(!d.exists) return;
-      const x = d.data();
-      try { out.agg[mc] = nfFromStored(x.json); out.months[mc] = months[mc]; } catch(e) { console.warn('Mês de pedidos ilegível:', mc, e); }
-    }));
+    // Cópia guardada no navegador: só vale se a data do índice for a mesma (senão baixa de novo)
+    const uid = (this.auth && this.auth.currentUser) ? this.auth.currentUser.uid : '';
+    const key = uid + '|' + (meta.savedAt || '') + '|' + Object.keys(months).sort().join(',');
+    const cached = meta.savedAt ? await NfCache.get() : null;
+    let docs = (cached && cached.key === key && cached.docs) ? cached.docs : null;
+    if(!docs) {
+      docs = {};
+      await Promise.all(Object.keys(months).map(async mc => {
+        const d = await col.doc('nf_' + mc).get();
+        if(d.exists) docs[mc] = d.data().json;
+      }));
+      if(meta.savedAt) NfCache.set({ key, docs });
+    }
+    Object.keys(months).forEach(mc => {
+      if(docs[mc] == null) return;
+      try { out.agg[mc] = nfFromStored(docs[mc]); out.months[mc] = months[mc]; } catch(e) { console.warn('Mês de pedidos ilegível:', mc, e); }
+    });
     return out;
   },
   async saveNotaFuturaMonths(byMonth, metaMonths) {
@@ -3611,6 +3655,7 @@ async function doLogout() {
   await signOutAndReload();
 }
 async function signOutAndReload() {
+  await NfCache.clear();
   try { await FirebaseStore.auth.signOut(); } catch(e) {}
   location.reload(); // limpa da memória os dados que estavam na tela
 }
@@ -3730,6 +3775,7 @@ async function routeSignedInUser(user) {
   }
   const domainOk = isCompanyEmail(email);
   if(!domainOk || !user.emailVerified) {
+    await NfCache.clear();
     try { await FirebaseStore.auth.signOut(); } catch(e) {}
     showLoginScreen();
     showLoginMsg(domainOk
@@ -4384,7 +4430,7 @@ function getConsultantsListForCurrentFilters() {
     const rSup = (r.sup || '').trim().toUpperCase();
     if(sup && sup !== 'TODOS' && rSup !== sup) return;
     if(st !== 'geral' && r.state !== st) return;
-    if(!r.cons) return;
+    if(!r.cons || isNoCons(r.cons)) return;
     const consName = r.cons.trim();
     const cur = map.get(consName) || { name: consName, clients: 0, fat: 0 };
     if(!r._hist) cur.clients++;
@@ -4835,7 +4881,7 @@ function renderVisaoGeral() {
       cObj.ped += mp;
       if(!r._hist) cObj.clients++;
       if(clientActiveInPeriod) cObj.active++;
-      consMap.set(r.cons, cObj);
+      if(!isNoCons(r.cons)) consMap.set(r.cons, cObj);
 
       const sObj = stateMap.get(r.state) || { state: r.state, fat: 0, ped: 0, clients: 0, active: 0 };
       sObj.fat += mf;
@@ -4864,7 +4910,7 @@ function renderVisaoGeral() {
       cObj.ped += cPed;
       if(!r._hist) cObj.clients++;
       if(clientActiveInPeriod) cObj.active++;
-      consMap.set(r.cons, cObj);
+      if(!isNoCons(r.cons)) consMap.set(r.cons, cObj);
 
       const sObj = stateMap.get(r.state) || { state: r.state, fat: 0, ped: 0, clients: 0, active: 0 };
       sObj.fat += cFat;
@@ -5235,7 +5281,7 @@ function renderEstadosFoco() {
         const cName = r.city.trim().toUpperCase();
         st.cities.set(cName, (st.cities.get(cName)||0) + f);
       }
-      if(r.cons) {
+      if(r.cons && !isNoCons(r.cons)) {
         st.cons.set(r.cons, (st.cons.get(r.cons)||0) + f);
       }
     }
@@ -5573,10 +5619,11 @@ function renderRanking() {
     consMap.set(r.cons, cObj);
   });
 
-  const consList = Array.from(consMap.values());
-  const totFat = consList.reduce((a,b)=>a+b.fat,0);
-  const totPed = consList.reduce((a,b)=>a+b.ped,0);
-  const totAct = consList.reduce((a,b)=>a+b.active,0);
+  const consListAll = Array.from(consMap.values());
+  const totFat = consListAll.reduce((a,b)=>a+b.fat,0);
+  const totPed = consListAll.reduce((a,b)=>a+b.ped,0);
+  const totAct = consListAll.reduce((a,b)=>a+b.active,0);
+  const consList = consListAll.filter(c => !isNoCons(c.name));
 
   function medal(i){ return i<3 ? '<i class="fi fi-rr-trophy medal-' + (i+1) + '" aria-hidden="true" title="' + (i+1) + 'º lugar"></i>' : (i+1)+'º'; }
 
@@ -6500,7 +6547,7 @@ function renderMensal() {
     const cObj = consMap.get(r.cons) || { name: r.cons, fat: 0, ped: 0 };
     cObj.fat += f;
     cObj.ped += p;
-    consMap.set(r.cons, cObj);
+    if(!isNoCons(r.cons)) consMap.set(r.cons, cObj);
   });
 
   const sortedCons = Array.from(consMap.values()).sort((a,b)=>b.fat - a.fat);
@@ -6602,7 +6649,7 @@ function renderMensal() {
   } else {
     const consTotals = new Map();
     supRows.forEach(r => {
-      if(!r.cons) return;
+      if(!r.cons || isNoCons(r.cons)) return;
       const cName = r.cons.trim();
       const tot = (r.fat || []).reduce((a,b)=>a+b,0);
       consTotals.set(cName, (consTotals.get(cName) || 0) + tot);
@@ -8411,7 +8458,7 @@ function notifCooling(rows) {
 }
 function groupByCons(rows) {
   const m = new Map();
-  rows.forEach(r => { const k = (r.cons || '').trim(); if(!k) return; if(!m.has(k)) m.set(k, []); m.get(k).push(r); });
+  rows.forEach(r => { const k = (r.cons || '').trim(); if(!k || isNoCons(k)) return; if(!m.has(k)) m.set(k, []); m.get(k).push(r); });
   return m;
 }
 function halfMonthReached(mIdx) {
