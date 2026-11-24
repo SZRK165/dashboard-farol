@@ -2206,6 +2206,26 @@ function clientRows(rows) {
     return v;
   });
 }
+// Positivação da carteira: clientes da carteira de hoje (no filtro) que compraram no período,
+// com qualquer vendedor. Numerador e denominador são os mesmos clientes (fica entre 0% e 100%).
+function carteiraPos(rows, months) {
+  const cl = clientRows(rows), n = MONTH_KEYS.length;
+  const idx = months || Array.from({ length: n }, (_, i) => i);
+  const res = { clients: cl.length, active: 0, byCons: new Map(), byState: new Map(), perMonth: Array(n).fill(0) };
+  cl.forEach(r => {
+    let bought = false;
+    for(let i = 0; i < n; i++) if(rowBoughtIn(r, i)) res.perMonth[i]++;
+    for(const i of idx) if(rowBoughtIn(r, i)) { bought = true; break; }
+    if(bought) res.active++;
+    const k = (r.cons || '').trim(), c = res.byCons.get(k) || { clients: 0, active: 0, stPer: null };
+    c.clients++; if(bought) c.active++; res.byCons.set(k, c);
+    const st = r.state || '', sObj = res.byState.get(st) || { clients: 0, active: 0, perMonth: Array(n).fill(0) };
+    sObj.clients++; if(bought) sObj.active++;
+    for(let i = 0; i < n; i++) if(rowBoughtIn(r, i)) sObj.perMonth[i]++;
+    res.byState.set(st, sObj);
+  });
+  return res;
+}
 // Reativações creditadas a quem vendeu o pedido da volta (campo ra: meses sem comprar, por mês)
 let REATIV_CREDITED = false;
 let HIST_STATS = null;   // resumo da atribuição por vendedor (página Importar)
@@ -3758,7 +3778,7 @@ async function loadAppData() {
 // ═════════════════════════════════════════════════════════════════════════════
 const ADMIN_EMAILS = ['analisesupervisaosou@gmail.com'];
 const CONS_DOMAIN = [114,98,46,109,111,99,46,121,103,114,101,110,101,117,111,115].reverse().map(c=>String.fromCharCode(c)).join('');
-const PUB_FORMAT = 2; // 2: histórico por vendedor
+const PUB_FORMAT = 3; // 2: histórico por vendedor · 3: positivação pela carteira de hoje
 let USER_ROLE = null;       // 'admin' | 'consultor'
 let CONS_MODE = null;       // { email, consId, cons, sup, teamKey }
 let TEAM_SUMMARY = null;    // resumo da equipe do consultor
@@ -4078,11 +4098,13 @@ async function publishConsultorArea(force) {
       if(!mb.byState[st]) mb.byState[st] = { fat: Array(n).fill(0), ped: Array(n).fill(0), act: Array(n).fill(0), actAll: 0, clients: 0 };
       const d = mb.byState[st];
       if(!r._hist) d.clients++;
+      // positivação = clientes da carteira de hoje que compraram, com qualquer vendedor
+      const cv = r._hist ? null : (r.cf ? { fat: r.cf, ped: r.cp || r.ped } : r);
       let any = false;
       for(let i = 0; i < n; i++) {
         const f = (r.fat && r.fat[i]) || 0, p = (r.ped && r.ped[i]) || 0;
         d.fat[i] += f; d.ped[i] += p;
-        if(f > 0 || p > 0) { d.act[i]++; any = true; }
+        if(cv && (((cv.fat && cv.fat[i]) || 0) > 0 || ((cv.ped && cv.ped[i]) || 0) > 0)) { d.act[i]++; any = true; }
       }
       if(any) d.actAll++;
     });
@@ -4977,7 +4999,12 @@ function renderVisaoGeral() {
   });
 
   const tkm = totPed > 0 ? totFat / totPed : 0;
-  activeClients = activeIds.size;
+  // Positivação: só clientes da carteira de hoje, com qualquer vendedor (por consultor/estado = dono de hoje)
+  const CP = carteiraPos(rows, isMonthFiltered ? [m] : null);
+  activeClients = CP.active;
+  CP.perMonth.forEach((v, i) => { monthlyCli[i] = v; });
+  consMap.forEach(c => { const x = CP.byCons.get(String(c.name || '').trim()) || { clients: 0, active: 0 }; c.clients = x.clients; c.active = x.active; });
+  stateMap.forEach(o => { const x = CP.byState.get(o.state || '') || { clients: 0, active: 0 }; o.clients = x.clients; o.active = x.active; });
   const txPos = totalClients > 0 ? (activeClients / totalClients * 100) : 0;
 
   // Render KPI Strip
@@ -5337,6 +5364,10 @@ function renderEstadosFoco() {
     }
   });
 
+  // Positivação por estado: clientes da carteira de hoje que compraram (com qualquer vendedor)
+  const CPst = carteiraPos(supRows, isMonthFiltered ? [m] : null);
+  Object.keys(stateStats).forEach(sName => { const x = CPst.byState.get(sName) || { clients: 0, active: 0 }; stateStats[sName].clients = x.clients; stateStats[sName].active = x.active; });
+
   // Render Hero Cards
   document.getElementById('focus-states-cards').innerHTML = Object.entries(stateStats).map(([sName, d]) => {
     const tx = d.clients > 0 ? (d.active / d.clients * 100) : 0;
@@ -5400,15 +5431,10 @@ function renderEstadosFoco() {
 
   focusRows.forEach(r => {
     (r.fat || []).forEach((v, i) => {
-      if(i < MONTH_KEYS.length) {
-        focusMonthlyFat[i] += (v || 0);
-        const p = (r.ped && r.ped[i]) || 0;
-        if((v || 0) > 0 || p > 0) {
-          focusMonthlyCli[i]++;
-        }
-      }
+      if(i < MONTH_KEYS.length) focusMonthlyFat[i] += (v || 0);
     });
   });
+  carteiraPos(focusRows).perMonth.forEach((v, i) => { focusMonthlyCli[i] = v; });
 
   const pointRadii = Array(MONTH_KEYS.length).fill(4);
   if(isMonthFiltered) pointRadii[m] = 8;
@@ -5668,6 +5694,11 @@ function renderRanking() {
     if(r.state) cObj.states.add(r.state);
     consMap.set(r.cons, cObj);
   });
+  if(!isConsMode() || !(TEAM_SUMMARY && Array.isArray(TEAM_SUMMARY.members))) {
+    // Positivação de cada consultor = clientes da carteira dele hoje que compraram (com qualquer vendedor)
+    const CP = carteiraPos(rows, isMonthFiltered ? [m] : null);
+    consMap.forEach(c => { const x = CP.byCons.get(String(c.name || '').trim()) || { clients: 0, active: 0 }; c.clients = x.clients; c.active = x.active; });
+  }
 
   const consListAll = Array.from(consMap.values());
   const totFat = consListAll.reduce((a,b)=>a+b.fat,0);
@@ -6598,13 +6629,14 @@ function renderMensal() {
 
   let totFatMonth = 0, totPedMonth = 0, activeClientsMonth = 0;
   const consMap = new Map();
+  const buyersMonth = new Set(); // compradores únicos (um cliente com dois vendedores conta uma vez)
 
   rows.forEach(r => {
     const f = (r.fat && r.fat[mIdx]) || 0;
     const p = (r.ped && r.ped[mIdx]) || 0;
     totFatMonth += f;
     totPedMonth += p;
-    if(f > 0 || p > 0) activeClientsMonth++;
+    if((f > 0 || p > 0) && !buyersMonth.has(r.id)) { buyersMonth.add(r.id); activeClientsMonth++; }
 
     const cObj = consMap.get(r.cons) || { name: r.cons, fat: 0, ped: 0 };
     cObj.fat += f;
@@ -6899,7 +6931,8 @@ function renderMensal() {
   renderHtmlLegend('leg-comp-ped', pedDatasets, 'ch-comp-ped');
   renderHtmlLegend('leg-comp-cli', cliDatasets, 'ch-comp-cli');
 
-  renderMensalIndicadores(sortedCons, totFatMonth, totPedMonth, activeClientsMonth, rows.filter(r => !r._hist).length);
+  const CPm = carteiraPos(rows, [mIdx]);
+  renderMensalIndicadores(sortedCons, totFatMonth, totPedMonth, activeClientsMonth, CPm.clients, CPm.active);
   renderMensalProjTable();
   try { renderLevelEvolution(); } catch(e) { console.error('Evolução de nível:', e); }
 }
@@ -8316,13 +8349,14 @@ function downloadMetasTemplateExcel() {
 }
 
 // ─── PAINEL DE INDICADORES ESTRATÉGICOS & PROJEÇÕES MENSAIS ───────────────────
-function renderMensalIndicadores(sortedCons, totFatMonth, totPedMonth, activeClientsMonth, totalClients) {
+function renderMensalIndicadores(sortedCons, totFatMonth, totPedMonth, activeClientsMonth, totalClients, carteiraAtivos) {
+  const cartAtv = carteiraAtivos == null ? activeClientsMonth : carteiraAtivos;
   const indGrid = document.getElementById('ind-grid-mensal');
   if(!indGrid) return;
 
   const fatorComercial = activeClientsMonth > 0 ? (totPedMonth / activeClientsMonth).toFixed(2) : '0.00';
   const tkm = totPedMonth > 0 ? fR0(totFatMonth / totPedMonth) : 'R$ 0';
-  const taxaPos = totalClients > 0 ? ((activeClientsMonth / totalClients) * 100).toFixed(1) + '%' : '0%';
+  const taxaPos = totalClients > 0 ? ((cartAtv / totalClients) * 100).toFixed(1) + '%' : '0%';
 
   const consFatorList = sortedCons.map(c => {
     const cRows = RAW_DATA.filter(r => (r.cons || '').trim().toUpperCase() === c.name.trim().toUpperCase());
@@ -8356,7 +8390,7 @@ function renderMensalIndicadores(sortedCons, totFatMonth, totPedMonth, activeCli
     <div class="icard">
       <div class="icard-lbl">Taxa de Positivação da Carteira</div>
       <div class="icard-val" style="color:var(--blue)">${taxaPos}</div>
-      <div class="icard-sub">${activeClientsMonth} de ${totalClients} clientes da base</div>
+      <div class="icard-sub">${cartAtv} de ${totalClients} clientes da base</div>
     </div>
     <div class="icard">
       <div class="icard-lbl">Top Fator de Recompra</div>
