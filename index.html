@@ -2070,7 +2070,7 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
           <p>• <b>Mês sem a data da nota futura no relatório</b> (o relatório só traz essa data a partir de 22/07/2026): continua pela carteira, tirando os pedidos que tiveram nota em outro mês e somando os que vieram de outro mês.</p>
           <p>• <b>Mês sem arquivo:</b> fica como na carteira.</p>
           <p>• <b>Quem vendeu:</b> cada pedido traz o consultor que vendeu. O faturamento, os pedidos e os clientes de cada mês contam para ele, na equipe em que estava naquele mês (planilha de metas), mesmo que hoje o cliente seja de outro consultor. Status, lista de clientes, top 10 e WhatsApp continuam pela carteira de hoje.</p>
-          <p>• <b>Meses antes da carteira</b> (2025, por exemplo) vêm só dos pedidos, contados pela data de criação, inclusive de clientes que não estão mais na carteira.</p>
+          <p>• <b>Meses antes da carteira</b> (2025, por exemplo) vêm só dos pedidos, inclusive de clientes que não estão mais na carteira. Se o arquivo do mês tem a data da nota futura, cada pedido conta no mês da nota (etiqueta "Nota futura (antes da carteira)"); se não tem, conta no mês em que foi criado (etiqueta "Só pedidos").</p>
           <p>• A planilha da carteira salva no banco não é alterada. Ao enviar uma carteira nova, o painel refaz a conta sozinho, sem precisar reenviar os pedidos. Cancelados ficam de fora.</p>
         </div>
       </div>
@@ -2762,7 +2762,7 @@ function renderNfPage() {
     const arq = mt ? `${fNum(mt.n)} pedidos · ${mt.cov >= NF_MIN_COV ? 'com nota futura' : mt.cov > 0.02 ? Math.round(mt.cov * 100) + '% com nota futura' : 'sem data da nota'} <button type="button" class="btn btn-ghost btn-pill" style="font-size:9.5px;padding:1px 8px;margin-left:6px" data-nf-del="${x.k}" onclick="nfRemoveMonth('${x.k}')">Remover</button>` : '<span style="color:var(--muted)">—</span>';
     return `<tr><td><b>${nfLabel(x.k)}</b></td><td>${arq}</td><td>${x.mode === 'pedidos' ? '<span style="color:var(--muted)">fora da carteira</span>' : fR0(x.cart)}</td><td><b>${fR0(x.now)}</b></td>
       <td style="color:${Math.abs(d) < 1 ? 'var(--muted)' : d > 0 ? 'var(--green)' : 'var(--red)'}">${Math.abs(d) < 1 ? '—' : (d > 0 ? '+' : '−') + fR0(Math.abs(d))}</td>
-      <td>${x.mode === 'pedidos' ? fNum(x.nowPed) : fNum(x.cartPed) + ' → ' + fNum(x.nowPed)}</td><td>${x.moved > 1 ? fR0(x.moved) : '—'}</td><td>${modeTxt[x.mode] || ''}</td></tr>`;
+      <td>${x.mode === 'pedidos' ? fNum(x.nowPed) : fNum(x.cartPed) + ' → ' + fNum(x.nowPed)}</td><td>${x.moved > 1 ? fR0(x.moved) : '—'}</td><td>${x.mode === 'pedidos' && mt && mt.cov >= NF_MIN_COV ? '<span class="chart-pill pill-g" style="font-size:9.5px">Nota futura (antes da carteira)</span>' : (modeTxt[x.mode] || '')}</td></tr>`;
   }).join('');
   const extra = loaded.filter(k => !st.stats.some(x => x.k === k));
   const outTot = Object.values(st.outside || {}).reduce((a, b) => a + b, 0);
