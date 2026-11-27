@@ -1404,7 +1404,7 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
           <div class="chart-head">
             <div>
               <div class="chart-title"><i class="fi fi-rr-refresh" aria-hidden="true"></i> Reativações mês a mês</div>
-              <div class="chart-subtitle" id="reativ-mes-sub">Clientes que voltaram a comprar depois de pelo menos 2 meses sem compra</div>
+              <div class="chart-subtitle" id="reativ-mes-sub">Clientes que voltaram a comprar depois de mais de 60 dias sem comprar</div>
             </div>
             <span class="chart-pill pill-g" id="reativ-total-pill">—</span>
           </div>
@@ -2425,6 +2425,7 @@ function _applyNotaFutura() {
   // ── 1) valor de cada integrador em cada mês (dono atual), como antes ──
   const complete = has ? nfCompleteSet() : new Set();
   const sumNf = new Map(), moveOut = new Map(), moveIn = new Map(), dist = new Map(), names = new Map();
+  const dayR = new Map(); // id -> { 'AAAA-MM': [primeiro dia, último dia] } (planilhas enviadas depois de 27/11/2026)
   const add = (map, id, k, v, q) => { let o = map.get(id); if(!o) { o = {}; map.set(id, o); } const a = o[k] || (o[k] = [0, 0]); a[0] += v; a[1] += q; };
   const addDist = (id, k, sk, disp, v, q) => {
     let o = dist.get(id); if(!o) { o = {}; dist.set(id, o); }
@@ -2432,9 +2433,10 @@ function _applyNotaFutura() {
   };
   if(has) Object.keys(NF.agg).forEach(mc => {
     const g = NF.agg[mc];
-    nfEntries(mc).forEach(([id, mn, si, v, q]) => {
+    nfEntries(mc).forEach(([id, mn, si, v, q, d1, d2]) => {
       const eff = mn || mc;
       add(sumNf, id, eff, v, q);
+      if(d1 && v > 0) { let o = dayR.get(id); if(!o) { o = {}; dayR.set(id, o); } const x = o[eff]; o[eff] = x ? [Math.min(x[0], d1), Math.max(x[1], d2)] : [d1, d2]; }
       if(mn && mn !== mc) { add(moveOut, id, mc, v, q); add(moveIn, id, mn, v, q); }
       const raw = (g.sellers && g.sellers[si]) || '';
       addDist(id, eff, sellerKey(raw), sellerDisplay(raw), v, q);
@@ -2566,7 +2568,7 @@ function _applyNotaFutura() {
 
   // ── 4) visão do cliente (histórico completo) e reativações por quem vendeu ──
   const rowsById = new Map();
-  base.forEach(r => { delete r.cf; delete r.cp; delete r.ra; rowsById.set(String(r.id || ''), [r]); });
+  base.forEach(r => { delete r.cf; delete r.cp; delete r.ra; delete r.rd; rowsById.set(String(r.id || ''), [r]); });
   hist.forEach(h => { const k = String(h.id || ''); if(!rowsById.has(k)) rowsById.set(k, []); rowsById.get(k).push(h); });
   const same = (a, b) => a.length === b.length && a.every((x, i) => Math.abs((x || 0) - (b[i] || 0)) < 0.005);
   rowsById.forEach((rs, id) => {
@@ -2577,16 +2579,28 @@ function _applyNotaFutura() {
       if(!same(cf, own.fat) || !same(cp, own.ped)) { own.cf = cf; own.cp = cp; }
     }
     let last = -1;
+    const dr = dayR.get(id) || {};
     for(let i = 0; i < n; i++) {
       if(!((full.fat[i] || 0) > 0 || (full.ped[i] || 0) > 0)) continue;
-      if(last >= 0 && i - last - 1 >= REATIV_MIN_GAP) {
+      // com o dia das compras: mais de 60 dias entre a última compra e a da volta; sem o dia: 2 meses inteiros sem comprar
+      let dias = 0, isReat = false;
+      if(last >= 0) {
+        const a = dr[keys[last]], b = dr[keys[i]];
+        if(a && b) { dias = reativDiasEntre(keys[last], a[1], keys[i], b[0]); isReat = dias > REATIV_DIAS; }
+        else isReat = i - last - 1 >= REATIV_MIN_GAP;
+      }
+      if(isReat) {
         let best = null, bf = -1, bp = -1;
         rs.forEach(x => {
           const f = (x.fat && x.fat[i]) || 0, q = (x.ped && x.ped[i]) || 0;
           if(!(f > 0 || q > 0)) return;
           if(f > bf || (f === bf && q > bp)) { best = x; bf = f; bp = q; }
         });
-        if(best) { if(!best.ra) best.ra = Array(n).fill(0); best.ra[i] = i - last - 1; }
+        if(best) {
+          if(!best.ra) best.ra = Array(n).fill(0);
+          best.ra[i] = Math.max(1, i - last - 1);
+          if(dias) { if(!best.rd) best.rd = Array(n).fill(0); best.rd[i] = dias; }
+        }
       }
       last = i;
     }
@@ -2698,8 +2712,11 @@ async function handleNfFiles(input) {
     if(!g.sIdx.has(o.rca)) { g.sIdx.set(o.rca, g.sellers.length); g.sellers.push(o.rca); }
     const si = g.sIdx.get(o.rca);
     const key = o.id + '|' + mn + '|' + si;
-    const a = g.map.get(key) || [o.id, mn, si, 0, 0];
-    a[3] = Math.round((a[3] + o.v) * 100) / 100; a[4] += 1; g.map.set(key, a);
+    const a = g.map.get(key) || [o.id, mn, si, 0, 0, 0, 0];
+    a[3] = Math.round((a[3] + o.v) * 100) / 100; a[4] += 1;
+    const dia = (o.nf || o.cri).getDate(); // dia da compra (da nota; sem nota, da criação) → reativação por 60 dias
+    a[5] = a[5] ? Math.min(a[5], dia) : dia; a[6] = Math.max(a[6] || 0, dia);
+    g.map.set(key, a);
     if(o.nome && !g.names[o.id]) g.names[o.id] = o.nome;
   });
   Object.keys(byMonth).forEach(mc => { const g = byMonth[mc]; byMonth[mc] = { rows: Array.from(g.map.values()), sellers: g.sellers, names: g.names, p: g.p }; });
@@ -2843,7 +2860,7 @@ function applyYearView(y) {
     CURRENT_METAS_MONTH_IDX = idx.includes(f.cur) ? idx.indexOf(f.cur) : idx.length - 1;
     RAW_DATA = f.data.map(r => {
       const o = Object.assign({}, r, { fat: idx.map(i => (r.fat && r.fat[i]) || 0), ped: idx.map(i => (r.ped && r.ped[i]) || 0) });
-      ['cf', 'cp', 'ra'].forEach(k => { if(r[k]) o[k] = idx.map(i => r[k][i] || 0); });
+      ['cf', 'cp', 'ra', 'rd'].forEach(k => { if(r[k]) o[k] = idx.map(i => r[k][i] || 0); });
       return o;
     });
     if(TEAM_SUMMARY) TEAM_SUMMARY = sliceTeamSummary(TEAM_SUMMARY, idx);
@@ -3966,7 +3983,7 @@ async function loadAppData() {
 // ═════════════════════════════════════════════════════════════════════════════
 const ADMIN_EMAILS = ['analisesupervisaosou@gmail.com'];
 const CONS_DOMAIN = [114,98,46,109,111,99,46,121,103,114,101,110,101,117,111,115].reverse().map(c=>String.fromCharCode(c)).join('');
-const PUB_FORMAT = 4; // 2: histórico por vendedor · 3: positivação pela carteira de hoje
+const PUB_FORMAT = 5; // 5: reativação por 60 dias (rd) · 2: histórico por vendedor · 3: positivação pela carteira de hoje
 let USER_ROLE = null;       // 'admin' | 'consultor'
 let CONS_MODE = null;       // { email, consId, cons, sup, teamKey }
 let TEAM_SUMMARY = null;    // resumo da equipe do consultor
@@ -6481,11 +6498,18 @@ function evoDeltaFor(rows) {
 }
 
 // ─── REATIVAÇÕES ──────────────────────────────────────────────────────────────
-// Reativação = o cliente compra num mês depois de pelo menos 2 meses cheios sem
-// comprar (mesma régua dos 60 dias do inativo) e já tinha comprado antes,
-// dentro dos meses da planilha. A carteira traz o total por mês, então a
-// contagem é por mês. O 1º mês possível é o 4º da planilha (precisa de histórico).
+// Reativação = o cliente volta a comprar depois de MAIS DE 60 DIAS sem comprar
+// (mesma regra do CRM) e já tinha comprado antes, dentro dos meses da planilha.
+// Os dias vêm das planilhas de pedidos (data da nota; sem nota, data de criação).
+// Mês sem o dia salvo: vale a régua antiga, 2 meses inteiros sem comprar.
+// Os 2 primeiros meses da planilha servem de histórico.
+const REATIV_DIAS = 60;
 const REATIV_MIN_GAP = 2;
+const REATIV_START = 2;
+function reativDiasEntre(k1, d1, k2, d2) {
+  const [y1, m1] = k1.split('-').map(Number), [y2, m2] = k2.split('-').map(Number);
+  return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86400000);
+}
 // Uma cor por mês do calendário (o mesmo mês tem sempre a mesma cor)
 const REATIV_MONTH_COLORS = ['#00a8ff', '#a855f7', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4',
                              '#f97316', '#6366f1', '#84cc16', '#e11d48', '#14b8a6', '#eab308'];
@@ -6514,7 +6538,7 @@ function reativEventsOf(r) {
   if(_reativCache.has(r)) return _reativCache.get(r);
   const ev = [];
   if(REATIV_CREDITED) {
-    (r.ra || []).forEach((g, i) => { if(g > 0) ev.push({ m: i, gap: g, val: (r.fat && r.fat[i]) || 0, ped: (r.ped && r.ped[i]) || 0 }); });
+    (r.ra || []).forEach((g, i) => { if(g > 0) ev.push({ m: i, gap: g, dias: (r.rd && r.rd[i]) || 0, val: (r.fat && r.fat[i]) || 0, ped: (r.ped && r.ped[i]) || 0 }); });
     _reativCache.set(r, ev);
     return ev;
   }
@@ -6701,7 +6725,7 @@ function renderReativGeo(rows, inScope) {
 function renderReativacoes() {
   if(!document.getElementById('ch-reativ-mes')) return;
   const n = MONTH_KEYS.length;
-  const START = REATIV_MIN_GAP + 1;
+  const START = REATIV_START;
   const light = isLightMode();
   const cGreen = light ? '#15803d' : '#70e000';
   const cFocus = light ? '#ea580c' : '#ff7a00';
@@ -6775,7 +6799,7 @@ function renderReativacoes() {
   });
 
   const whoTxt = (hasCons ? consSel : (isAllSup ? 'todas as equipes' : 'equipe ' + teamNameOf(STATE.supervisor))) + (REATIV_GEO ? ' · ' + reativGeoLabel() : '');
-  document.getElementById('reativ-mes-sub').textContent = `Clientes que voltaram a comprar depois de pelo menos 2 meses sem compra · ${whoTxt}`;
+  document.getElementById('reativ-mes-sub').textContent = `Clientes que voltaram a comprar depois de mais de 60 dias sem comprar · ${whoTxt}`;
   const scopeCnt = isMonth ? (mSel >= START ? cnt[mSel] : 0) : idxs.reduce((a, i) => a + cnt[i], 0);
   const scopeVal = isMonth ? (mSel >= START ? val[mSel] : 0) : idxs.reduce((a, i) => a + val[i], 0);
   document.getElementById('reativ-total-pill').textContent = `${fNum(scopeCnt)} clientes · ${fK(scopeVal)}`;
@@ -7160,7 +7184,7 @@ function drawReativList() {
       <td>${r.cons || '—'}</td>
       <td>${r.state || '—'}</td>
       <td>${r.city || '—'}</td>
-      <td class="num">${e.gap} ${e.gap === 1 ? 'mês' : 'meses'}</td>
+      <td class="num">${e.dias ? e.dias + ' dias' : e.gap + (e.gap === 1 ? ' mês' : ' meses')}</td>
       <td class="num">${fNum(e.ped)}</td>
       <td class="num" style="color:var(--green);font-weight:700">${fR0(e.val)}</td>
     </tr>`).join('')
@@ -9372,10 +9396,10 @@ function buildConsAlerts() {
 
   // Reativações do mês
   const reat = new Set((REATIV_CREDITED ? (RAW_DATA || []) : rows).filter(r => reativEventsOf(r).some(e => e.m === mIdx)).map(r => r.id)).size;
-  if(reat > 0 && mIdx >= REATIV_MIN_GAP + 1) {
+  if(reat > 0 && mIdx >= REATIV_START) {
     out.push({ id: `reativ|${mIdx}|${reat}`, sev: 'ok',
       title: `Você reativou ${reat === 1 ? '1 cliente' : reat + ' clientes'} em ${mName}`,
-      desc: `${reat === 1 ? 'Cliente que estava' : 'Clientes que estavam'} 2 meses ou mais sem comprar e ${reat === 1 ? 'voltou' : 'voltaram'} a comprar com você.`,
+      desc: `${reat === 1 ? 'Cliente que estava' : 'Clientes que estavam'} mais de 60 dias sem comprar e ${reat === 1 ? 'voltou' : 'voltaram'} a comprar com você.`,
       go: { page: 'clientes', month: String(mIdx), find: { sel: '#reativ-list-body', card: true } }, goLabel: 'Ver a lista →' });
   }
   return out;
