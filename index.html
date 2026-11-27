@@ -305,6 +305,11 @@ body.sb-dragging iframe,body.sb-dragging canvas{pointer-events:none}
 .cons-btn:hover{background:var(--bg3);color:var(--text)}
 .cons-btn.active{background:rgba(255,68,0,.12);color:#ff4400;border-color:rgba(255,68,0,.25);font-weight:600}
 .cons-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-right:8px}
+.cons-search-wrap{position:relative;margin-bottom:6px}
+.cons-search-wrap i{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--muted);pointer-events:none;line-height:1}
+.cons-search-wrap .form-input{padding:6px 10px 6px 27px;font-size:11.5px}
+.cons-btn[hidden],.cons-search-empty[hidden]{display:none}
+.cons-search-empty{font-size:11px;color:var(--muted);padding:6px 9px}
 
 /* FORM SELECT */
 .form-select, .form-input{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;padding:7px 10px;border-radius:8px;outline:none;transition:.15s;width:100%}
@@ -1088,7 +1093,12 @@ tr.notif-flash td{background:rgba(255,77,0,.14) !important}
         <span>Consultores</span>
         <span style="font-size:9px;color:var(--orange);cursor:pointer" onclick="setConsultantFilter('todos')">Limpar</span>
       </div>
+      <div class="cons-search-wrap">
+        <i class="fi fi-rr-search" aria-hidden="true"></i>
+        <input type="search" class="form-input" id="cons-search" placeholder="Buscar consultor..." autocomplete="off" aria-label="Buscar consultor pelo nome" oninput="filterConsList()">
+      </div>
       <div class="consultant-list" id="sidebar-cons-list"></div>
+      <div class="cons-search-empty" id="cons-search-empty" hidden>Nenhum consultor com esse nome.</div>
     </div>
     <div class="sidebar-credit">Ícones: <a href="https://www.flaticon.com/uicons" target="_blank" rel="noopener">Uicons by Flaticon</a></div>
   </aside>
@@ -3120,7 +3130,7 @@ let FILE_META = { name: '', size: 0, rows: 0, date: '' };
 
 let STATE = {
   page: 'geral',
-  supervisor: 'CAIO CESAR',
+  supervisor: 'TODOS',
   metasSupervisor: 'CAIO CESAR',
   state: 'geral',
   consultant: 'todos',
@@ -3970,7 +3980,20 @@ async function loadAppData() {
   }
 
   if(loading) loading.style.display = 'none';
+  applyDefaultYear();
   updateAppDisplayState();
+}
+
+// Ao abrir o painel: só o ano atual (ou o último ano da planilha)
+function applyDefaultYear() {
+  try {
+    if(!RAW_DATA || !RAW_DATA.length || YEAR_VIEW.year !== 'todos') return;
+    const ys = [...new Set(MONTH_YEAR_MAP.map(x => x.y))];
+    if(ys.length < 2) return;
+    const cy = new Date().getFullYear();
+    applyYearView(String(ys.includes(cy) ? cy : Math.max(...ys)));
+    STATE.month = 'todos';
+  } catch(e) { console.warn('Filtro de ano inicial:', e); }
 }
 
 
@@ -4193,6 +4216,7 @@ async function loadConsultantData(email, acc) {
     APP_DATA_LOADED = true;
     hideAccessScreen();
     document.getElementById('logout-btn').style.display = '';
+    applyDefaultYear();
     updateAppDisplayState();
     if(STATE.page === 'importar' || STATE.page === 'acessos') setPage('geral');
   } catch(e) {
@@ -4727,13 +4751,8 @@ function populateSupervisorsDropdown() {
   sel.innerHTML = `<option value="TODOS">Todas as Equipes</option>` +
     sups.map(s => `<option value="${s}">${teamNameOf(s)}</option>`).join('');
   
-  // Prioriza CAIO CESAR se existir na planilha
-  const hasCaio = sups.some(s => s.toUpperCase().includes('CAIO'));
-  if(!STATE.supervisor) {
-    STATE.supervisor = hasCaio ? sups.find(s => s.toUpperCase().includes('CAIO')) : 'TODOS';
-  } else if(STATE.supervisor !== 'TODOS' && !sups.includes(STATE.supervisor)) {
-    STATE.supervisor = hasCaio ? sups.find(s => s.toUpperCase().includes('CAIO')) : 'TODOS';
-  }
+  // Abre com todas as equipes
+  if(!STATE.supervisor || (STATE.supervisor !== 'TODOS' && !sups.includes(STATE.supervisor))) STATE.supervisor = 'TODOS';
 
   sel.value = STATE.supervisor;
   updateSupervisorUIHeaders();
@@ -4852,7 +4871,23 @@ function buildSidebarConsultants() {
   });
 
   list.innerHTML = html;
+  filterConsList(true);
   slideConsHL();
+}
+
+// Busca de consultor pelo nome (o "Todos" fica sempre visível)
+function filterConsList(silent) {
+  const inp = document.getElementById('cons-search'), list = document.getElementById('sidebar-cons-list');
+  if(!inp || !list) return;
+  const q = normTxt(inp.value || '').trim();
+  let shown = 0;
+  list.querySelectorAll('.cons-btn[title]').forEach(b => {
+    const ok = !q || normTxt(b.title).includes(q);
+    b.hidden = !ok; if(ok) shown++;
+  });
+  const empty = document.getElementById('cons-search-empty');
+  if(empty) empty.hidden = !q || shown > 0;
+  if(!silent) slideConsHL();
 }
 
 function buildMonthSelectorButtons() {
